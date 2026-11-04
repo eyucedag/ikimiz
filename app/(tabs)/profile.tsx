@@ -182,7 +182,6 @@ export default function ProfileScreen() {
             {appearance.backgroundColor === option.color ? <Feather name="check" size={16} color={colors.accent} /> : null}
           </Pressable>)}
         </View>
-        <View style={styles.backgroundLabels}>{appBackgroundColors.map((option) => <Text key={option.color} style={styles.backgroundLabel}>{option.label}</Text>)}</View>
         <Divider inset={34} />
         <SettingsRow icon="bell" title="Bildirim tercihleri" soon onPress={() => showSoon('Bildirim tercihleri', 'Push bildirimleri ve sessiz saatler Aşama 2’de eklenecek.')} />
         <Divider inset={34} />
@@ -224,10 +223,8 @@ const styles = StyleSheet.create({
   groupCard: { paddingVertical: spacing.xs, marginBottom: spacing.lg, borderRadius: radius.card },
   themeTitle: { fontSize: fontSize.sm, fontWeight: '600', color: colors.text, marginHorizontal: spacing.sm },
   themeHint: { fontSize: fontSize.xs, color: colors.textSecondary, marginHorizontal: spacing.sm, marginTop: 2, marginBottom: spacing.sm },
-  backgroundOptions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, paddingHorizontal: spacing.sm },
-  backgroundOption: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  backgroundLabels: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: spacing.sm, marginTop: spacing.xs, marginBottom: spacing.sm },
-  backgroundLabel: { fontSize: 9, color: colors.textTertiary },
+  backgroundOptions: { flexDirection: 'row', flexWrap: 'nowrap', justifyContent: 'space-between', paddingHorizontal: spacing.sm, marginBottom: spacing.sm },
+  backgroundOption: { width: 32, height: 32, borderRadius: 16, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   relationshipCard: { paddingVertical: spacing.md, marginBottom: spacing.lg, borderRadius: radius.card },
   inlineError: { color: colors.error, fontSize: fontSize.sm, marginTop: spacing.sm },
   saveStart: { marginTop: spacing.md },
