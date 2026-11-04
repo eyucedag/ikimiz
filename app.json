@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "İkimiz",
+    "slug": "ikimiz",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/images/icon.png",
+    "scheme": "ikimiz",
+    "userInterfaceStyle": "light",
+    "platforms": ["ios", "android"],
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FAF8F5"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.ikimiz.mobile"
+    },
+    "android": {
+      "package": "app.ikimiz.mobile",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#FAF8F5"
+      }
+    },
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}

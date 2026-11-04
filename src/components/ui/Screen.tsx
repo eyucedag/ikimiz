@@ -1,0 +1,83 @@
+import React from 'react';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { colors, fontSize, layout, spacing } from '@/src/constants/theme';
+import { IconButton } from './IconButton';
+
+interface ScreenProps {
+  children: React.ReactNode;
+  /** Üst başlık; verilirse geri butonlu bir başlık çubuğu gösterilir. */
+  title?: string;
+  showBack?: boolean;
+  headerRight?: React.ReactNode;
+  scroll?: boolean;
+  refreshing?: boolean;
+  onRefresh?: () => void;
+  /** Sekme ekranlarında alt güvenli alanı sekme çubuğu yönetir. */
+  inTabs?: boolean;
+}
+
+/**
+ * Tüm ekranların ortak kabuğu: güvenli alan, krem zemin ve tabletlerde
+ * en fazla 600pt genişliğinde ortalanmış içerik.
+ */
+export function Screen({ children, title, showBack = true, headerRight, scroll = true, refreshing, onRefresh, inTabs }: ScreenProps) {
+  const router = useRouter();
+  const { width } = useWindowDimensions();
+  const contentWidth = Math.min(width, layout.maxContentWidth);
+
+  const goBack = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)'));
+
+  const header = title ? (
+    <View style={[styles.header, { width: contentWidth }]}>
+      {showBack ? <IconButton icon="arrow-left" onPress={goBack} accessibilityLabel="Geri dön" /> : <View style={styles.headerSpacer} />}
+      <Text style={styles.headerTitle} numberOfLines={1} accessibilityRole="header">
+        {title}
+      </Text>
+      <View style={styles.headerSide}>{headerRight ?? null}</View>
+    </View>
+  ) : null;
+
+  const body = scroll ? (
+    <ScrollView
+      contentContainerStyle={styles.scrollContent}
+      keyboardShouldPersistTaps="handled"
+      refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={colors.accent} /> : undefined}
+    >
+      <View style={[styles.inner, { width: contentWidth }]}>{children}</View>
+    </ScrollView>
+  ) : (
+    <View style={[styles.inner, styles.fill, { width: contentWidth }]}>{children}</View>
+  );
+
+  return (
+    <SafeAreaView style={styles.safe} edges={inTabs ? ['top', 'left', 'right'] : ['top', 'left', 'right', 'bottom']}>
+      <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <View style={styles.center}>{header}</View>
+        <View style={[styles.fill, !scroll && styles.center]}>{body}</View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: colors.background },
+  fill: { flex: 1 },
+  center: { alignItems: 'center' },
+  scrollContent: { alignItems: 'center', paddingBottom: spacing.xxxl },
+  inner: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
+  headerTitle: { flex: 1, textAlign: 'center', fontSize: fontSize.lg, fontWeight: '600', color: colors.text },
+  headerSpacer: { width: 40 },
+  headerSide: { width: 40, alignItems: 'flex-end' },
+});
