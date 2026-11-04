@@ -195,3 +195,40 @@ Tablet uyumu `useWindowDimensions` ile sağlanır: geniş ekranlarda içerik ort
 9. **Gerçek zamanlı güncellemeler** (Supabase Realtime) — yeni ekran notlarının anında görünmesi
 10. **Google ve Apple ile giriş**
 11. **Yaklaşanlar kartının** takvim, görev ve hatırlatmalardan beslenmesi
+
+---
+
+## EAS Build ile bilgisayarsız test
+
+Uygulama Expo'nun bulut derleme servisi **EAS Build** ile derlenip telefonunuza veya tabletinize doğrudan yüklenebilir. Proje ayarları `eas.json` dosyasındadır.
+
+| Profil | Ne üretir | Ne zaman kullanılır |
+| --- | --- | --- |
+| `preview` | Android **APK**, iOS dahili dağıtım | Telefona doğrudan kurup denemek için (**önerilen**) |
+| `development` | Geliştirme istemcisi (APK / iOS) | Kod geliştirirken. Önce `npx expo install expo-dev-client` gerekir. |
+| `production` | Android **AAB**, iOS mağaza derlemesi | Google Play / App Store yayını için |
+
+### Android (APK)
+
+1. [expo.dev](https://expo.dev) adresine gidin ve **Gmail hesabınızla** giriş yapın.
+2. Sol menüden **Projects** bölümünde **ikimiz** projesini bulun. Proje yoksa **New Project** ile `ikimiz` adında bir proje oluşturun ve bu GitHub reposunu (`eyucedag/ikimiz`) bağlayın. Proje bağlandığında `app.json` içindeki `extra.eas.projectId` alanı dolar.
+3. Projede **Builds** sekmesine gidin, **New Build**'e tıklayın, platform olarak **Android**, profil olarak **preview** seçin.
+4. Derleme yaklaşık 10–15 dakika sürer. Bitince sayfada **APK indirme bağlantısı** ve QR kod görünür.
+5. Android telefonunuzda bağlantıyı açıp APK'yı indirin ve kurun. Telefon “bilinmeyen kaynaklardan yükleme” izni isteyebilir (**Ayarlar → Uygulamalar → Bilinmeyen uygulamaları yükle**).
+
+Bilgisayar kullanmak isterseniz aynı işlem komut satırından da yapılabilir:
+
+```bash
+npm install -g eas-cli
+eas login
+eas init                    # projeyi expo.dev'e bağlar, projectId'yi doldurur
+npm run eas:build:android   # = eas build --platform android --profile preview
+```
+
+### iPhone / iPad
+
+- expo.dev'de **Builds → New Build → iOS → preview** (dahili dağıtım, *Internal Distribution*) seçin.
+- Bunun için **ücretli bir Apple Developer hesabı** gerekir. EAS, Apple hesabınızla giriş yapmanızı ister ve cihazınızı kayıt için bir bağlantı verir. Cihazın kaydı tamamlanmadan derleme kurulamaz.
+- Apple hesabınız yoksa iPhone/iPad'de test etmenin en kolay yolu **Expo Go** ile denemektir (bkz. [Expo Go ile çalıştırma](#expo-go-ile-çalıştırma)).
+
+> Not: `app.json` içindeki `owner` alanı `eceyucedag` olarak ayarlandı. expo.dev'deki kullanıcı adınız farklıysa bu alanı kendi kullanıcı adınızla değiştirin, aksi halde derleme “owner” hatası verir.

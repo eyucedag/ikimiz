@@ -7,7 +7,10 @@
     "icon": "./assets/images/icon.png",
     "scheme": "ikimiz",
     "userInterfaceStyle": "light",
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
@@ -29,6 +32,12 @@
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "owner": "eceyucedag",
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
+    }
   }
 }
