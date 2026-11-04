@@ -33,7 +33,7 @@
 | Eşleşme durumu ve onaylı sonlandırma | ✅ Çalışıyor |
 | Ekrana Not: metin + emoji + arka plan rengi, geçmiş | ✅ Çalışıyor |
 | Ruh Halim: günlük ruh hali, kısa not, ortak 30 günlük geçmiş | ✅ Çalışıyor |
-| Öpücük: sabah ve akşam birer kez, partnere animasyonlu gönderim | ✅ Çalışıyor |
+| Öpücük: istenildiği zaman partnere animasyonlu gönderim | ✅ Çalışıyor |
 | Ortak Fotoğraf: iki telefonda gösterilen, partnerlerden biri tarafından değiştirilebilen fotoğraf | ✅ Çalışıyor |
 | Uygulama içi bildirimler (okundu işaretleme, sekme rozeti) | ✅ Çalışıyor |
 | Arama (kategoriler, ekran notları, bildirimler) | ✅ Çalışıyor |
@@ -97,7 +97,7 @@ Yerel mock (demo) mod kaldırılmıştır; tüm veriler Supabase'de tutulur.
 4. Başka bir Supabase projesi kullanacaksanız **Project Settings → API** sayfasındaki URL ve anon anahtarını `src/lib/supabase.ts` dosyasına yazın.
 5. `npx expo start -c` ile uygulamayı yeniden başlatın.
 
-Mevcut kuruluma **Ruh Halim** eklemek için `supabase/migrations/20261104_mood_entries.sql`, **Öpücük** için `supabase/migrations/20261104_kisses.sql`, **Ortak Fotoğraf** için `supabase/migrations/20261104_couple_photo.sql`, **Gezdiğimiz Yerler** için `supabase/migrations/20261104_travel_places.sql`, `supabase/migrations/20261104_travel_place_notes.sql` ve `supabase/migrations/20261104_travel_places_edit.sql` ve `supabase/migrations/20261104_travel_places_shared_edit.sql` dosyalarını Supabase SQL Editor'da çalıştırın. Bu ek kurulumlar mevcut verileri silmeden tabloları, Storage alanını ve erişim kurallarını oluşturur. Ruh hali ve not aktif partnerle paylaşılır; herkes yalnızca kendi kaydını değiştirebilir. Öpücük tablosu sabah/akşam haklarını ve partner uygulaması açıkken anlık animasyonu sağlar; partner daha sonra uygulamayı açarsa son 24 saatteki öpücük animasyonu gösterilir. Ortak fotoğrafını eşleşmedeki iki kullanıcı da değiştirebilir ve yalnızca aktif çift üyeleri görebilir. Gezdiğimiz Yerler kayıtları iki partnerin de haritasında görünür; ekleyen kişi kendi kaydını düzenleyebilir veya kaldırabilir.
+Mevcut kuruluma **Ruh Halim** eklemek için `supabase/migrations/20261104_mood_entries.sql`, **Öpücük** için `supabase/migrations/20261104_kisses.sql` ve eski sabah/akşam sınırını kaldırmak için `supabase/migrations/20261104_kisses_anytime.sql`, **Ortak Fotoğraf** için `supabase/migrations/20261104_couple_photo.sql`, **Gezdiğimiz Yerler** için `supabase/migrations/20261104_travel_places.sql`, `supabase/migrations/20261104_travel_place_notes.sql` ve `supabase/migrations/20261104_travel_places_edit.sql`, `supabase/migrations/20261104_travel_places_shared_edit.sql` dosyalarını Supabase SQL Editor'da çalıştırın. Bu ek kurulumlar mevcut verileri silmeden tabloları, Storage alanını ve erişim kurallarını oluşturur. Ruh hali ve not aktif partnerle paylaşılır; herkes yalnızca kendi kaydını değiştirebilir. Öpücük tablosu istenildiği zaman gönderimi ve partner uygulaması açıkken anlık animasyonu sağlar; partner daha sonra uygulamayı açarsa son 24 saatteki öpücük animasyonu gösterilir. Ortak fotoğrafını eşleşmedeki iki kullanıcı da değiştirebilir ve yalnızca aktif çift üyeleri görebilir. Gezdiğimiz Yerler kayıtları iki partnerin de haritasında görünür; ekleyen kişi kendi kaydını düzenleyebilir veya kaldırabilir.
 
 **Şema özeti** — 20 tablo:
 

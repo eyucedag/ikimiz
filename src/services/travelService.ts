@@ -13,6 +13,14 @@ export interface TravelPlace {
   createdAt: string;
 }
 
+export interface CityOption {
+  id: string;
+  city: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+}
+
 function mapPlace(row: Record<string, unknown>): TravelPlace {
   return {
     id: String(row.id), coupleId: String(row.couple_id), ownerId: String(row.owner_id),
@@ -49,13 +57,21 @@ export const travelService = {
   },
 };
 
-export async function findCoordinates(city: string, country: string): Promise<{ latitude: number; longitude: number }> {
-  const query = new URLSearchParams({ city, country, format: 'jsonv2', limit: '1' });
+export async function searchCities(search: string, country: string): Promise<CityOption[]> {
+  const query = new URLSearchParams({ q: `${search}, ${country}`, format: 'jsonv2', addressdetails: '1', limit: '8' });
   const response = await fetch(`https://nominatim.openstreetmap.org/search?${query.toString()}`, {
     headers: { 'Accept-Language': 'tr,en' },
   });
   if (!response.ok) throw new Error('Harita konumu bulunamadı. Biraz sonra yeniden deneyin.');
-  const results = await response.json() as Array<{ lat: string; lon: string }>;
-  if (!results.length) throw new Error('Bu şehir ve ülke eşleşmesini bulamadım. Adları kontrol edip yeniden deneyin.');
-  return { latitude: Number(results[0].lat), longitude: Number(results[0].lon) };
+  const results = await response.json() as Array<{
+    place_id: number; name?: string; lat: string; lon: string;
+    address?: { city?: string; town?: string; village?: string; municipality?: string; county?: string; country?: string };
+  }>;
+  return results.map((result) => ({
+    id: String(result.place_id),
+    city: result.address?.city ?? result.address?.town ?? result.address?.village ?? result.address?.municipality ?? result.address?.county ?? result.name ?? '',
+    country: result.address?.country ?? country,
+    latitude: Number(result.lat),
+    longitude: Number(result.lon),
+  })).filter((result) => result.city.length > 0);
 }

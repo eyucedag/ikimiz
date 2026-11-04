@@ -45,7 +45,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         partnerId: String(row.partner_id),
         coupleId: String(row.couple_id),
         localDate: String(row.local_date),
-        period: row.period === 'morning' ? 'morning' : 'evening',
         createdAt: String(row.created_at),
       });
       void AsyncStorage.setItem(seenKey, row.id);
@@ -55,7 +54,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         const storedLastSeenId = await AsyncStorage.getItem(seenKey);
         if (lastSeenId === null) lastSeenId = storedLastSeenId;
         const { data } = await supabase.from('kisses')
-          .select('id, owner_id, partner_id, couple_id, local_date, period, created_at')
+          .select('id, owner_id, partner_id, couple_id, local_date, created_at')
           .eq('partner_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1);

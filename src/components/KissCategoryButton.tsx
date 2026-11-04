@@ -1,8 +1,7 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useFocusEffect } from 'expo-router';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
-import { getKissPeriod, KissPeriod, KissRecord, kissService } from '@/src/services/kissService';
+import { kissService } from '@/src/services/kissService';
 
 interface Props {
   ownerId?: string;
@@ -10,74 +9,41 @@ interface Props {
   coupleId?: string;
 }
 
-function localDate(date = new Date()) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-}
-
 export function KissCategoryButton({ ownerId, partnerId, coupleId }: Props) {
-  const [records, setRecords] = useState<KissRecord[]>([]);
-  const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const paired = !!ownerId && !!partnerId && !!coupleId;
 
-  const refresh = useCallback(async () => {
-    if (!ownerId) return;
-    setLoading(true);
-    try {
-      setRecords(await kissService.listToday(ownerId));
-      setError('');
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Öpücük durumu yüklenemedi.');
-    } finally {
-      setLoading(false);
-    }
-  }, [ownerId]);
-
-  useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
-
-  const currentPeriod = getKissPeriod();
-  const today = localDate();
-  const used = useMemo(
-    () => new Set(records.filter((record) => record.localDate === today).map((record) => record.period)),
-    [records, today],
-  );
-  const alreadySent = used.has(currentPeriod);
-
   const send = async () => {
-    if (!ownerId || !partnerId || !coupleId || sending || alreadySent) return;
+    if (!ownerId || !partnerId || !coupleId || sending) return;
     setSending(true);
     setNotice('');
     setError('');
     try {
-      const record = await kissService.send({ ownerId, partnerId, coupleId });
-      setRecords((previous) => [...previous.filter((item) => item.id !== record.id), record]);
-      setNotice(currentPeriod === 'morning' ? 'Sabah öpücüğünüz partnerinize gitti 💋' : 'Akşam öpücüğünüz partnerinize gitti 💋');
+      await kissService.send({ ownerId, partnerId, coupleId });
+      setNotice('Öpücüğün partnerine gitti 💋');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Öpücük gönderilemedi. Lütfen yeniden deneyin.');
-      void refresh();
     } finally {
       setSending(false);
     }
   };
 
-  const status = (period: KissPeriod, label: string) => `${label} ${used.has(period) ? '✓' : '○'}`;
-
   return (
     <View style={styles.container}>
       <Pressable
         onPress={send}
-        disabled={!paired || loading || sending || alreadySent}
+        disabled={!paired || sending}
         accessibilityRole="button"
         accessibilityLabel="Partnerinize öpücük gönder"
-        accessibilityState={{ disabled: !paired || loading || sending || alreadySent }}
-        style={({ pressed }) => [styles.button, pressed && styles.pressed, (!paired || alreadySent) && styles.disabled]}
+        accessibilityState={{ disabled: !paired || sending }}
+        style={({ pressed }) => [styles.button, pressed && styles.pressed, !paired && styles.disabled]}
       >
-        {sending || loading ? <ActivityIndicator color={styles.lips.color} /> : <Text style={styles.lips}>💋</Text>}
+        {sending ? <ActivityIndicator color={styles.lips.color} /> : <Text style={styles.lips}>💋</Text>}
       </Pressable>
       <Text style={styles.title}>Öpücük</Text>
-      <Text style={styles.usage}>{status('morning', 'Sabah')}  ·  {status('evening', 'Akşam')}</Text>
+      <Text style={styles.usage}>Ne zaman istersen 💋</Text>
       {!paired ? <Text style={styles.message}>Öpücük göndermek için partnerinizle eşleşin.</Text> : null}
       {notice ? <Text style={styles.success}>{notice}</Text> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}

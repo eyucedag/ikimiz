@@ -494,8 +494,7 @@ create policy mood_entries_delete on public.mood_entries for delete to authentic
   using (owner_id = auth.uid());
 
 -- =====================================================================
--- 19) kisses — partnere sabah ve akşam öpücüğü
--- Her kullanıcı yerel gününde dönem başına bir öpücük gönderebilir.
+-- 19) kisses — partner istediği zaman öpücük gönderir
 -- =====================================================================
 create table if not exists public.kisses (
   id          uuid primary key default gen_random_uuid(),
@@ -504,8 +503,6 @@ create table if not exists public.kisses (
   partner_id  uuid not null references auth.users(id) on delete cascade,
   couple_id   uuid not null references public.couples(id) on delete cascade,
   local_date  date not null,
-  period      text not null check (period in ('morning', 'evening')),
-  constraint kisses_owner_period_day_key unique (owner_id, local_date, period),
   constraint kisses_no_self_send check (owner_id <> partner_id)
 );
 

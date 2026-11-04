@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Modal, Platform, Pressable, ScrollViewInstance, StyleSheet, Text, View } from 'react-native';
+import { Alert, Modal, Platform, Pressable, ScrollView, ScrollViewInstance, StyleSheet, Text, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MapView, { Marker } from 'react-native-maps';
 import { useFocusEffect } from 'expo-router';
@@ -8,7 +8,7 @@ import { Button, Card, EmptyState, Input, Screen } from '@/src/components/ui';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
-import { findCoordinates, TravelPlace, travelService } from '@/src/services/travelService';
+import { CityOption, searchCities, TravelPlace, travelService } from '@/src/services/travelService';
 import { supabase } from '@/src/lib/supabase';
 
 function todayLocal() {
@@ -25,6 +25,16 @@ function formatLocalDate(value: Date) {
   return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
 }
 
+const COUNTRIES = [
+  'Türkiye', 'Almanya', 'Amerika Birleşik Devletleri', 'Arnavutluk', 'Avustralya', 'Avusturya', 'Azerbaycan', 'Birleşik Arap Emirlikleri',
+  'Belçika', 'Birleşik Krallık', 'Bosna-Hersek', 'Brezilya', 'Bulgaristan', 'Çekya', 'Çin', 'Danimarka', 'Endonezya',
+  'Fas', 'Finlandiya', 'Fransa', 'Gürcistan', 'Güney Kore', 'Hırvatistan', 'Hindistan', 'Hollanda', 'Irak', 'İran',
+  'İrlanda', 'İspanya', 'İsrail', 'İsveç', 'İsviçre', 'İtalya', 'Japonya', 'Kanada', 'Karadağ', 'Katar', 'Kazakistan',
+  'Kıbrıs', 'Kolombiya', 'Kuzey Makedonya', 'Macaristan', 'Maldivler', 'Meksika', 'Mısır', 'Norveç', 'Pakistan',
+  'Polonya', 'Portekiz', 'Romanya', 'Rusya', 'Sırbistan', 'Singapur', 'Suudi Arabistan', 'Tayland', 'Ukrayna', 'Ürdün',
+  'Vietnam', 'Yunanistan',
+];
+
 export default function TravelMapScreen() {
   const { user } = useAuth();
   const couple = useCouple();
@@ -38,6 +48,12 @@ export default function TravelMapScreen() {
   const [editingPlace, setEditingPlace] = useState<TravelPlace | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [draftDate, setDraftDate] = useState(parseLocalDate(visitedOn));
+  const [selectedCoordinates, setSelectedCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [selectionModal, setSelectionModal] = useState<'country' | 'city' | null>(null);
+  const [selectionSearch, setSelectionSearch] = useState('');
+  const [cityOptions, setCityOptions] = useState<CityOption[]>([]);
+  const [searchingCities, setSearchingCities] = useState(false);
+  const [selectionError, setSelectionError] = useState('');
   const scrollRef = React.useRef<ScrollViewInstance>(null);
 
   const refresh = useCallback(async () => {
@@ -55,6 +71,24 @@ export default function TravelMapScreen() {
     return () => { void supabase.removeChannel(channel); };
   }, [couple.couple?.id, refresh]);
 
+  useEffect(() => {
+    if (selectionModal !== 'city' || selectionSearch.trim().length < 2) {
+      setCityOptions([]);
+      setSearchingCities(false);
+      return;
+    }
+    let active = true;
+    const timeout = setTimeout(() => {
+      setSearchingCities(true);
+      setSelectionError('');
+      void searchCities(selectionSearch.trim(), country)
+        .then((options) => { if (active) setCityOptions(options); })
+        .catch((error) => { if (active) setSelectionError(error instanceof Error ? error.message : 'Şehirler yüklenemedi.'); })
+        .finally(() => { if (active) setSearchingCities(false); });
+    }, 350);
+    return () => { active = false; clearTimeout(timeout); };
+  }, [selectionModal, selectionSearch, country]);
+
   const savePlace = async () => {
     if (!user || !couple.couple || !city.trim() || !country.trim()) {
       setError('Şehir ve ülke adını yazın.');
@@ -64,9 +98,10 @@ export default function TravelMapScreen() {
     setError('');
     try {
       const locationUnchanged = editingPlace?.city === city.trim() && editingPlace.country === country.trim();
-      const coordinates = locationUnchanged
+      const coordinates = selectedCoordinates ?? (locationUnchanged
         ? { latitude: editingPlace.latitude, longitude: editingPlace.longitude }
-        : await findCoordinates(city.trim(), country.trim());
+        : null);
+      if (!coordinates) throw new Error('Haritada işaretlemek için şehir listesinden bir şehir seçin.');
       const values = {
         city: city.trim(), country: country.trim(), note: note.trim() || null,
         ...coordinates, visitedOn: /^\d{4}-\d{2}-\d{2}$/.test(visitedOn) ? visitedOn : todayLocal(),
@@ -85,13 +120,24 @@ export default function TravelMapScreen() {
 
   const resetForm = () => {
     setCity(''); setCountry('Türkiye'); setNote(''); setVisitedOn(todayLocal());
-    setEditingPlace(null); setError('');
+    setEditingPlace(null); setSelectedCoordinates(null); setError('');
   };
 
   const startEditing = (place: TravelPlace) => {
     setEditingPlace(place); setCity(place.city); setCountry(place.country);
-    setNote(place.note ?? ''); setVisitedOn(place.visitedOn); setError('');
+    setNote(place.note ?? ''); setVisitedOn(place.visitedOn); setSelectedCoordinates({ latitude: place.latitude, longitude: place.longitude }); setError('');
     scrollRef.current?.scrollTo({ y: 0, animated: true });
+  };
+
+  const chooseCountry = (value: string) => {
+    setCountry(value); setCity(''); setSelectedCoordinates(null);
+    setSelectionSearch(''); setSelectionModal(null);
+  };
+
+  const chooseCity = (option: CityOption) => {
+    setCity(option.city);
+    setSelectedCoordinates({ latitude: option.latitude, longitude: option.longitude });
+    setSelectionSearch(''); setSelectionModal(null);
   };
 
   const onDateChange = (_event: unknown, date?: Date) => {
@@ -123,7 +169,7 @@ export default function TravelMapScreen() {
           <Card style={styles.mapCard}>
             <MapView
               style={styles.map}
-              initialRegion={{ latitude: 24, longitude: 10, latitudeDelta: 105, longitudeDelta: 210 }}
+              initialRegion={{ latitude: 39, longitude: 35, latitudeDelta: 11, longitudeDelta: 20 }}
               accessibilityLabel="Birlikte gezilen şehirler haritası"
             >
               {places.map((place) => (
@@ -134,8 +180,14 @@ export default function TravelMapScreen() {
           </Card>
           <Card style={styles.form}>
             <Text style={styles.formTitle}>{editingPlace ? 'Ziyareti düzenle' : 'Haritaya yer ekle'}</Text>
-            <Input label="Şehir" placeholder="Örn. Roma" value={city} onChangeText={setCity} />
-            <Input label="Ülke" placeholder="Örn. İtalya" value={country} onChangeText={setCountry} />
+            <Text style={styles.inputLabel}>Ülke</Text>
+            <Pressable accessibilityRole="button" onPress={() => { setSelectionSearch(''); setSelectionModal('country'); }} style={({ pressed }) => [styles.selectButton, pressed && styles.dateButtonPressed]}>
+              <Text style={styles.dateText}>{country || 'Ülke seç'}</Text><Feather name="chevron-down" size={18} color="#0B8F87" />
+            </Pressable>
+            <Text style={styles.inputLabel}>Şehir</Text>
+            <Pressable accessibilityRole="button" onPress={() => { setSelectionSearch(''); setSelectionError(''); setSelectionModal('city'); }} style={({ pressed }) => [styles.selectButton, pressed && styles.dateButtonPressed]}>
+              <Text style={[styles.dateText, !city && styles.selectionPlaceholder]}>{city || 'Şehir seç'}</Text><Feather name="chevron-down" size={18} color="#0B8F87" />
+            </Pressable>
             <Text style={styles.inputLabel}>Ziyaret tarihi</Text>
             <Pressable accessibilityRole="button" onPress={() => { setDraftDate(parseLocalDate(visitedOn)); setShowDatePicker(true); }} style={({ pressed }) => [styles.dateButton, pressed && styles.dateButtonPressed]}>
               <Feather name="calendar" size={17} color="#0B8F87" />
@@ -166,12 +218,51 @@ export default function TravelMapScreen() {
                 </View>
               </View>
             </Modal>
-            <Input label="Not (isteğe bağlı)" placeholder="Bu geziyle ilgili bir anı yazın" value={note} onChangeText={setNote} multiline style={styles.noteInput} />
-            <Text style={styles.privacy}>Konumu haritada bulmak için şehir ve ülke adları OpenStreetMap’e gönderilir.</Text>
+            <Input label="Not (isteğe bağlı)" placeholder="…" value={note} onChangeText={setNote} multiline style={styles.noteInput} />
             {error ? <Text style={styles.error}>{error}</Text> : null}
             <Button title={editingPlace ? 'Değişiklikleri kaydet' : 'Haritaya ekle'} icon={editingPlace ? 'save' : 'map-pin'} toneColor="#0B8F87" loading={loading} onPress={() => { void savePlace(); }} style={styles.addButton} />
             {editingPlace ? <Button title="Düzenlemekten vazgeç" variant="ghost" onPress={resetForm} style={styles.cancelEdit} toneColor="#0B8F87" /> : null}
           </Card>
+          <Modal visible={selectionModal !== null} transparent animationType="slide" onRequestClose={() => setSelectionModal(null)}>
+            <View style={styles.modalBackdrop}>
+              <View style={styles.selectionModal}>
+                <View style={styles.dateModalHeader}>
+                  <Button title="Kapat" variant="ghost" compact onPress={() => setSelectionModal(null)} />
+                  <Text style={styles.dateModalTitle}>{selectionModal === 'country' ? 'Ülke seç' : 'Şehir seç'}</Text>
+                  <View style={styles.modalSpacer} />
+                </View>
+                <Input
+                  label={selectionModal === 'country' ? 'Ülke ara' : `${country} içinde şehir ara`}
+                  placeholder={selectionModal === 'country' ? 'Ülke adı' : 'Şehir adı'}
+                  value={selectionSearch}
+                  onChangeText={setSelectionSearch}
+                  autoCorrect={false}
+                />
+                {selectionModal === 'country' ? (
+                  <ScrollView keyboardShouldPersistTaps="handled" style={styles.optionsList}>
+                    {COUNTRIES.filter((item) => item.toLocaleLowerCase('tr').includes(selectionSearch.trim().toLocaleLowerCase('tr'))).map((item) => (
+                      <Pressable key={item} onPress={() => chooseCountry(item)} style={styles.optionRow}>
+                        <Text style={styles.optionText}>{item}</Text>
+                        {item === country ? <Feather name="check" size={18} color="#0B8F87" /> : null}
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                ) : (
+                  <ScrollView keyboardShouldPersistTaps="handled" style={styles.optionsList}>
+                    {searchingCities ? <Text style={styles.selectionMessage}>Şehirler aranıyor…</Text> : null}
+                    {selectionError ? <Text style={styles.selectionMessage}>{selectionError}</Text> : null}
+                    {!searchingCities && selectionSearch.trim().length >= 2 && cityOptions.length === 0 && !selectionError ? <Text style={styles.selectionMessage}>Eşleşen şehir bulunamadı.</Text> : null}
+                    {cityOptions.map((option) => (
+                      <Pressable key={option.id} onPress={() => chooseCity(option)} style={styles.optionRow}>
+                        <View style={styles.optionCopy}><Text style={styles.optionText}>{option.city}</Text><Text style={styles.optionSubtext}>{option.country}</Text></View>
+                        {option.city === city && option.country === country ? <Feather name="check" size={18} color="#0B8F87" /> : null}
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                )}
+              </View>
+            </View>
+          </Modal>
           <Text style={styles.listTitle}>Ziyaretleriniz · {places.length}</Text>
           {places.map((place) => (
             <Card key={place.id} style={styles.placeRow}>
@@ -202,18 +293,27 @@ const styles = StyleSheet.create({
   mapHint: { padding: spacing.sm, textAlign: 'center', color: colors.textSecondary, fontSize: fontSize.xs },
   form: { borderWidth: 1.5, borderColor: '#0B8F87', marginBottom: spacing.lg },
   formTitle: { fontSize: fontSize.md, fontWeight: '700', color: '#0B8F87', marginBottom: spacing.sm },
-  privacy: { fontSize: fontSize.xs, color: colors.textTertiary, lineHeight: 16, marginTop: spacing.xs },
   error: { color: colors.error, fontSize: fontSize.sm, marginTop: spacing.sm },
   addButton: { marginTop: spacing.md },
   noteInput: { minHeight: 80, textAlignVertical: 'top' },
   inputLabel: { fontSize: fontSize.sm, color: colors.textSecondary, marginBottom: spacing.xs, fontWeight: '500' },
+  selectButton: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: colors.border, borderRadius: radius.control, backgroundColor: colors.card, paddingHorizontal: spacing.md, marginBottom: spacing.lg },
+  selectionPlaceholder: { color: colors.textTertiary },
   dateButton: { minHeight: 48, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: radius.control, backgroundColor: colors.card, paddingHorizontal: spacing.md, marginBottom: spacing.lg },
   dateButtonPressed: { opacity: 0.65 },
   dateText: { marginLeft: spacing.sm, color: colors.text, fontSize: fontSize.md },
   modalBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' },
   dateModal: { backgroundColor: colors.card, borderTopLeftRadius: radius.card, borderTopRightRadius: radius.card, paddingBottom: spacing.xl },
+  selectionModal: { maxHeight: '82%', backgroundColor: colors.card, borderTopLeftRadius: radius.card, borderTopRightRadius: radius.card, paddingBottom: spacing.lg },
   dateModalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border },
   dateModalTitle: { color: colors.text, fontSize: fontSize.md, fontWeight: '600' },
+  modalSpacer: { width: 64 },
+  optionsList: { flexGrow: 0, maxHeight: 420, paddingHorizontal: spacing.lg },
+  optionRow: { minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  optionCopy: { flex: 1 },
+  optionText: { color: colors.text, fontSize: fontSize.md },
+  optionSubtext: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 2 },
+  selectionMessage: { color: colors.textSecondary, fontSize: fontSize.sm, textAlign: 'center', paddingVertical: spacing.lg },
   cancelEdit: { marginTop: spacing.xs },
   listTitle: { color: '#0B8F87', fontWeight: '700', fontSize: fontSize.md, marginBottom: spacing.sm },
   placeRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: '#0B8F87', marginBottom: spacing.sm, paddingVertical: spacing.sm },
