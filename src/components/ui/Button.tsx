@@ -14,6 +14,7 @@ interface ButtonProps {
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
   compact?: boolean;
+  toneColor?: string;
 }
 
 const palette: Record<Variant, { bg: string; fg: string; border: string }> = {
@@ -23,8 +24,11 @@ const palette: Record<Variant, { bg: string; fg: string; border: string }> = {
   danger: { bg: colors.card, fg: colors.error, border: colors.error },
 };
 
-export function Button({ title, onPress, variant = 'primary', icon, loading, disabled, style, compact }: ButtonProps) {
+export function Button({ title, onPress, variant = 'primary', icon, loading, disabled, style, compact, toneColor }: ButtonProps) {
   const p = palette[variant];
+  const backgroundColor = toneColor && variant === 'primary' ? toneColor : p.bg;
+  const foregroundColor = toneColor && variant !== 'primary' ? toneColor : p.fg;
+  const borderColor = toneColor && variant !== 'ghost' ? toneColor : p.border;
   const inactive = disabled || loading;
   return (
     <Pressable
@@ -35,7 +39,7 @@ export function Button({ title, onPress, variant = 'primary', icon, loading, dis
       style={({ pressed }) => [
         styles.base,
         compact && styles.compact,
-        { backgroundColor: p.bg, borderColor: p.border },
+        { backgroundColor, borderColor },
         pressed && styles.pressed,
         inactive && styles.disabled,
         style,
@@ -45,8 +49,8 @@ export function Button({ title, onPress, variant = 'primary', icon, loading, dis
         <ActivityIndicator color={p.fg} />
       ) : (
         <View style={styles.row}>
-          {icon ? <Feather name={icon} size={compact ? 16 : 18} color={p.fg} style={styles.icon} /> : null}
-          <Text style={[styles.label, compact && styles.labelCompact, { color: p.fg }]}>{title}</Text>
+          {icon ? <Feather name={icon} size={compact ? 16 : 18} color={foregroundColor} style={styles.icon} /> : null}
+          <Text style={[styles.label, compact && styles.labelCompact, { color: foregroundColor }]}>{title}</Text>
         </View>
       )}
     </Pressable>

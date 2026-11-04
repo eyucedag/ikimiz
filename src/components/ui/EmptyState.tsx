@@ -11,17 +11,19 @@ interface EmptyStateProps {
   actionLabel?: string;
   onAction?: () => void;
   compact?: boolean;
+  toneColor?: string;
+  toneTint?: string;
 }
 
-export function EmptyState({ icon, title, description, actionLabel, onAction, compact }: EmptyStateProps) {
+export function EmptyState({ icon, title, description, actionLabel, onAction, compact, toneColor, toneTint }: EmptyStateProps) {
   return (
     <View style={[styles.container, compact && styles.compact]}>
-      <View style={styles.iconWrap}>
-        <Feather name={icon} size={compact ? 22 : 28} color={colors.accent} />
+      <View style={[styles.iconWrap, toneTint ? { backgroundColor: toneTint } : undefined]}>
+        <Feather name={icon} size={compact ? 22 : 28} color={toneColor ?? colors.accent} />
       </View>
       <Text style={styles.title}>{title}</Text>
       {description ? <Text style={styles.description}>{description}</Text> : null}
-      {actionLabel && onAction ? <Button title={actionLabel} onPress={onAction} variant="secondary" compact style={styles.action} /> : null}
+      {actionLabel && onAction ? <Button title={actionLabel} onPress={onAction} variant="secondary" toneColor={toneColor} compact style={styles.action} /> : null}
     </View>
   );
 }

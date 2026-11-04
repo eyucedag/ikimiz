@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Badge, Button, Card, EmptyState, Screen } from '@/src/components/ui';
-import { getCategory } from '@/src/constants/categories';
+import { getCategory, getCategoryColor } from '@/src/constants/categories';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 
 /** Aşama 2'de her kategori için planlanan başlıca özellikler. */
@@ -35,6 +35,7 @@ export default function CategoryScreen() {
   }
 
   const features = plannedFeatures[category.slug] ?? [];
+  const noteColor = getCategoryColor('ekrana-not');
 
   return (
     <Screen title={category.title}>
@@ -59,7 +60,7 @@ export default function CategoryScreen() {
       ) : null}
 
       <Text style={styles.note}>Bu bölüm geliştirme aşamasında. Hazır olduğunda ana ekrandaki kategori kartından doğrudan erişebileceksiniz.</Text>
-      <Button title="Bu arada Ekrana Not bırakın" icon="edit-3" variant="secondary" onPress={() => router.push('/screen-note/compose')} />
+      <Button title="Bu arada Ekrana Not bırakın" icon="edit-3" variant="secondary" toneColor={noteColor.color} onPress={() => router.push('/screen-note/compose')} />
     </Screen>
   );
 }

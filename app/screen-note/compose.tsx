@@ -101,7 +101,7 @@ export default function ComposeNoteScreen() {
       </View>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Button title="Gönder" icon="send" onPress={submit} loading={sending} disabled={!text.trim()} style={styles.send} />
+      <Button title="Gönder" icon="send" toneColor={categoryColor.color} onPress={submit} loading={sending} disabled={!text.trim()} style={styles.send} />
     </Screen>
   );
 }

@@ -64,6 +64,7 @@ export function MoodSummaryCard({ today, partnerToday, partnerName, paired, load
         title={paired ? (today ? 'Bugünü Gör' : 'Ruh Halini Paylaş') : 'Ruh Halim’i Keşfet'}
         icon={paired ? 'smile' : 'heart'}
         variant="secondary"
+        toneColor={categoryColor.color}
         onPress={onPress}
         style={styles.action}
       />

@@ -192,7 +192,7 @@ export default function MoodScreen() {
           actionLabel="Partner Davet Et"
           onAction={() => router.push('/couple/invite')}
         />
-        <Button title="Ruh Halini Paylaş" icon="smile" onPress={submit} disabled />
+        <Button title="Ruh Halini Paylaş" icon="smile" toneColor={categoryColor.color} onPress={submit} disabled />
         <Text style={styles.saveHint}>Ruh halinizi paylaşmak için önce partnerinizle eşleşin.</Text>
       </Screen>
     );
@@ -287,6 +287,7 @@ export default function MoodScreen() {
             <Button
               title={today ? 'Bugünü Güncelle' : 'Ruh Halini Paylaş'}
               icon={today ? 'check' : 'heart'}
+              toneColor={categoryColor.color}
               onPress={submit}
               loading={moods.saving}
               disabled={!draftIsCurrent || !selectedMood || (!!today && !dirty)}

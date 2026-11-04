@@ -52,7 +52,7 @@ export default function TodayScreen() {
       <Card style={[styles.section, { borderColor: noteColor.color, borderWidth: 1.5 }]}>
         {couple.isPaired ? (
           <>
-            <SectionHeader title="Partnerinden Not" actionLabel="Tüm Notlar" onAction={() => router.push('/screen-note/history')} />
+            <SectionHeader title="Partnerinden Not" actionLabel="Tüm Notlar" actionColor={noteColor.color} onAction={() => router.push('/screen-note/history')} />
             {latestFromPartner ? (
               <View style={[styles.note, { backgroundColor: latestFromPartner.backgroundColor }]}>
                 <Text style={styles.noteEmoji}>{latestFromPartner.emoji}</Text>
@@ -64,7 +64,7 @@ export default function TodayScreen() {
             ) : (
               <Text style={styles.muted}>{couple.partner?.displayName} henüz bir not bırakmadı. İlk notu siz bırakın.</Text>
             )}
-            <Button title="Yeni Not Bırak" icon="edit-3" onPress={() => router.push('/screen-note/compose')} style={styles.cardButton} />
+            <Button title="Yeni Not Bırak" icon="edit-3" toneColor={noteColor.color} onPress={() => router.push('/screen-note/compose')} style={styles.cardButton} />
           </>
         ) : (
           <>
@@ -112,6 +112,8 @@ export default function TodayScreen() {
             description="Etkinlikler, görevler ve hatırlatmalar eklendiğinde en yakın olanlar burada sıralanacak."
             actionLabel="Takvimi Keşfet"
             onAction={() => router.push('/categories/takvim')}
+            toneColor={calendarColor.color}
+            toneTint={calendarColor.tint}
           />
         ) : (
           upcoming.map((item) => (
@@ -141,7 +143,9 @@ export default function TodayScreen() {
               <Text style={styles.tileTitle} numberOfLines={2}>
                 {c.title}
               </Text>
-              {isCategoryReady(c.slug) ? <Badge label="Hazır" /> : <Badge label="Yakında" tone="neutral" />}
+              {isCategoryReady(c.slug)
+                ? <Badge label="Hazır" color={c.color} backgroundColor={c.tint} />
+                : <Badge label="Yakında" tone="neutral" />}
             </View>
           </Pressable>
         ))}

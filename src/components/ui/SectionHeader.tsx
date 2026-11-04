@@ -6,9 +6,10 @@ interface SectionHeaderProps {
   title: string;
   actionLabel?: string;
   onAction?: () => void;
+  actionColor?: string;
 }
 
-export function SectionHeader({ title, actionLabel, onAction }: SectionHeaderProps) {
+export function SectionHeader({ title, actionLabel, onAction, actionColor }: SectionHeaderProps) {
   return (
     <View style={styles.row}>
       <Text style={styles.title} accessibilityRole="header">
@@ -16,7 +17,7 @@ export function SectionHeader({ title, actionLabel, onAction }: SectionHeaderPro
       </Text>
       {actionLabel && onAction ? (
         <Pressable onPress={onAction} hitSlop={8} accessibilityRole="link">
-          <Text style={styles.action}>{actionLabel}</Text>
+          <Text style={[styles.action, actionColor ? { color: actionColor } : undefined]}>{actionLabel}</Text>
         </Pressable>
       ) : null}
     </View>
