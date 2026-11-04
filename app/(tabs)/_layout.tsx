@@ -1,8 +1,7 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { ColorValue, GestureResponderEvent, Pressable, PressableProps, StyleSheet, View } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import type { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
 import { colors, fontSize, shadow } from '@/src/constants/theme';
 import { useAppState } from '@/src/hooks/useAppState';
 
@@ -10,14 +9,21 @@ type IconName = keyof typeof Feather.glyphMap;
 
 const tabIcon =
   (name: IconName) =>
-  ({ color, size }: { color: string; size: number }) => <Feather name={name} size={size - 2} color={color} />;
+  ({ color, size }: { color: ColorValue; size: number }) => (
+    <Feather name={name} size={size - 2} color={color as string} />
+  );
+
+type AddTabButtonProps = {
+  onPress?: ((e: GestureResponderEvent) => void) | null;
+  accessibilityState?: PressableProps['accessibilityState'];
+};
 
 /** Ortadaki büyük, yuvarlak "+" butonu */
-function AddTabButton({ onPress, accessibilityState }: BottomTabBarButtonProps) {
+function AddTabButton({ onPress, accessibilityState }: AddTabButtonProps) {
   return (
     <View style={styles.addWrap}>
       <Pressable
-        onPress={onPress}
+        onPress={onPress ?? undefined}
         accessibilityRole="button"
         accessibilityLabel="Hızlı ekle"
         accessibilityState={accessibilityState}

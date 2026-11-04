@@ -2,7 +2,7 @@
 
 **İkimiz**, çiftlerin ortak hayatını tek ve sakin bir alanda düzenlemesi için geliştirilen Türkçe bir mobil uygulamadır. Takvim, listeler, notlar, görevler, hediye fikirleri ve hatırlatmalar gibi modüller aşamalı olarak eklenir. İlk aşamada hesap yönetimi, partner eşleşmesi ve **Ekrana Not** özelliği çalışır durumdadır.
 
-- **Teknoloji:** React Native · Expo SDK 50 · TypeScript · Expo Router · Supabase
+- **Teknoloji:** React Native · Expo SDK 58 · React Native 0.88 · TypeScript · Expo Router · Supabase
 - **Platformlar:** iPhone, iPad ve Android telefon/tablet — **web sürümü yoktur.**
 - **Arayüz dili:** Türkçe
 
@@ -44,7 +44,7 @@
 
 ## Kurulum
 
-Gereksinimler: **Node.js 18+**, npm ve telefonunuzda **Expo Go** uygulaması (SDK 50 uyumlu).
+Gereksinimler: **Node.js 20.19+**, npm ve telefonunuzda **Expo Go** uygulaması (SDK 58 uyumlu — App Store / Google Play'deki güncel sürüm).
 
 ```bash
 git clone https://github.com/<kullanici-adiniz>/ikimiz.git
@@ -73,7 +73,7 @@ npm run ios         # iOS simülatörü ile başlat (yalnızca macOS)
    - **Android:** Expo Go içindeki “Scan QR code” ile okutun.
 4. Telefon ve bilgisayar aynı ağda değilse `npx expo start --tunnel` kullanın.
 
-> Not: Expo Go'nun SDK 50 ile uyumlu sürümü gerekir. Mağazadaki Expo Go daha yeni bir SDK'yı destekliyorsa projeyi bir geliştirme derlemesiyle (`npx expo run:ios` / `npx expo run:android`) çalıştırabilirsiniz.
+> Not: Proje Expo SDK 58 kullanır; mağazadaki güncel Expo Go bu sürümü destekler. Expo Go ileride daha yeni bir SDK'ya geçerse proje de yükseltilmeli ya da EAS ile bir geliştirme derlemesi kullanılmalıdır.
 
 ---
 

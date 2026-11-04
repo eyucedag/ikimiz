@@ -8,7 +8,7 @@ interface InputProps extends TextInputProps {
   hint?: string;
 }
 
-export const Input = forwardRef<TextInput, InputProps>(({ label, error, hint, style, ...rest }, ref) => (
+export const Input = forwardRef<React.ComponentRef<typeof TextInput>, InputProps>(({ label, error, hint, style, ...rest }, ref) => (
   <View style={styles.wrapper}>
     {label ? <Text style={styles.label}>{label}</Text> : null}
     <TextInput
