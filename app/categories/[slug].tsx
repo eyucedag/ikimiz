@@ -46,7 +46,7 @@ export default function CategoryScreen() {
       </View>
 
       {features.length > 0 ? (
-        <Card style={styles.card}>
+        <Card style={[styles.card, { borderColor: category.color, borderWidth: 1.5 }]}>
           <Text style={styles.cardTitle}>Neler gelecek?</Text>
           {features.map((f) => (
             <View key={f} style={styles.featureRow}>

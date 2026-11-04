@@ -4,11 +4,13 @@ import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Button, EmptyState, Screen } from '@/src/components/ui';
 import { colors, fontSize, noteColors, noteEmojis, radius, spacing } from '@/src/constants/theme';
+import { getCategoryColor } from '@/src/constants/categories';
 import { useCouple } from '@/src/hooks/useCouple';
 import { useScreenNotes } from '@/src/hooks/useScreenNotes';
 import { SCREEN_NOTE_MAX_LENGTH } from '@/src/services/screenNoteService';
 
 export default function ComposeNoteScreen() {
+  const categoryColor = getCategoryColor('ekrana-not');
   const router = useRouter();
   const couple = useCouple();
   const { send } = useScreenNotes(couple);
@@ -49,7 +51,7 @@ export default function ComposeNoteScreen() {
   return (
     <Screen title="Ekrana Not">
       {/* Canlı önizleme */}
-      <View style={[styles.preview, { backgroundColor }]}>
+      <View style={[styles.preview, { backgroundColor, borderColor: categoryColor.color }]}>
         <Text style={styles.previewEmoji}>{emoji}</Text>
         <TextInput
           value={text}
@@ -73,7 +75,7 @@ export default function ComposeNoteScreen() {
           <Pressable
             key={e}
             onPress={() => setEmoji(e)}
-            style={[styles.emojiOption, e === emoji && styles.selected]}
+            style={[styles.emojiOption, { borderColor: categoryColor.color }, e === emoji && styles.selected, e === emoji && { backgroundColor: categoryColor.tint }]}
             accessibilityRole="button"
             accessibilityState={{ selected: e === emoji }}
           >
@@ -88,12 +90,12 @@ export default function ComposeNoteScreen() {
           <Pressable
             key={c}
             onPress={() => setBackgroundColor(c)}
-            style={[styles.colorOption, { backgroundColor: c }, c === backgroundColor && styles.selected]}
+            style={[styles.colorOption, { backgroundColor: c, borderColor: categoryColor.color }, c === backgroundColor && styles.selected, c === backgroundColor && { borderColor: categoryColor.color }]}
             accessibilityRole="button"
             accessibilityLabel="Arka plan rengi"
             accessibilityState={{ selected: c === backgroundColor }}
           >
-            {c === backgroundColor ? <Feather name="check" size={16} color={colors.accent} /> : null}
+            {c === backgroundColor ? <Feather name="check" size={16} color={categoryColor.color} /> : null}
           </Pressable>
         ))}
       </View>
@@ -105,7 +107,7 @@ export default function ComposeNoteScreen() {
 }
 
 const styles = StyleSheet.create({
-  preview: { borderRadius: radius.card, padding: spacing.lg, minHeight: 170, marginBottom: spacing.xl },
+  preview: { borderRadius: radius.card, borderWidth: 1.5, padding: spacing.lg, minHeight: 170, marginBottom: spacing.xl },
   previewEmoji: { fontSize: fontSize.xxxl, marginBottom: spacing.sm },
   previewInput: { flex: 1, fontSize: fontSize.lg, color: colors.text, lineHeight: 24, textAlignVertical: 'top', minHeight: 72 },
   counter: { alignSelf: 'flex-end', fontSize: fontSize.xs, color: colors.textTertiary },
@@ -123,7 +125,7 @@ const styles = StyleSheet.create({
   },
   emojiText: { fontSize: fontSize.xl },
   colorOption: { width: 44, height: 44, borderRadius: radius.control, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-  selected: { borderColor: colors.accent, borderWidth: 2 },
+  selected: { borderWidth: 2 },
   error: { color: colors.error, fontSize: fontSize.sm, marginBottom: spacing.md },
   send: { marginTop: spacing.sm },
 });

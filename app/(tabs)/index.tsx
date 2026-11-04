@@ -4,7 +4,7 @@ import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Badge, Button, Card, EmptyState, Screen, SectionHeader } from '@/src/components/ui';
 import { MoodSummaryCard } from '@/src/components/MoodSummaryCard';
-import { categories, getCategoryRoute, isCategoryReady } from '@/src/constants/categories';
+import { categories, getCategoryColor, getCategoryRoute, isCategoryReady } from '@/src/constants/categories';
 import { colors, fontSize, layout, radius, spacing } from '@/src/constants/theme';
 import { useAppState } from '@/src/hooks/useAppState';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -14,6 +14,8 @@ import { useMoods } from '@/src/hooks/useMoods';
 import { greeting, relativeTime, todayLabel } from '@/src/utils/date';
 
 export default function TodayScreen() {
+  const noteColor = getCategoryColor('ekrana-not');
+  const calendarColor = getCategoryColor('takvim');
   const router = useRouter();
   const { user } = useAuth();
   const couple = useCouple();
@@ -46,7 +48,7 @@ export default function TodayScreen() {
       </View>
 
       {/* Partnerinden Not */}
-      <Card style={styles.section}>
+      <Card style={[styles.section, { borderColor: noteColor.color, borderWidth: 1.5 }]}>
         {couple.isPaired ? (
           <>
             <SectionHeader title="Partnerinden Not" actionLabel="Tüm Notlar" onAction={() => router.push('/screen-note/history')} />
@@ -67,8 +69,8 @@ export default function TodayScreen() {
           <>
             <SectionHeader title="Partnerinden Not" />
             <View style={styles.connectRow}>
-              <View style={styles.connectIcon}>
-                <Feather name="link" size={20} color={colors.accent} />
+              <View style={[styles.connectIcon, { backgroundColor: noteColor.tint }]}>
+                <Feather name="link" size={20} color={noteColor.color} />
               </View>
               <Text style={styles.connectText}>
                 {couple.pendingInvitation
@@ -99,7 +101,7 @@ export default function TodayScreen() {
       />
 
       {/* Yaklaşanlar */}
-      <Card style={styles.section}>
+      <Card style={[styles.section, { borderColor: calendarColor.color, borderWidth: 1.5 }]}>
         <SectionHeader title="Yaklaşanlar" />
         {upcoming.length === 0 ? (
           <EmptyState
@@ -131,7 +133,7 @@ export default function TodayScreen() {
             accessibilityLabel={c.title}
             style={({ pressed }) => [styles.tile, { width: `${100 / columns}%` }, pressed && styles.pressed]}
           >
-            <View style={[styles.tileInner, { borderTopColor: c.color }]}>
+            <View style={[styles.tileInner, { borderColor: c.color, borderTopColor: c.color }]}>
               <View style={[styles.tileIcon, { backgroundColor: c.tint }]}>
                 <Feather name={c.icon as keyof typeof Feather.glyphMap} size={20} color={c.color} />
               </View>
@@ -178,7 +180,7 @@ const styles = StyleSheet.create({
   tileInner: {
     backgroundColor: colors.card,
     borderRadius: radius.card,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1.5,
     borderColor: colors.border,
     borderTopWidth: 3,
     borderTopColor: colors.accent,

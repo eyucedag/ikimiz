@@ -47,7 +47,7 @@ export default function AddScreen() {
               onPress={() => onSelect(a)}
               accessibilityRole="button"
               accessibilityLabel={a.route ? a.title : `${a.title}, yakında`}
-              style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.row, { borderLeftColor: getCategoryColor(a.category).color }, pressed && styles.pressed]}
             >
               <View style={[styles.icon, { backgroundColor: getCategoryColor(a.category).tint }]}>
                 <Feather name={a.icon} size={20} color={getCategoryColor(a.category).color} />
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   title: { fontSize: fontSize.xxl, fontWeight: '700', color: colors.text, marginTop: spacing.md },
   lead: { fontSize: fontSize.md, color: colors.textSecondary, marginTop: spacing.xs, marginBottom: spacing.lg },
   card: { paddingVertical: spacing.xs },
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md },
+  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md, paddingLeft: spacing.sm, borderLeftWidth: 3 },
   icon: {
     width: 40,
     height: 40,

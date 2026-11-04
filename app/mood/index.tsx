@@ -223,7 +223,7 @@ export default function MoodScreen() {
       ) : null}
 
       {initiallyLoading ? (
-        <Card style={styles.section}>
+        <Card style={[styles.section, { borderColor: categoryColor.color, borderWidth: 1.5 }]}>
           <View style={styles.loading} accessibilityLiveRegion="polite">
             <ActivityIndicator color={colors.accent} />
             <Text style={styles.muted}>Ruh halleri yükleniyor…</Text>
@@ -231,7 +231,7 @@ export default function MoodScreen() {
         </Card>
       ) : (
         <>
-          <Card style={styles.section}>
+          <Card style={[styles.section, { borderColor: categoryColor.color, borderWidth: 1.5 }]}>
             <Text style={styles.cardTitle} accessibilityRole="header">Bugünkü ruh haliniz</Text>
             <Text style={styles.date}>{todayLabel()}</Text>
             <Text style={styles.cardDescription}>Gün içinde değiştirebilirsiniz. Her gün tek bir kaydınız olur.</Text>
@@ -294,7 +294,7 @@ export default function MoodScreen() {
             <Text style={styles.saveHint}>{today ? 'Yalnızca kendi bugünkü kaydınızı düzenleyebilirsiniz.' : 'Paylaştığınızda partneriniz ruh halinizi ve notunuzu görebilir.'}</Text>
           </Card>
 
-          <Card style={styles.section}>
+          <Card style={[styles.section, { borderColor: categoryColor.color, borderWidth: 1.5 }]}>
             <Text style={styles.cardTitle} accessibilityRole="header">{partnerName} bugün</Text>
             {partnerToday && partnerOption ? (
               <>
@@ -323,13 +323,13 @@ export default function MoodScreen() {
           <SectionHeader title="Son 30 Gün" />
           <Text style={styles.historyDescription}>Mevcut eşleşmenizde ikinizin paylaştığı ruh halleri.</Text>
           {historyByDay.length === 0 ? (
-            <Card>
+            <Card style={{ borderColor: categoryColor.color, borderWidth: 1.5 }}>
               <EmptyState compact icon="calendar" title="İlk paylaşımınızla başlasın" description="Günlük ruh halleriniz ve notlarınız burada birikir." />
             </Card>
           ) : historyByDay.map(({ date, entries }) => (
             <View key={date} style={styles.historyDay}>
               <Text style={styles.historyDate} accessibilityRole="header">{historyDayLabel(date, currentDate)}</Text>
-              <Card style={styles.historyCard}>
+              <Card style={[styles.historyCard, { borderColor: categoryColor.color, borderWidth: 1.5 }]}>
                 {entries.map((entry, index) => (
                   <View key={entry.id} style={index > 0 ? styles.historyDivider : undefined}>
                     <HistoryEntry entry={entry} name={entry.ownerId === user?.id ? 'Siz' : partnerName} />

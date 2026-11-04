@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { EmptyState, IconButton, Screen } from '@/src/components/ui';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
+import { getCategoryColor } from '@/src/constants/categories';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
 import { useScreenNotes } from '@/src/hooks/useScreenNotes';
@@ -17,6 +18,7 @@ const filters: { key: Filter; label: string }[] = [
 ];
 
 export default function NoteHistoryScreen() {
+  const categoryColor = getCategoryColor('ekrana-not');
   const router = useRouter();
   const { user } = useAuth();
   const couple = useCouple();
@@ -44,7 +46,7 @@ export default function NoteHistoryScreen() {
           <Pressable
             key={f.key}
             onPress={() => setFilter(f.key)}
-            style={[styles.pill, filter === f.key && styles.pillActive]}
+            style={[styles.pill, filter === f.key && { backgroundColor: categoryColor.color, borderColor: categoryColor.color }]}
             accessibilityRole="button"
             accessibilityState={{ selected: filter === f.key }}
           >
@@ -65,7 +67,7 @@ export default function NoteHistoryScreen() {
         visible.map((n) => {
           const mine = n.senderId === user?.id;
           return (
-            <View key={n.id} style={[styles.note, { backgroundColor: n.backgroundColor }, mine ? styles.mine : styles.theirs]}>
+            <View key={n.id} style={[styles.note, { backgroundColor: n.backgroundColor, borderColor: categoryColor.color }, mine ? styles.mine : styles.theirs]}>
               <Text style={styles.noteText}>
                 {n.emoji} {n.text}
               </Text>
@@ -83,10 +85,9 @@ export default function NoteHistoryScreen() {
 const styles = StyleSheet.create({
   filters: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg },
   pill: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: radius.pill, backgroundColor: colors.beige },
-  pillActive: { backgroundColor: colors.accent },
   pillText: { fontSize: fontSize.sm, color: colors.textSecondary, fontWeight: '500' },
   pillTextActive: { color: colors.white },
-  note: { borderRadius: radius.card, padding: spacing.lg, marginBottom: spacing.md, maxWidth: '88%' },
+  note: { borderRadius: radius.card, borderWidth: 1.5, padding: spacing.lg, marginBottom: spacing.md, maxWidth: '88%' },
   mine: { alignSelf: 'flex-end' },
   theirs: { alignSelf: 'flex-start' },
   noteText: { fontSize: fontSize.md, color: colors.text, lineHeight: 22 },
