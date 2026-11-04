@@ -14,7 +14,6 @@ const plannedFeatures: Record<string, string[]> = {
   gorevler: ['Partnere görev atama', 'Tekrarlayan görevler', 'Son tarih ve öncelik'],
   'hediye-radari': ['Partnerden gizli fikirler', 'Fiyat ve bağlantı kaydı', 'Özel günlere bağlama'],
   'bilinmesi-gerekenler': ['Beden ve ölçüler', 'Alerjiler ve hassasiyetler', 'Sevdiği ve sevmediği şeyler'],
-  unutma: ['Zamanlı hatırlatmalar', 'Tekrarlayan hatırlatmalar', 'Partnere hatırlatma gönderme'],
 };
 
 export default function CategoryScreen() {
@@ -25,6 +24,7 @@ export default function CategoryScreen() {
   if (slug === 'ekrana-not') return <Redirect href="/screen-note/compose" />;
   if (slug === 'ruh-halim') return <Redirect href="/mood" />;
   if (slug === 'gezilen-yerler') return <Redirect href="/travel-map" />;
+  if (slug === 'ozel-gunler') return <Redirect href="/special-dates" />;
   if (slug === 'opucuk') return <Redirect href="/(tabs)" />;
 
   if (!category) {

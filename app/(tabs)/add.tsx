@@ -18,15 +18,14 @@ interface QuickAction {
 }
 
 const actions: QuickAction[] = [
-  { key: 'mood', title: 'Ruh Halim', description: 'Bugünkü ruh halini partnerinle paylaş', icon: 'smile', category: 'ruh-halim', route: '/mood' },
   { key: 'travel', title: 'Gezdiğimiz Yerler', description: 'Gittiğiniz şehirleri ortak haritaya ekle', icon: 'map-pin', category: 'gezilen-yerler', route: '/travel-map' },
+  { key: 'special-date', title: 'Özel Gün', description: 'Yıl dönümü, doğum günü veya anlamlı bir tarih ekle', icon: 'gift', category: 'ozel-gunler', route: '/special-dates' },
   { key: 'screen-note', title: 'Ekran Notu', description: "Partnerinizin ana ekranına kısa not", icon: 'edit-3', category: 'ekrana-not', route: '/screen-note/compose' },
   { key: 'event', title: 'Etkinlik', description: 'Takvime plan veya önemli gün', icon: 'calendar', category: 'takvim', soonDetail: 'Ortak takvim ve tekrarlayan etkinlikler Aşama 2’de eklenecek.' },
   { key: 'list', title: 'Liste', description: 'Market, film, seyahat listesi', icon: 'list', category: 'listeler', soonDetail: 'Paylaşılan listeler Aşama 2’de eklenecek.' },
   { key: 'note', title: 'Not', description: 'Kişisel veya ortak not', icon: 'file-text', category: 'notlar', soonDetail: 'Klasörlü notlar Aşama 2’de eklenecek.' },
   { key: 'task', title: 'Görev', description: 'Atanabilir ve tekrarlanabilir iş', icon: 'check-square', category: 'gorevler', soonDetail: 'Görevler ve atamalar Aşama 2’de eklenecek.' },
   { key: 'gift', title: 'Hediye Fikri', description: 'Partnerinizden gizli fikir', icon: 'gift', category: 'hediye-radari', soonDetail: 'Hediye Radarı Aşama 2’de eklenecek.' },
-  { key: 'reminder', title: 'Hatırlatma', description: 'Zamanı gelince bildirim', icon: 'bell', category: 'unutma', soonDetail: 'Hatırlatmalar ve bildirim zamanlama Aşama 2’de eklenecek.' },
 ];
 
 export default function AddScreen() {

@@ -113,7 +113,7 @@ export default function TravelMapScreen() {
   return (
     <Screen title="Gezdiğimiz Yerler" scrollRef={scrollRef}>
       <View style={styles.hero}>
-        <View style={styles.icon}><Feather name="map-pin" size={24} color="#0B8F87" /></View>
+          <View style={styles.icon}><Feather name="map-pin" size={20} color="#0B8F87" /></View>
         <Text style={styles.description}>Birlikte keşfettiğiniz şehirleri haritada işaretleyin.</Text>
       </View>
       {!couple.couple ? (
@@ -134,8 +134,8 @@ export default function TravelMapScreen() {
           </Card>
           <Card style={styles.form}>
             <Text style={styles.formTitle}>{editingPlace ? 'Ziyareti düzenle' : 'Haritaya yer ekle'}</Text>
-            <Input label="Ülke" placeholder="Türkiye" value={country} onChangeText={setCountry} autoCorrect={false} />
-            <Input label="Şehir" placeholder="İstanbul" value={city} onChangeText={setCity} autoCorrect={false} />
+            <Input compact label="Ülke" placeholder="Türkiye" value={country} onChangeText={setCountry} autoCorrect={false} />
+            <Input compact label="Şehir" placeholder="İstanbul" value={city} onChangeText={setCity} autoCorrect={false} />
             <Text style={styles.inputLabel}>Ziyaret tarihi</Text>
             <Pressable accessibilityRole="button" onPress={() => { setDraftDate(parseLocalDate(visitedOn)); setShowDatePicker(true); }} style={({ pressed }) => [styles.dateButton, pressed && styles.dateButtonPressed]}>
               <Feather name="calendar" size={17} color="#0B8F87" />
@@ -166,10 +166,10 @@ export default function TravelMapScreen() {
                 </View>
               </View>
             </Modal>
-            <Input label="Not (isteğe bağlı)" placeholder="…" value={note} onChangeText={setNote} multiline style={styles.noteInput} />
+            <Input compact label="Not (isteğe bağlı)" placeholder="…" value={note} onChangeText={setNote} multiline style={styles.noteInput} />
             {error ? <Text style={styles.error}>{error}</Text> : null}
-            <Button title={editingPlace ? 'Değişiklikleri kaydet' : 'Haritaya ekle'} icon={editingPlace ? 'save' : 'map-pin'} toneColor="#0B8F87" loading={loading} onPress={() => { void savePlace(); }} style={styles.addButton} />
-            {editingPlace ? <Button title="Düzenlemekten vazgeç" variant="ghost" onPress={resetForm} style={styles.cancelEdit} toneColor="#0B8F87" /> : null}
+            <Button title={editingPlace ? 'Değişiklikleri kaydet' : 'Haritaya ekle'} icon={editingPlace ? 'save' : 'map-pin'} compact toneColor="#0B8F87" loading={loading} onPress={() => { void savePlace(); }} style={styles.addButton} />
+            {editingPlace ? <Button title="Düzenlemekten vazgeç" variant="ghost" compact onPress={resetForm} style={styles.cancelEdit} toneColor="#0B8F87" /> : null}
           </Card>
           <Text style={styles.listTitle}>Ziyaretleriniz · {places.length}</Text>
           {places.map((place) => (
@@ -193,21 +193,21 @@ export default function TravelMapScreen() {
 }
 
 const styles = StyleSheet.create({
-  hero: { alignItems: 'center', marginTop: spacing.sm, marginBottom: spacing.lg },
-  icon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: '#D8F4EF' },
-  description: { marginTop: spacing.sm, color: colors.textSecondary, fontSize: fontSize.sm, textAlign: 'center' },
-  mapCard: { overflow: 'hidden', padding: 0, marginBottom: spacing.lg, borderWidth: 1.5, borderColor: '#0B8F87' },
-  map: { height: 340, width: '100%' },
+  hero: { alignItems: 'center', marginTop: spacing.xs, marginBottom: spacing.sm },
+  icon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: '#D8F4EF' },
+  description: { marginTop: spacing.xs, color: colors.textSecondary, fontSize: fontSize.xs, textAlign: 'center' },
+  mapCard: { overflow: 'hidden', padding: 0, marginBottom: spacing.sm, borderWidth: 1.5, borderColor: '#0B8F87' },
+  map: { height: 230, width: '100%' },
   mapHint: { padding: spacing.sm, textAlign: 'center', color: colors.textSecondary, fontSize: fontSize.xs },
-  form: { borderWidth: 1.5, borderColor: '#0B8F87', marginBottom: spacing.lg },
-  formTitle: { fontSize: fontSize.md, fontWeight: '700', color: '#0B8F87', marginBottom: spacing.sm },
+  form: { borderWidth: 1.5, borderColor: '#0B8F87', marginBottom: spacing.sm, padding: spacing.md },
+  formTitle: { fontSize: fontSize.sm, fontWeight: '700', color: '#0B8F87', marginBottom: spacing.xs },
   error: { color: colors.error, fontSize: fontSize.sm, marginTop: spacing.sm },
-  addButton: { marginTop: spacing.md },
-  noteInput: { minHeight: 80, textAlignVertical: 'top' },
-  inputLabel: { fontSize: fontSize.sm, color: colors.textSecondary, marginBottom: spacing.xs, fontWeight: '500' },
-  dateButton: { minHeight: 48, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: radius.control, backgroundColor: colors.card, paddingHorizontal: spacing.md, marginBottom: spacing.lg },
+  addButton: { marginTop: spacing.xs },
+  noteInput: { minHeight: 58, textAlignVertical: 'top' },
+  inputLabel: { fontSize: fontSize.xs, color: colors.textSecondary, marginBottom: spacing.xs, fontWeight: '500' },
+  dateButton: { minHeight: 40, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: radius.control, backgroundColor: colors.card, paddingHorizontal: spacing.md, marginBottom: spacing.sm },
   dateButtonPressed: { opacity: 0.65 },
-  dateText: { marginLeft: spacing.sm, color: colors.text, fontSize: fontSize.md },
+  dateText: { marginLeft: spacing.sm, color: colors.text, fontSize: fontSize.sm },
   modalBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' },
   dateModal: { backgroundColor: colors.card, borderTopLeftRadius: radius.card, borderTopRightRadius: radius.card, paddingBottom: spacing.xl },
   dateModalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border },

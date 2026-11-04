@@ -6,15 +6,16 @@ interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
   hint?: string;
+  compact?: boolean;
 }
 
-export const Input = forwardRef<React.ComponentRef<typeof TextInput>, InputProps>(({ label, error, hint, style, ...rest }, ref) => (
-  <View style={styles.wrapper}>
+export const Input = forwardRef<React.ComponentRef<typeof TextInput>, InputProps>(({ label, error, hint, compact, style, ...rest }, ref) => (
+  <View style={[styles.wrapper, compact && styles.wrapperCompact]}>
     {label ? <Text style={styles.label}>{label}</Text> : null}
     <TextInput
       ref={ref}
       placeholderTextColor={colors.textTertiary}
-      style={[styles.input, !!error && styles.inputError, style]}
+      style={[styles.input, compact && styles.inputCompact, !!error && styles.inputError, style]}
       {...rest}
     />
     {error ? <Text style={styles.error}>{error}</Text> : hint ? <Text style={styles.hint}>{hint}</Text> : null}
@@ -25,6 +26,7 @@ Input.displayName = 'Input';
 
 const styles = StyleSheet.create({
   wrapper: { marginBottom: spacing.lg },
+  wrapperCompact: { marginBottom: spacing.sm },
   label: { fontSize: fontSize.sm, color: colors.textSecondary, marginBottom: spacing.xs, fontWeight: '500' },
   input: {
     minHeight: 48,
@@ -38,6 +40,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   inputError: { borderColor: colors.error },
+  inputCompact: { minHeight: 42, paddingVertical: spacing.sm },
   error: { color: colors.error, fontSize: fontSize.xs, marginTop: spacing.xs },
   hint: { color: colors.textTertiary, fontSize: fontSize.xs, marginTop: spacing.xs },
 });
