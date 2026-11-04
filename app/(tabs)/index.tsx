@@ -131,9 +131,9 @@ export default function TodayScreen() {
             accessibilityLabel={c.title}
             style={({ pressed }) => [styles.tile, { width: `${100 / columns}%` }, pressed && styles.pressed]}
           >
-            <View style={styles.tileInner}>
-              <View style={styles.tileIcon}>
-                <Feather name={c.icon as keyof typeof Feather.glyphMap} size={20} color={colors.accent} />
+            <View style={[styles.tileInner, { borderTopColor: c.color }]}>
+              <View style={[styles.tileIcon, { backgroundColor: c.tint }]}>
+                <Feather name={c.icon as keyof typeof Feather.glyphMap} size={20} color={c.color} />
               </View>
               <Text style={styles.tileTitle} numberOfLines={2}>
                 {c.title}
@@ -180,6 +180,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.card,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
+    borderTopWidth: 3,
+    borderTopColor: colors.accent,
     padding: spacing.md,
     minHeight: 120,
     justifyContent: 'space-between',

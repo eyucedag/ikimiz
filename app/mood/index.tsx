@@ -4,6 +4,7 @@ import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Button, Card, EmptyState, IconButton, Screen, SectionHeader } from '@/src/components/ui';
 import { getMoodOption, MOOD_NOTE_MAX_LENGTH, moodOptions } from '@/src/constants/moods';
+import { getCategoryColor } from '@/src/constants/categories';
 import { colors, fontSize, layout, radius, spacing } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
@@ -13,9 +14,10 @@ import { formatDate, relativeTime, todayLabel } from '@/src/utils/date';
 import { getLocalMoodDate } from '@/src/utils/mood';
 
 function SharedNotice() {
+  const categoryColor = getCategoryColor('ruh-halim');
   return (
-    <View style={styles.sharedNotice}>
-      <Feather name="users" size={17} color={colors.accent} />
+    <View style={[styles.sharedNotice, { backgroundColor: categoryColor.tint }]}>
+      <Feather name="users" size={17} color={categoryColor.color} />
       <Text style={styles.sharedText}>Ruh haliniz ve notunuz mevcut partnerinizle paylaşılır.</Text>
     </View>
   );
@@ -47,6 +49,7 @@ function historyDayLabel(date: string, currentDate: string) {
 }
 
 export default function MoodScreen() {
+  const categoryColor = getCategoryColor('ruh-halim');
   const router = useRouter();
   const { user } = useAuth();
   const couple = useCouple();
@@ -244,9 +247,9 @@ export default function MoodScreen() {
                       accessibilityRole="button"
                       accessibilityLabel={option.label}
                       accessibilityState={{ selected, disabled: moods.saving || !draftIsCurrent }}
-                      style={({ pressed }) => [styles.moodOption, selected && styles.moodSelected, pressed && styles.pressed, moods.saving && styles.disabled]}
+                      style={({ pressed }) => [styles.moodOption, selected && { borderColor: categoryColor.color, backgroundColor: categoryColor.tint }, pressed && styles.pressed, moods.saving && styles.disabled]}
                     >
-                      <View style={styles.selectionMark}>{selected ? <Feather name="check-circle" size={15} color={colors.accent} /> : null}</View>
+                      <View style={styles.selectionMark}>{selected ? <Feather name="check-circle" size={15} color={categoryColor.color} /> : null}</View>
                       <Text style={styles.moodEmoji} accessible={false}>{option.emoji}</Text>
                       <Text style={[styles.moodLabel, selected && styles.moodLabelSelected]}>{option.label}</Text>
                     </Pressable>
@@ -276,8 +279,8 @@ export default function MoodScreen() {
 
             {draftIsCurrent && saveError ? <Text style={styles.saveError} accessibilityRole="alert">{saveError}</Text> : null}
             {draftIsCurrent && success ? (
-              <View style={styles.successBox} accessibilityLiveRegion="polite">
-                <Feather name="check-circle" size={18} color={colors.accent} />
+              <View style={[styles.successBox, { backgroundColor: categoryColor.tint }]} accessibilityLiveRegion="polite">
+                <Feather name="check-circle" size={18} color={categoryColor.color} />
                 <Text style={styles.successText}>{success}</Text>
               </View>
             ) : null}
@@ -308,7 +311,7 @@ export default function MoodScreen() {
               </>
             ) : (
               <View style={styles.partnerEmpty}>
-                <View style={styles.waitingIcon}><Feather name="sun" size={24} color={colors.accent} /></View>
+                <View style={[styles.waitingIcon, { backgroundColor: categoryColor.tint }]}><Feather name="sun" size={24} color={categoryColor.color} /></View>
                 <View style={styles.flex}>
                   <Text style={styles.waitingTitle}>Henüz paylaşmadı</Text>
                   <Text style={styles.muted}>Paylaştığında ruh hali ve notu burada görünecek.</Text>
@@ -356,7 +359,6 @@ const styles = StyleSheet.create({
   moodGrid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -spacing.xs, marginTop: spacing.md, marginBottom: spacing.lg },
   moodCell: { padding: spacing.xs },
   moodOption: { minHeight: 108, borderRadius: radius.card, borderWidth: 2, borderColor: colors.border, padding: spacing.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
-  moodSelected: { borderColor: colors.accent, backgroundColor: colors.accentLight },
   selectionMark: { height: 17, alignSelf: 'flex-end' },
   moodEmoji: { fontSize: 29, marginBottom: spacing.xs },
   moodLabel: { fontSize: fontSize.sm, color: colors.text, textAlign: 'center', fontWeight: '500', lineHeight: 19 },

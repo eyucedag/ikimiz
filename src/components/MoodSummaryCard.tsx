@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Button, Card } from '@/src/components/ui';
 import { getMoodOption } from '@/src/constants/moods';
+import { getCategoryColor } from '@/src/constants/categories';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { MoodEntry } from '@/src/types/mood';
 
@@ -32,10 +33,11 @@ function PersonMood({ name, entry, mine }: { name: string; entry: MoodEntry | nu
 
 /** Ana ekrandaki ruh hali özeti; veriyi ekran sağlar. */
 export function MoodSummaryCard({ today, partnerToday, partnerName, paired, loading, error, onPress }: MoodSummaryCardProps) {
+  const categoryColor = getCategoryColor('ruh-halim');
   return (
     <Card style={styles.card}>
       <View style={styles.heading}>
-        <View style={styles.headingIcon}><Feather name="heart" size={19} color={colors.accent} /></View>
+        <View style={[styles.headingIcon, { backgroundColor: categoryColor.tint }]}><Feather name="heart" size={19} color={categoryColor.color} /></View>
         <View style={styles.flex}>
           <Text style={styles.title} accessibilityRole="header">Ruh Halim</Text>
           <Text style={styles.subtitle}>Bugün birbirinize bir alan açın.</Text>

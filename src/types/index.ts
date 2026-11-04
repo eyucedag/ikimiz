@@ -68,6 +68,8 @@ export interface Category {
   title: string;
   icon: string;
   description: string;
+  color: string;
+  tint: string;
 }
 
 export interface SearchResult {

@@ -38,8 +38,8 @@ export default function CategoryScreen() {
   return (
     <Screen title={category.title}>
       <View style={styles.hero}>
-        <View style={styles.heroIcon}>
-          <Feather name={category.icon as keyof typeof Feather.glyphMap} size={32} color={colors.accent} />
+        <View style={[styles.heroIcon, { backgroundColor: category.tint }]}>
+          <Feather name={category.icon as keyof typeof Feather.glyphMap} size={32} color={category.color} />
         </View>
         <Badge label="Yakında · Aşama 2" tone="earth" />
         <Text style={styles.description}>{category.description}</Text>
@@ -50,7 +50,7 @@ export default function CategoryScreen() {
           <Text style={styles.cardTitle}>Neler gelecek?</Text>
           {features.map((f) => (
             <View key={f} style={styles.featureRow}>
-              <Feather name="check" size={16} color={colors.accent} />
+              <Feather name="check" size={16} color={category.color} />
               <Text style={styles.featureText}>{f}</Text>
             </View>
           ))}
