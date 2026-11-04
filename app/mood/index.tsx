@@ -249,7 +249,7 @@ export default function MoodScreen() {
                       accessibilityRole="button"
                       accessibilityLabel={option.label}
                       accessibilityState={{ selected, disabled: moods.saving || !draftIsCurrent }}
-                      style={({ pressed }) => [styles.moodOption, { backgroundColor: appearance.backgroundColor }, selected && { borderColor: categoryColor.color, backgroundColor: categoryColor.tint }, pressed && styles.pressed, moods.saving && styles.disabled]}
+                      style={({ pressed }) => [styles.moodOption, { backgroundColor: appearance.surfaceColor }, selected && { borderColor: categoryColor.color, backgroundColor: categoryColor.tint }, pressed && styles.pressed, moods.saving && styles.disabled]}
                     >
                       <View style={styles.selectionMark}>{selected ? <Feather name="check-circle" size={15} color={categoryColor.color} /> : null}</View>
                       <Text style={styles.moodEmoji} accessible={false}>{option.emoji}</Text>
@@ -275,7 +275,7 @@ export default function MoodScreen() {
               textAlignVertical="top"
               accessibilityLabel="Bugünkü ruh haliniz için kısa not"
               accessibilityHint={`İsteğe bağlı, en fazla ${MOOD_NOTE_MAX_LENGTH} karakter. Notunuz mevcut partnerinizle paylaşılır.`}
-              style={[styles.noteInput, { backgroundColor: appearance.backgroundColor }, moods.saving && styles.disabled]}
+              style={[styles.noteInput, { backgroundColor: appearance.surfaceColor }, moods.saving && styles.disabled]}
             />
             <Text style={styles.counter}>{draftIsCurrent ? note.length : 0}/{MOOD_NOTE_MAX_LENGTH}</Text>
 
@@ -310,7 +310,7 @@ export default function MoodScreen() {
                     <Text style={styles.muted}>Paylaşım · {relativeTime(partnerToday.updatedAt)}</Text>
                   </View>
                 </View>
-                {partnerToday.note ? <Text style={[styles.partnerNote, { backgroundColor: appearance.backgroundColor }]}>{partnerToday.note}</Text> : <Text style={styles.muted}>Bugün bir not eklemedi.</Text>}
+                {partnerToday.note ? <Text style={[styles.partnerNote, { backgroundColor: appearance.surfaceColor }]}>{partnerToday.note}</Text> : <Text style={styles.muted}>Bugün bir not eklemedi.</Text>}
               </>
             ) : (
               <View style={styles.partnerEmpty}>

@@ -5,7 +5,7 @@ import { appBackgroundColors, colors } from '@/src/constants/theme';
 const STORAGE_KEY = 'ikimiz:app-background-color';
 interface AppearanceValue { backgroundColor: string; surfaceColor: string; setBackgroundColor: (color: string) => void }
 const AppearanceContext = createContext<AppearanceValue>({
-  backgroundColor: colors.background, surfaceColor: colors.card, setBackgroundColor: () => undefined,
+  backgroundColor: colors.background, surfaceColor: colors.background, setBackgroundColor: () => undefined,
 });
 
 export function AppAppearanceProvider({ children }: { children: React.ReactNode }) {
@@ -26,7 +26,7 @@ export function AppAppearanceProvider({ children }: { children: React.ReactNode 
   }, []);
   const value = useMemo(() => ({
     backgroundColor,
-    surfaceColor: backgroundColor === colors.background ? colors.card : backgroundColor,
+    surfaceColor: colors.background,
     setBackgroundColor,
   }), [backgroundColor, setBackgroundColor]);
   return <AppearanceContext.Provider value={value}>{children}</AppearanceContext.Provider>;
