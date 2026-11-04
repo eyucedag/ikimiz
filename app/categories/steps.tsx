@@ -58,6 +58,16 @@ export default function StepsScreen() {
       if (!await Pedometer.isAvailableAsync()) throw new Error('Bu telefonda adım sayar sensörü bulunmuyor.');
       const locationPermission = await Location.requestForegroundPermissionsAsync();
       if (!locationPermission.granted) throw new Error('Birlikte yakın olduğunuzu anlamak için uygulama açıkken konum izni de gerekli.');
+      try {
+        const [todayRows, activeLocations] = await Promise.all([
+          presenceService.steps(couple.couple.id, today),
+          presenceService.locations(couple.couple.id),
+        ]);
+        setRows(todayRows);
+        setLocations(activeLocations);
+      } catch {
+        throw new Error('Adım paylaşımı için gerekli Supabase SQL’i henüz çalıştırılmamış. SQL Editor’da 20261104_shared_steps_location_relationship.sql dosyasını çalıştırın.');
+      }
       setTracking(true);
     } catch (e) { setError(e instanceof Error ? e.message : 'Yakınlık algılama başlatılamadı.'); }
   };

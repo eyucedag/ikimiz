@@ -46,7 +46,7 @@ export default function TodayScreen() {
     const hours = Math.floor((elapsed % 86400) / 3600);
     const minutes = Math.floor((elapsed % 3600) / 60);
     const seconds = elapsed % 60;
-    return `${days} gün · ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    return `${days} gün ${hours} saat ${minutes} dakika ${seconds} saniye`;
   }, [couple.couple?.relationshipStartedAt, now]);
 
   useEffect(() => {
@@ -139,13 +139,18 @@ export default function TodayScreen() {
             onPress={() => direction.sharing ? direction.stop() : void direction.start()}
             accessibilityRole="button"
             accessibilityLabel={direction.angle == null ? 'Partner yönünü görmek için konum paylaşımını aç' : 'Partnerin yönünü göster'}
-            style={[styles.directionButton, direction.sharing && styles.directionButtonActive]}
+            style={styles.directionButton}
           >
-            <Feather name="navigation" size={21} color={direction.sharing ? '#1676E8' : colors.textSecondary} style={direction.angle == null ? undefined : { transform: [{ rotate: `${direction.angle}deg` }] }} />
+            <Feather
+              name="navigation"
+              size={24}
+              color={direction.bothSharing ? '#159447' : direction.anySharing ? '#1676E8' : colors.textSecondary}
+              style={direction.bothSharing && direction.angle != null ? { transform: [{ rotate: `${direction.angle}deg` }] } : undefined}
+            />
           </Pressable>
         ) : null}
       </View>
-      {direction.error ? <Text style={styles.directionHint}>{direction.error}</Text> : direction.sharing ? <Text style={styles.directionHint}>Konumun yalnızca uygulama açıkken partnerinle paylaşılır.</Text> : null}
+      {direction.error ? <Text style={styles.directionHint}>{direction.error}</Text> : direction.anySharing ? <Text style={styles.directionHint}>{direction.bothSharing ? 'İkinizin konumu açık.' : 'Konum paylaşımı açık; yön için ikiniz de açın.'}</Text> : null}
 
       {/* Partnerinden Not */}
       <Card style={[styles.section, styles.narrowCard, { borderColor: noteColor.color, borderWidth: 1.5 }]}>
@@ -279,10 +284,9 @@ export default function TodayScreen() {
 
 const styles = StyleSheet.create({
   header: { marginTop: spacing.sm, marginBottom: spacing.xl, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  identityRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  identityText: { flex: 1 },
-  directionButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentLight },
-  directionButtonActive: { backgroundColor: '#DFEBFF' },
+  identityRow: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  identityText: { flex: 1, minWidth: 0 },
+  directionButton: { flexShrink: 0, width: 48, height: 48, borderRadius: 24, marginLeft: spacing.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentLight },
   directionHint: { color: colors.textSecondary, fontSize: fontSize.xs, marginLeft: 68, marginTop: -spacing.lg, marginBottom: spacing.sm },
   couplePhoto: { width: 54, height: 54, borderRadius: 27, borderWidth: 1.5, borderColor: colors.border },
   photoPlaceholder: { width: 54, height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentLight, borderWidth: 1.5, borderColor: colors.border },
@@ -295,10 +299,10 @@ const styles = StyleSheet.create({
   photoUploading: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
   appTitle: { fontSize: fontSize.xxxl, fontWeight: '700', color: colors.text },
   subtitle: { fontSize: fontSize.sm, color: colors.textSecondary, marginTop: spacing.xs },
-  duration: { fontSize: fontSize.sm, color: '#1676E8', fontWeight: '700', marginTop: spacing.xs, fontVariant: ['tabular-nums'] },
+  duration: { fontSize: fontSize.sm, color: '#1676E8', fontWeight: '700', marginTop: spacing.xs },
   durationMissing: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: spacing.xs },
   section: { marginBottom: spacing.lg },
-  narrowCard: { width: '92%', alignSelf: 'center' },
+  narrowCard: { width: '96%', alignSelf: 'center' },
   note: { borderRadius: radius.card, padding: spacing.lg },
   noteEmoji: { fontSize: fontSize.xxl, marginBottom: spacing.xs },
   noteSticker: { width: 120, height: 120, alignSelf: 'center', marginBottom: spacing.sm },

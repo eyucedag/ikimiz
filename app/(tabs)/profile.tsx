@@ -141,8 +141,20 @@ export default function ProfileScreen() {
             <Button title={startedAt.toLocaleDateString('tr-TR')} icon="calendar" variant="secondary" onPress={() => setDatePicker(true)} style={styles.flex} />
             <Button title={startedAt.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })} icon="clock" variant="secondary" onPress={() => setTimePicker(true)} style={styles.flex} />
           </View>
-          {datePicker ? <DateTimePicker value={startedAt} mode="date" display="default" maximumDate={new Date()} onChange={(_event, date) => { setDatePicker(false); if (date) setStartedAt((old) => { const value = new Date(old); value.setFullYear(date.getFullYear(), date.getMonth(), date.getDate()); return value; }); }} /> : null}
-          {timePicker ? <DateTimePicker value={startedAt} mode="time" display="default" onChange={(_event, date) => { setTimePicker(false); if (date) setStartedAt((old) => { const value = new Date(old); value.setHours(date.getHours(), date.getMinutes(), 0, 0); return value; }); }} /> : null}
+          {datePicker && Platform.OS === 'android' ? <DateTimePicker value={startedAt} mode="date" display="calendar" maximumDate={new Date()} onChange={(_event, date) => { setDatePicker(false); if (date) setStartedAt((old) => { const value = new Date(old); value.setFullYear(date.getFullYear(), date.getMonth(), date.getDate()); return value; }); }} /> : null}
+          {timePicker && Platform.OS === 'android' ? <DateTimePicker value={startedAt} mode="time" display="clock" onChange={(_event, date) => { setTimePicker(false); if (date) setStartedAt((old) => { const value = new Date(old); value.setHours(date.getHours(), date.getMinutes(), 0, 0); return value; }); }} /> : null}
+          <Modal visible={datePicker && Platform.OS === 'ios'} transparent animationType="slide" onRequestClose={() => setDatePicker(false)}>
+            <View style={styles.pickerBackdrop}><View style={styles.pickerSheet}>
+              <View style={styles.pickerHeader}><Button title="Vazgeç" variant="ghost" compact onPress={() => setDatePicker(false)} /><Text style={styles.pickerTitle}>Başlangıç tarihi</Text><Button title="Tamam" variant="ghost" compact onPress={() => setDatePicker(false)} /></View>
+              <DateTimePicker value={startedAt} mode="date" display="spinner" locale="tr-TR" themeVariant="light" textColor={colors.text} accentColor={colors.accent} maximumDate={new Date()} onChange={(_event, date) => { if (date) setStartedAt((old) => { const value = new Date(old); value.setFullYear(date.getFullYear(), date.getMonth(), date.getDate()); return value; }); }} />
+            </View></View>
+          </Modal>
+          <Modal visible={timePicker && Platform.OS === 'ios'} transparent animationType="slide" onRequestClose={() => setTimePicker(false)}>
+            <View style={styles.pickerBackdrop}><View style={styles.pickerSheet}>
+              <View style={styles.pickerHeader}><Button title="Vazgeç" variant="ghost" compact onPress={() => setTimePicker(false)} /><Text style={styles.pickerTitle}>Başlangıç saati</Text><Button title="Tamam" variant="ghost" compact onPress={() => setTimePicker(false)} /></View>
+              <DateTimePicker value={startedAt} mode="time" display="spinner" locale="tr-TR" themeVariant="light" textColor={colors.text} accentColor={colors.accent} onChange={(_event, date) => { if (date) setStartedAt((old) => { const value = new Date(old); value.setHours(date.getHours(), date.getMinutes(), 0, 0); return value; }); }} />
+            </View></View>
+          </Modal>
           {startError ? <Text style={styles.inlineError}>{startError}</Text> : null}
           <Button title="İlişki başlangıcını kaydet" icon="save" loading={savingStart} onPress={() => { void saveRelationshipStart(); }} style={styles.saveStart} />
         </Card>
@@ -191,6 +203,10 @@ const styles = StyleSheet.create({
   relationshipCard: { paddingVertical: spacing.md, marginBottom: spacing.lg, borderRadius: radius.card },
   inlineError: { color: colors.error, fontSize: fontSize.sm, marginTop: spacing.sm },
   saveStart: { marginTop: spacing.md },
+  pickerBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' },
+  pickerSheet: { backgroundColor: colors.card, borderTopLeftRadius: radius.card, borderTopRightRadius: radius.card, paddingBottom: spacing.xl },
+  pickerHeader: { minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, paddingHorizontal: spacing.sm },
+  pickerTitle: { color: colors.text, fontSize: fontSize.md, fontWeight: '600' },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md, minHeight: 48 },
   rowIcon: { width: 34 },
   rowTitle: { flex: 1, fontSize: fontSize.md, color: colors.text },

@@ -21,6 +21,7 @@ export function useCoupleDirection(coupleId?: string, userId?: string, partnerId
     subscriptions.current.forEach((subscription) => subscription.remove());
     subscriptions.current = [];
     if (userId) void presenceService.clearLocation(userId);
+    setLocations((current) => current.filter((location) => location.userId !== userId));
     setSharing(false);
   }, [userId]);
 
@@ -58,12 +59,19 @@ export function useCoupleDirection(coupleId?: string, userId?: string, partnerId
     return () => sub.remove();
   }, [sharing, stop]);
 
-  const angle = useMemo(() => {
+  const presence = useMemo(() => {
     const mine = locations.find((item) => item.userId === userId);
     const partner = locations.find((item) => item.userId === partnerId);
-    if (!mine || !partner || Date.now() - new Date(partner.updatedAt).getTime() > 120000) return null;
-    return (bearingBetween(mine, partner) - heading + 360) % 360;
-  }, [locations, userId, partnerId, heading]);
+    const isFresh = (location?: CoupleLocation) => !!location && Date.now() - new Date(location.updatedAt).getTime() <= 120000;
+    const mineFresh = isFresh(mine);
+    const partnerFresh = isFresh(partner);
+    const bothSharing = sharing && mineFresh && partnerFresh;
+    return {
+      anySharing: (sharing && mineFresh) || partnerFresh,
+      bothSharing,
+      angle: bothSharing && mine && partner ? (bearingBetween(mine, partner) - heading + 360) % 360 : null,
+    };
+  }, [locations, userId, partnerId, heading, sharing]);
 
-  return { angle, sharing, start, stop, error };
+  return { ...presence, sharing, start, stop, error };
 }
