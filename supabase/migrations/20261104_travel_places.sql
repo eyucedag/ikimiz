@@ -8,6 +8,7 @@ create table if not exists public.travel_places (
   couple_id uuid not null references public.couples(id) on delete cascade,
   city text not null check (char_length(city) between 1 and 120),
   country text not null check (char_length(country) between 1 and 120),
+  note text check (note is null or char_length(note) <= 500),
   latitude double precision not null check (latitude between -90 and 90),
   longitude double precision not null check (longitude between -180 and 180),
   visited_on date not null default current_date

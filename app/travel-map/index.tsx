@@ -20,7 +20,8 @@ export default function TravelMapScreen() {
   const couple = useCouple();
   const [places, setPlaces] = useState<TravelPlace[]>([]);
   const [city, setCity] = useState('');
-  const [country, setCountry] = useState('');
+  const [country, setCountry] = useState('Türkiye');
+  const [note, setNote] = useState('');
   const [visitedOn, setVisitedOn] = useState(todayLocal());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -51,10 +52,11 @@ export default function TravelMapScreen() {
       const coordinates = await findCoordinates(city.trim(), country.trim());
       const place = await travelService.add({
         coupleId: couple.couple.id, ownerId: user.id, city: city.trim(), country: country.trim(),
-        ...coordinates, visitedOn: /^\d{4}-\d{2}-\d{2}$/.test(visitedOn) ? visitedOn : todayLocal(),
+        note: note.trim() || null, ...coordinates,
+        visitedOn: /^\d{4}-\d{2}-\d{2}$/.test(visitedOn) ? visitedOn : todayLocal(),
       });
       setPlaces((previous) => [place, ...previous]);
-      setCity(''); setCountry(''); setVisitedOn(todayLocal());
+      setCity(''); setCountry('Türkiye'); setNote(''); setVisitedOn(todayLocal());
     } catch (e) { setError(e instanceof Error ? e.message : 'Yer eklenemedi.'); }
     finally { setLoading(false); }
   };
@@ -84,7 +86,7 @@ export default function TravelMapScreen() {
               accessibilityLabel="Birlikte gezilen şehirler haritası"
             >
               {places.map((place) => (
-                <Marker key={place.id} coordinate={{ latitude: place.latitude, longitude: place.longitude }} title={`${place.city}, ${place.country}`} description={`Ziyaret: ${place.visitedOn}`} pinColor="#0B8F87" />
+                <Marker key={place.id} coordinate={{ latitude: place.latitude, longitude: place.longitude }} title={`${place.city}, ${place.country}`} description={[`Ziyaret: ${place.visitedOn}`, place.note].filter(Boolean).join(' · ')} pinColor="#0B8F87" />
               ))}
             </MapView>
             {places.length === 0 ? <Text style={styles.mapHint}>İlk şehrinizi ekleyince haritada görünecek.</Text> : null}
@@ -94,6 +96,7 @@ export default function TravelMapScreen() {
             <Input label="Şehir" placeholder="Örn. Roma" value={city} onChangeText={setCity} />
             <Input label="Ülke" placeholder="Örn. İtalya" value={country} onChangeText={setCountry} />
             <Input label="Ziyaret tarihi" placeholder="YYYY-AA-GG" value={visitedOn} onChangeText={setVisitedOn} />
+            <Input label="Not (isteğe bağlı)" placeholder="Bu geziyle ilgili bir anı yazın" value={note} onChangeText={setNote} multiline style={styles.noteInput} />
             <Text style={styles.privacy}>Konumu haritada bulmak için şehir ve ülke adları OpenStreetMap’e gönderilir.</Text>
             {error ? <Text style={styles.error}>{error}</Text> : null}
             <Button title="Haritaya ekle" icon="map-pin" toneColor="#0B8F87" loading={loading} onPress={() => { void addPlace(); }} style={styles.addButton} />
@@ -102,7 +105,11 @@ export default function TravelMapScreen() {
           {places.map((place) => (
             <Card key={place.id} style={styles.placeRow}>
               <View style={styles.pin}><Feather name="map-pin" size={16} color="#0B8F87" /></View>
-              <View style={styles.placeInfo}><Text style={styles.placeName}>{place.city}, {place.country}</Text><Text style={styles.placeDate}>{place.visitedOn}</Text></View>
+              <View style={styles.placeInfo}>
+                <Text style={styles.placeName}>{place.city}, {place.country}</Text>
+                <Text style={styles.placeDate}>{place.visitedOn}</Text>
+                {place.note ? <Text style={styles.placeNote}>{place.note}</Text> : null}
+              </View>
               {place.ownerId === user?.id ? <Button title="Kaldır" variant="ghost" compact onPress={() => removePlace(place)} toneColor="#A64B58" /> : null}
             </Card>
           ))}
@@ -124,10 +131,12 @@ const styles = StyleSheet.create({
   privacy: { fontSize: fontSize.xs, color: colors.textTertiary, lineHeight: 16, marginTop: spacing.xs },
   error: { color: colors.error, fontSize: fontSize.sm, marginTop: spacing.sm },
   addButton: { marginTop: spacing.md },
+  noteInput: { minHeight: 80, textAlignVertical: 'top' },
   listTitle: { color: '#0B8F87', fontWeight: '700', fontSize: fontSize.md, marginBottom: spacing.sm },
   placeRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: '#0B8F87', marginBottom: spacing.sm, paddingVertical: spacing.sm },
   pin: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: radius.control, backgroundColor: '#D8F4EF', marginRight: spacing.sm },
   placeInfo: { flex: 1 },
   placeName: { color: colors.text, fontSize: fontSize.md, fontWeight: '600' },
   placeDate: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 2 },
+  placeNote: { color: colors.textSecondary, fontSize: fontSize.sm, marginTop: spacing.xs, lineHeight: 18 },
 });
