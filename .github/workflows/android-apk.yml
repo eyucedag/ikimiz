@@ -1,0 +1,67 @@
+name: Android APK
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-apk
+  cancel-in-progress: false
+
+jobs:
+  apk:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       github.event.pull_request.head.ref == 'codex/android-apk')
+    runs-on: ubuntu-latest
+    timeout-minutes: 85
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Submit signed Android APK to Expo
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_NO_TELEMETRY: '1'
+          EAS_NO_VCS: '1'
+        run: python3 scripts/android-apk.py submit
+
+      - name: Save Expo project and build details
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-submission
+          path: dist/android-build/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Wait for the APK
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_NO_TELEMETRY: '1'
+          EAS_NO_VCS: '1'
+        run: python3 scripts/android-apk.py wait
+
+      - name: Save APK download link
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-download
+          path: dist/android-build/
+          if-no-files-found: ignore
+          retention-days: 30
