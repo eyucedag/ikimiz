@@ -67,7 +67,7 @@ export default function NoteHistoryScreen() {
         visible.map((n) => {
           const mine = n.senderId === user?.id;
           return (
-            <View key={n.id} style={[styles.note, { backgroundColor: n.backgroundColor, borderColor: categoryColor.color }, mine ? styles.mine : styles.theirs]}>
+              <View key={n.id} style={[styles.note, { backgroundColor: n.backgroundColor, borderColor: categoryColor.color }, mine ? styles.mine : styles.theirs]}>
               <Text style={styles.noteText}>
                 {n.emoji ? `${n.emoji} ` : ''}{n.text}
               </Text>
@@ -75,7 +75,10 @@ export default function NoteHistoryScreen() {
                 <Text style={styles.meta}>
                   {mine ? 'Siz' : couple.partner?.displayName ?? 'Partneriniz'} · {formatDateTime(n.createdAt)}
                 </Text>
-                {mine && n.readAt ? <Text style={styles.readChecks} accessibilityLabel="Partneriniz notu gördü">✓✓</Text> : null}
+                  <View style={styles.metaActions}>
+                    {mine && n.readAt ? <Text style={styles.readChecks} accessibilityLabel="Partneriniz notu gördü">✓✓</Text> : null}
+                    {mine ? <IconButton icon="edit-2" size={16} color={categoryColor.color} accessibilityLabel="Notu düzenle" onPress={() => router.push({ pathname: '/screen-note/compose', params: { noteId: n.id } })} style={styles.editButton} /> : null}
+                  </View>
               </View>
             </View>
           );
@@ -96,5 +99,7 @@ const styles = StyleSheet.create({
   noteText: { fontSize: fontSize.md, color: colors.text, lineHeight: 22 },
   meta: { fontSize: fontSize.xs, color: colors.textSecondary, marginTop: spacing.sm },
   metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+  metaActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  editButton: { width: 28, height: 28 },
   readChecks: { color: '#34B7F1', fontSize: fontSize.md, fontWeight: '800', marginTop: spacing.sm },
 });

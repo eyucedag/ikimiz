@@ -164,12 +164,17 @@ export default function TodayScreen() {
           <>
             <View style={styles.noteHeader}>
               <Text style={styles.noteHeaderTitle}>Partnerinden Not</Text>
-              <Pressable onPress={() => router.push('/screen-note/history')} accessibilityRole="link" hitSlop={8}>
-                <Text style={[styles.noteHistoryLink, { color: noteColor.color }]}>Tüm Notlar</Text>
-              </Pressable>
+              <View style={styles.noteHeaderActions}>
+                <View style={styles.allNotesAction}>
+                  <Text style={[styles.allNotesLabel, { color: noteColor.color }]}>Bütün Notlar</Text>
+                  <Pressable onPress={() => router.push('/screen-note/history')} accessibilityRole="button" accessibilityLabel="Bütün notları gör" style={[styles.allNotesButton, { backgroundColor: noteColor.tint }]}>
+                    <Feather name="list" size={15} color={noteColor.color} />
+                  </Pressable>
+                </View>
               <Pressable onPress={() => router.push('/screen-note/compose')} accessibilityRole="button" accessibilityLabel="Yeni Not Bırak" style={[styles.newNoteIcon, { backgroundColor: noteColor.tint }]}>
                 <Feather name="edit-3" size={15} color={noteColor.color} />
               </Pressable>
+              </View>
             </View>
             {latestFromPartner ? (
               <View style={[styles.note, { backgroundColor: latestFromPartner.backgroundColor }]}>
@@ -310,9 +315,12 @@ const styles = StyleSheet.create({
   durationMissing: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: spacing.xs },
   section: { marginBottom: spacing.lg },
   compactCard: { paddingVertical: spacing.xs },
-  noteHeader: { minHeight: 28, flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
+  noteHeader: { minHeight: 34, flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
   noteHeaderTitle: { flex: 1, color: colors.text, fontWeight: '600', fontSize: fontSize.md },
-  noteHistoryLink: { fontSize: fontSize.xs, fontWeight: '600', marginRight: spacing.sm },
+  noteHeaderActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  allNotesAction: { alignItems: 'center', justifyContent: 'center' },
+  allNotesLabel: { fontSize: 9, fontWeight: '600', lineHeight: 11 },
+  allNotesButton: { width: 24, height: 22, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
   newNoteIcon: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   note: { borderRadius: radius.card, paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
   noteEmoji: { fontSize: fontSize.xxl, marginBottom: spacing.xs },

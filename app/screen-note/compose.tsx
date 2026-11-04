@@ -1,34 +1,48 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Button, EmptyState, Screen } from '@/src/components/ui';
 import { colors, fontSize, noteColors, radius, spacing } from '@/src/constants/theme';
 import { getCategoryColor } from '@/src/constants/categories';
 import { useCouple } from '@/src/hooks/useCouple';
+import { useAuth } from '@/src/hooks/useAuth';
 import { useScreenNotes } from '@/src/hooks/useScreenNotes';
 import { SCREEN_NOTE_MAX_LENGTH } from '@/src/services/screenNoteService';
 
 export default function ComposeNoteScreen() {
   const categoryColor = getCategoryColor('ekrana-not');
   const router = useRouter();
+  const { noteId } = useLocalSearchParams<{ noteId?: string }>();
   const couple = useCouple();
-  const { send } = useScreenNotes(couple);
+  const { user } = useAuth();
+  const { notes, send, update } = useScreenNotes(couple);
   const [text, setText] = useState('');
   const [backgroundColor, setBackgroundColor] = useState(noteColors[0]);
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
 
+  useEffect(() => {
+    if (!noteId) return;
+    const note = notes.find((item) => item.id === noteId && item.senderId === user?.id);
+    if (note) {
+      setText(note.text);
+      setBackgroundColor(note.backgroundColor);
+    }
+  }, [noteId, notes, user?.id]);
+
   const submit = async () => {
     setError('');
     setSending(true);
-    const result = await send({ text, emoji: '', backgroundColor });
+    const result = noteId
+      ? await update(noteId, text, backgroundColor)
+      : await send({ text, emoji: '', backgroundColor });
     setSending(false);
     if (result.error) {
       setError(result.error);
       return;
     }
-    Alert.alert('Not gönderildi', `${couple.partner?.displayName ?? 'Partneriniz'} notunuzu ana ekranında görecek.`, [
+    Alert.alert(noteId ? 'Not güncellendi' : 'Not gönderildi', noteId ? 'Notunuz düzenlendi.' : `${couple.partner?.displayName ?? 'Partneriniz'} notunuzu ana ekranında görecek.`, [
       { text: 'Tamam', onPress: () => (router.canGoBack() ? router.back() : router.replace('/(tabs)')) },
     ]);
   };
@@ -48,7 +62,7 @@ export default function ComposeNoteScreen() {
   }
 
   return (
-    <Screen title="Ekrana Not">
+    <Screen title={noteId ? 'Notu Düzenle' : 'Ekrana Not'}>
       {/* Canlı önizleme */}
       <View style={[styles.preview, { backgroundColor, borderColor: categoryColor.color }]}>
         <TextInput
@@ -85,7 +99,7 @@ export default function ComposeNoteScreen() {
       </View>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Button title="Gönder" icon="send" toneColor={categoryColor.color} onPress={submit} loading={sending} disabled={!text.trim()} style={styles.send} />
+      <Button title={noteId ? 'Değişiklikleri Kaydet' : 'Gönder'} icon={noteId ? 'check' : 'send'} toneColor={categoryColor.color} onPress={submit} loading={sending} disabled={!text.trim()} style={styles.send} />
     </Screen>
   );
 }

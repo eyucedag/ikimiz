@@ -103,4 +103,17 @@ export const screenNoteService = {
     const { error } = await supabase.rpc('mark_screen_note_read', { p_note_id: noteId });
     return error ? { error: error.message } : {};
   },
+
+  async update(noteId: string, textValue: string, backgroundColor: string): Promise<ServiceResult<ScreenNote>> {
+    const text = textValue.trim();
+    if (!text) return { error: 'Lütfen kısa bir not yazın.' };
+    if (text.length > SCREEN_NOTE_MAX_LENGTH) return { error: `Not en fazla ${SCREEN_NOTE_MAX_LENGTH} karakter olabilir.` };
+    const { data, error } = await supabase.from('screen_notes')
+      .update({ text, background_color: backgroundColor, emoji: '' })
+      .eq('id', noteId)
+      .select('*')
+      .single();
+    if (error) return { error: error.message };
+    return { data: mapNote(data) };
+  },
 };

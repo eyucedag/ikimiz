@@ -63,5 +63,11 @@ export function useScreenNotes(coupleState: Pick<CoupleState, 'couple' | 'partne
     return result;
   }, []);
 
-  return { notes, latestFromPartner, loading, refresh, send, markRead };
+  const update = useCallback(async (noteId: string, text: string, backgroundColor: string) => {
+    const result = await screenNoteService.update(noteId, text, backgroundColor);
+    if (result.data) setNotes((previous) => previous.map((note) => note.id === noteId ? result.data! : note));
+    return result;
+  }, []);
+
+  return { notes, latestFromPartner, loading, refresh, send, markRead, update };
 }
