@@ -19,6 +19,7 @@ interface QuickAction {
 
 const actions: QuickAction[] = [
   { key: 'mood', title: 'Ruh Halim', description: 'Bugünkü ruh halini partnerinle paylaş', icon: 'smile', category: 'ruh-halim', route: '/mood' },
+  { key: 'travel', title: 'Gezdiğimiz Yerler', description: 'Gittiğiniz şehirleri ortak haritaya ekle', icon: 'map-pin', category: 'gezilen-yerler', route: '/travel-map' },
   { key: 'screen-note', title: 'Ekran Notu', description: "Partnerinizin ana ekranına kısa not", icon: 'edit-3', category: 'ekrana-not', route: '/screen-note/compose' },
   { key: 'event', title: 'Etkinlik', description: 'Takvime plan veya önemli gün', icon: 'calendar', category: 'takvim', soonDetail: 'Ortak takvim ve tekrarlayan etkinlikler Aşama 2’de eklenecek.' },
   { key: 'list', title: 'Liste', description: 'Market, film, seyahat listesi', icon: 'list', category: 'listeler', soonDetail: 'Paylaşılan listeler Aşama 2’de eklenecek.' },

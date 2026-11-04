@@ -24,6 +24,7 @@ export default function CategoryScreen() {
 
   if (slug === 'ekrana-not') return <Redirect href="/screen-note/compose" />;
   if (slug === 'ruh-halim') return <Redirect href="/mood" />;
+  if (slug === 'gezilen-yerler') return <Redirect href="/travel-map" />;
   if (slug === 'opucuk') return <Redirect href="/(tabs)" />;
 
   if (!category) {

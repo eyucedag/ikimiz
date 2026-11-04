@@ -37,6 +37,7 @@ function RootNavigator() {
         <Stack.Screen name="screen-note/compose" options={{ presentation: 'modal' }} />
         <Stack.Screen name="screen-note/history" />
         <Stack.Screen name="mood/index" />
+        <Stack.Screen name="travel-map/index" />
         <Stack.Screen name="categories/[slug]" />
       </Stack>
       {loading ? (

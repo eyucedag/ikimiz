@@ -97,13 +97,13 @@ Yerel mock (demo) mod kaldırılmıştır; tüm veriler Supabase'de tutulur.
 4. Başka bir Supabase projesi kullanacaksanız **Project Settings → API** sayfasındaki URL ve anon anahtarını `src/lib/supabase.ts` dosyasına yazın.
 5. `npx expo start -c` ile uygulamayı yeniden başlatın.
 
-Mevcut kuruluma **Ruh Halim** eklemek için `supabase/migrations/20261104_mood_entries.sql`, **Öpücük** için `supabase/migrations/20261104_kisses.sql`, **Ortak Fotoğraf** için `supabase/migrations/20261104_couple_photo.sql` dosyasını Supabase SQL Editor'da çalıştırın. Bu ek kurulumlar mevcut verileri silmeden tabloları, Storage alanını ve erişim kurallarını oluşturur. Ruh hali ve not aktif partnerle paylaşılır; herkes yalnızca kendi kaydını değiştirebilir. Öpücük tablosu sabah/akşam haklarını ve partner uygulaması açıkken anlık animasyonu sağlar; partner daha sonra uygulamayı açarsa son 24 saatteki öpücük animasyonu gösterilir. Ortak fotoğrafı eşleşmedeki iki kullanıcı da değiştirebilir ve yalnızca aktif çift üyeleri görebilir.
+Mevcut kuruluma **Ruh Halim** eklemek için `supabase/migrations/20261104_mood_entries.sql`, **Öpücük** için `supabase/migrations/20261104_kisses.sql`, **Ortak Fotoğraf** için `supabase/migrations/20261104_couple_photo.sql`, **Gezdiğimiz Yerler** için `supabase/migrations/20261104_travel_places.sql` dosyasını Supabase SQL Editor'da çalıştırın. Bu ek kurulumlar mevcut verileri silmeden tabloları, Storage alanını ve erişim kurallarını oluşturur. Ruh hali ve not aktif partnerle paylaşılır; herkes yalnızca kendi kaydını değiştirebilir. Öpücük tablosu sabah/akşam haklarını ve partner uygulaması açıkken anlık animasyonu sağlar; partner daha sonra uygulamayı açarsa son 24 saatteki öpücük animasyonu gösterilir. Ortak fotoğrafını eşleşmedeki iki kullanıcı da değiştirebilir ve yalnızca aktif çift üyeleri görebilir. Gezdiğimiz Yerler kayıtları iki partnerin de haritasında görünür; ekleyen kişi kendi kaydını kaldırabilir.
 
-**Şema özeti** — 19 tablo:
+**Şema özeti** — 20 tablo:
 
 | Aşama 1 (aktif) | Aşama 2 (hazır) |
 | --- | --- |
-| `profiles`, `couples`, `couple_members`, `invitations`, `screen_notes`, `notifications`, `mood_entries`, `kisses` | `calendar_events`, `important_dates`, `lists`, `list_items`, `note_folders`, `notes`, `tasks`, `reminders`, `gift_ideas`, `partner_facts`, `user_settings` |
+| `profiles`, `couples`, `couple_members`, `invitations`, `screen_notes`, `notifications`, `mood_entries`, `kisses`, `travel_places` | `calendar_events`, `important_dates`, `lists`, `list_items`, `note_folders`, `notes`, `tasks`, `reminders`, `gift_ideas`, `partner_facts`, `user_settings` |
 
 - Her tabloda ortak sütunlar bulunur: `id`, `created_at`, `updated_at`, `owner_id`, `couple_id`, `visibility` (`personal` | `shared`), `is_deleted`.
 - Tüm tablolarda **Row Level Security** açıktır; her tablonun üzerinde erişim kuralı yorum olarak açıklanmıştır.
