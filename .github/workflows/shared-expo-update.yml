@@ -1,0 +1,63 @@
+name: Shared Expo Go update
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shared-expo-update
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       github.event.pull_request.head.ref == 'codex/shared-expo-update')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      npm_config_legacy_peer_deps: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Install SDK-compatible Expo Updates
+        run: npx expo install expo-updates --npm
+
+      - name: Configure shared Expo preview
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: npx --yes eas-cli@latest update:configure --environment preview --non-interactive
+
+      - name: Publish iOS and Android previews
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          npx --yes eas-cli@latest update --branch shared-preview --platform all --message "Shared Expo Go preview" --environment preview --non-interactive --json > "$RUNNER_TEMP/ikimiz-update.json"
+          node scripts/shared-update-links.cjs "$RUNNER_TEMP/ikimiz-update.json"
+
+      - name: Save shared Expo Go connection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-expo-update
+          path: dist/shared-preview/
+          if-no-files-found: ignore
+          retention-days: 14
