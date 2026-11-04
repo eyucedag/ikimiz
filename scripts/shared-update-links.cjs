@@ -11,16 +11,23 @@ async function main() {
   const config = require('../app.json').expo;
   const projectId = config.extra?.eas?.projectId;
   if (!groupId || !projectId) throw new Error('Published update group or project ID is missing.');
+  const channel = 'shared-preview';
+  const runtimeVersion = first.runtimeVersion;
+  if (typeof runtimeVersion !== 'string' || !runtimeVersion) throw new Error('Published runtime version is missing.');
   const output = path.resolve('dist/shared-preview');
   await fs.mkdir(output, { recursive: true });
   const qrUrl = new URL('https://qr.expo.dev/eas-update');
   qrUrl.searchParams.set('projectId', projectId);
-  qrUrl.searchParams.set('groupId', groupId);
+  qrUrl.searchParams.set('channel', channel);
+  qrUrl.searchParams.set('runtimeVersion', runtimeVersion);
+  qrUrl.searchParams.set('slug', 'exp');
   const connection = {
     projectId, groupId, account: config.owner,
     platforms: updates.map(update => update.platform).filter(Boolean),
-    runtimeVersion: first.runtimeVersion,
+    channel,
+    runtimeVersion,
     qrUrl: qrUrl.href,
+    versionUrl: `exp://u.expo.dev/${projectId}/group/${groupId}`,
     dashboardUrl: `https://expo.dev/accounts/${config.owner}/projects/${config.slug}/updates/${groupId}`,
     publishedAt: new Date().toISOString(),
   };
@@ -37,6 +44,12 @@ async function main() {
   } catch { /* The QR service can return a plain-text deep link. */ }
   if (typeof launchUrl !== 'string' || !/^exps?:\/\//.test(launchUrl)) {
     throw new Error('Expo QR service did not return an Expo Go launch URL.');
+  }
+  const launch = new URL(launchUrl);
+  if (launch.hostname !== 'u.expo.dev' || launch.pathname !== `/${projectId}` ||
+      launch.searchParams.get('channel-name') !== channel ||
+      launch.searchParams.get('runtime-version') !== runtimeVersion) {
+    throw new Error('The preview URL must target the persistent channel and compatible runtime.');
   }
   connection.url = launchUrl;
   const requireFromExpo = createRequire(require.resolve('expo/package.json'));

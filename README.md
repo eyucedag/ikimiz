@@ -66,6 +66,8 @@ npm run ios         # iOS simülatörü ile başlat (yalnızca macOS)
 
 ## Expo Go ile çalıştırma
 
+Ortak yayımlanan önizlemeler `shared-preview` kanalından açılır. Kanal aynı adlı Expo güncelleme dalına bağlıdır; `scripts/shared-update-links.cjs` her yayında aynı kanal bağlantısını üretir. Bağlantıyı Expo Go'da bir kez açtıktan sonra yeni uyumlu sürümler Expo Go menüsündeki **Reload / Yenile** ile alınır. `/group/<kimlik>` içeren bağlantılar belirli bir yayına sabitlenir; bu bağlantılarda yenileme yeni yayın grubuna geçmez. İnternet bağlantısı yoksa Expo Go önbellekteki sürümü açabilir.
+
 1. iPhone/iPad için App Store'dan, Android için Google Play'den **Expo Go** uygulamasını yükleyin.
 2. Bilgisayarda `npx expo start` komutunu çalıştırın.
 3. Terminalde çıkan QR kodu
