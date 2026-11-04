@@ -7,7 +7,7 @@ import { useAuth } from '@/src/hooks/useAuth';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
-  const { resetPassword, isMockMode } = useAuth();
+  const { resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,11 +28,7 @@ export default function ForgotPasswordScreen() {
         <EmptyState
           icon="mail"
           title="Bağlantı gönderildi"
-          description={
-            isMockMode
-              ? 'Demo modda e-posta gönderilmez. Gerçek kurulumda şifre sıfırlama bağlantısı bu adrese iletilir.'
-              : `${email.trim()} adresine şifre sıfırlama bağlantısı gönderdik. Gelen kutunuzu kontrol edin.`
-          }
+          description={`${email.trim()} adresine şifre sıfırlama bağlantısı gönderdik. Gelen kutunuzu kontrol edin.`}
           actionLabel="Girişe dön"
           onAction={() => router.replace('/(auth)/login')}
         />

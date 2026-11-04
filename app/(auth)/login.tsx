@@ -8,7 +8,7 @@ import { showSocialSoon } from '@/src/utils/soon';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { signIn, signInAsTestUser, isMockMode } = useAuth();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -19,13 +19,6 @@ export default function LoginScreen() {
     setError('');
     setLoading(true);
     const result = await signIn(email, password);
-    setLoading(false);
-    if (result.error) setError(result.error);
-  };
-
-  const continueAsTest = async () => {
-    setLoading(true);
-    const result = await signInAsTestUser();
     setLoading(false);
     if (result.error) setError(result.error);
   };
@@ -61,9 +54,6 @@ export default function LoginScreen() {
       </Pressable>
 
       <Button title="Giriş Yap" onPress={submit} loading={loading} />
-      {isMockMode ? (
-        <Button title="Test Kullanıcısı ile Devam Et" variant="ghost" icon="play" onPress={continueAsTest} style={styles.gap} />
-      ) : null}
 
       <Divider spaced />
       <Button title="Google ile devam et" icon="globe" variant="secondary" onPress={() => showSocialSoon('Google')} />

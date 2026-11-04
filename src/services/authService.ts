@@ -1,8 +1,5 @@
-import { createId, mockStore, nowIso } from '@/src/lib/mock-store';
-import { isMockMode, requireSupabase } from '@/src/lib/supabase';
+import { nowIso, supabase } from '@/src/lib/supabase';
 import { ServiceResult, User } from '@/src/types';
-
-const TEST_EMAIL = 'test@ikimiz.app';
 
 const mapProfile = (row: any): User => ({
   id: row.id,
@@ -15,7 +12,7 @@ const mapProfile = (row: any): User => ({
 const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
 async function fetchSupabaseProfile(userId: string, email?: string): Promise<User> {
-  const client = requireSupabase();
+  const client = supabase;
   const { data } = await client.from('profiles').select('*').eq('id', userId).maybeSingle();
   if (data) return mapProfile(data);
   // Tetikleyici henüz profil oluşturmadıysa minimal profil döndür.
@@ -23,14 +20,8 @@ async function fetchSupabaseProfile(userId: string, email?: string): Promise<Use
 }
 
 export const authService = {
-  isMockMode,
-
   async getCurrentUser(): Promise<User | null> {
-    if (isMockMode) {
-      const db = await mockStore.read();
-      return db.users.find((u) => u.id === db.currentUserId) ?? null;
-    }
-    const { data } = await requireSupabase().auth.getSession();
+    const { data } = await supabase.auth.getSession();
     const sessionUser = data.session?.user;
     return sessionUser ? fetchSupabaseProfile(sessionUser.id, sessionUser.email) : null;
   },
@@ -40,16 +31,8 @@ export const authService = {
     if (!password) return { error: 'Lütfen şifrenizi girin.' };
     const normalized = email.trim().toLowerCase();
 
-    if (isMockMode) {
-      return mockStore.update((db) => {
-        const user = db.users.find((u) => u.email === normalized);
-        if (!user || db.passwords[user.id] !== password) return { error: 'E-posta veya şifre hatalı.' };
-        db.currentUserId = user.id;
-        return { data: user };
-      });
-    }
 
-    const { data, error } = await requireSupabase().auth.signInWithPassword({ email: normalized, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email: normalized, password });
     if (error || !data.user) return { error: 'E-posta veya şifre hatalı.' };
     return { data: await fetchSupabaseProfile(data.user.id, data.user.email) };
   },
@@ -60,24 +43,8 @@ export const authService = {
     if (password.length < 6) return { error: 'Şifre en az 6 karakter olmalı.' };
     const normalized = email.trim().toLowerCase();
 
-    if (isMockMode) {
-      return mockStore.update((db) => {
-        if (db.users.some((u) => u.email === normalized)) return { error: 'Bu e-posta ile kayıtlı bir hesap zaten var.' };
-        const user: User = {
-          id: createId(),
-          email: normalized,
-          fullName: fullName.trim(),
-          displayName: fullName.trim().split(' ')[0],
-          createdAt: nowIso(),
-        };
-        db.users.push(user);
-        db.passwords[user.id] = password;
-        db.currentUserId = user.id;
-        return { data: user };
-      });
-    }
 
-    const { data, error } = await requireSupabase().auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: normalized,
       password,
       options: { data: { full_name: fullName.trim() } },
@@ -88,52 +55,21 @@ export const authService = {
     return { data: await fetchSupabaseProfile(data.user.id, data.user.email) };
   },
 
-  /** Yalnızca mock modda: kayıt olmadan test kullanıcısıyla giriş. */
-  async signInAsTestUser(): Promise<ServiceResult<User>> {
-    if (!isMockMode) return { error: 'Test kullanıcısı yalnızca mock modda kullanılabilir.' };
-    return mockStore.update((db) => {
-      let user = db.users.find((u) => u.email === TEST_EMAIL);
-      if (!user) {
-        user = { id: createId(), email: TEST_EMAIL, fullName: 'Test Kullanıcısı', displayName: 'Test', createdAt: nowIso() };
-        db.users.push(user);
-        db.passwords[user.id] = '123456';
-      }
-      db.currentUserId = user.id;
-      return { data: user };
-    });
-  },
-
   async resetPassword(email: string): Promise<ServiceResult> {
     if (!isValidEmail(email)) return { error: 'Lütfen geçerli bir e-posta adresi girin.' };
-    if (isMockMode) return {};
-    const { error } = await requireSupabase().auth.resetPasswordForEmail(email.trim().toLowerCase());
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase());
     return error ? { error: error.message } : {};
   },
 
   async signOut(): Promise<void> {
-    if (isMockMode) {
-      await mockStore.update((db) => {
-        db.currentUserId = null;
-      });
-      return;
-    }
-    await requireSupabase().auth.signOut();
+    await supabase.auth.signOut();
   },
 
   async updateProfile(userId: string, fullName: string, displayName: string): Promise<ServiceResult<User>> {
     if (fullName.trim().length < 2 || displayName.trim().length < 1) return { error: 'Ad alanları boş bırakılamaz.' };
 
-    if (isMockMode) {
-      return mockStore.update((db) => {
-        const user = db.users.find((u) => u.id === userId);
-        if (!user) return { error: 'Kullanıcı bulunamadı.' };
-        user.fullName = fullName.trim();
-        user.displayName = displayName.trim();
-        return { data: { ...user } };
-      });
-    }
 
-    const { data, error } = await requireSupabase()
+    const { data, error } = await supabase
       .from('profiles')
       .update({ full_name: fullName.trim(), display_name: displayName.trim(), updated_at: nowIso() })
       .eq('id', userId)
@@ -144,20 +80,8 @@ export const authService = {
   },
 
   async deleteAccount(userId: string): Promise<ServiceResult> {
-    if (isMockMode) {
-      await mockStore.update((db) => {
-        db.users = db.users.filter((u) => u.id !== userId);
-        delete db.passwords[userId];
-        db.couples = db.couples.filter((c) => !c.memberIds.includes(userId));
-        db.invitations = db.invitations.filter((i) => i.inviterId !== userId);
-        db.screenNotes = db.screenNotes.filter((n) => n.senderId !== userId && n.receiverId !== userId);
-        db.notifications = db.notifications.filter((n) => n.userId !== userId);
-        db.currentUserId = null;
-      });
-      return {};
-    }
     // schema.sql içindeki delete_my_account() fonksiyonu kullanıcıyı ve verilerini siler.
-    const client = requireSupabase();
+    const client = supabase;
     const { error } = await client.rpc('delete_my_account');
     if (error) return { error: error.message };
     await client.auth.signOut();
@@ -165,8 +89,7 @@ export const authService = {
   },
 
   onAuthChange(callback: () => void): () => void {
-    if (isMockMode) return () => undefined;
-    const { data } = requireSupabase().auth.onAuthStateChange(() => callback());
+    const { data } = supabase.auth.onAuthStateChange(() => callback());
     return () => data.subscription.unsubscribe();
   },
 };

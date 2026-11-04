@@ -3,14 +3,12 @@ import { Alert, Share, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button, Card, EmptyState, Screen } from '@/src/components/ui';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
-import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
 
 export default function InviteScreen() {
   const router = useRouter();
-  const { isMockMode } = useAuth();
   const couple = useCouple();
-  const [busy, setBusy] = useState<'create' | 'cancel' | 'simulate' | null>(null);
+  const [busy, setBusy] = useState<'create' | 'cancel' | null>(null);
   const invitation = couple.pendingInvitation;
 
   const run = async (key: NonNullable<typeof busy>, action: () => Promise<{ error?: string }>) => {
@@ -30,11 +28,6 @@ export default function InviteScreen() {
     } catch {
       Alert.alert('Paylaşılamadı', 'Kodu elle iletebilirsiniz.');
     }
-  };
-
-  const simulate = async () => {
-    const result = await run('simulate', couple.simulatePartnerAccept);
-    if (!result.error) router.replace('/couple/status');
   };
 
   if (couple.isPaired) {
@@ -77,16 +70,6 @@ export default function InviteScreen() {
             style={styles.gap}
           />
           <Button title="Daveti İptal Et" variant="ghost" loading={busy === 'cancel'} onPress={() => run('cancel', couple.cancelInvitation)} style={styles.gap} />
-
-          {isMockMode ? (
-            <Card style={styles.demoCard}>
-              <Text style={styles.demoTitle}>Demo mod</Text>
-              <Text style={styles.demoText}>
-                Tek cihazda deneme yapıyorsanız, “Deniz” adlı demo partnerin bu daveti kabul etmesini simüle edebilirsiniz.
-              </Text>
-              <Button title="Partner Kabulünü Simüle Et" variant="secondary" compact loading={busy === 'simulate'} onPress={simulate} />
-            </Card>
-          ) : null}
         </>
       ) : (
         <>
@@ -119,7 +102,4 @@ const styles = StyleSheet.create({
   codeChar: { fontSize: fontSize.xxl, fontWeight: '700', color: colors.text },
   codeHint: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: spacing.md },
   gap: { marginTop: spacing.md },
-  demoCard: { marginTop: spacing.xxl, backgroundColor: colors.beige, borderColor: colors.beige },
-  demoTitle: { fontSize: fontSize.sm, fontWeight: '600', color: colors.earth2, marginBottom: spacing.xs },
-  demoText: { fontSize: fontSize.sm, color: colors.textSecondary, lineHeight: 19, marginBottom: spacing.md },
 });

@@ -56,6 +56,5 @@ export function useCouple() {
     rejectInvitation: (code: string) => run(() => coupleService.rejectInvitation(code)),
     cancelInvitation: () => (user ? run(() => coupleService.cancelInvitation(user.id)) : Promise.resolve(noUser)),
     endCouple: () => (user ? run(() => coupleService.endCouple(user.id)) : Promise.resolve(noUser)),
-    simulatePartnerAccept: () => (user ? run(() => coupleService.simulatePartnerAccept(user.id)) : Promise.resolve(noUser)),
   };
 }

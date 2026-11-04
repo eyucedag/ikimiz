@@ -1,11 +1,8 @@
-import { addMockNotification, createId, MockDB, mockStore, nowIso } from '@/src/lib/mock-store';
-import { isMockMode, requireSupabase } from '@/src/lib/supabase';
-import { Couple, CoupleState, Invitation, ServiceResult, User } from '@/src/types';
+import { nowIso, supabase } from '@/src/lib/supabase';
+import { CoupleState, Invitation, ServiceResult, User } from '@/src/types';
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const generateCode = () => Array.from({ length: 6 }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join('');
-
-const activeCoupleOf = (db: MockDB, userId: string) => db.couples.find((c) => !c.endedAt && c.memberIds.includes(userId)) ?? null;
 
 const mapInvitation = (row: any): Invitation => ({
   id: row.id,
@@ -17,35 +14,10 @@ const mapInvitation = (row: any): Invitation => ({
   createdAt: row.created_at,
 });
 
-function mockAccept(db: MockDB, invitation: Invitation, inviteeId: string): ServiceResult<Couple> {
-  if (invitation.inviterId === inviteeId) return { error: 'Kendi davet kodunuzu kabul edemezsiniz.' };
-  if (activeCoupleOf(db, invitation.inviterId) || activeCoupleOf(db, inviteeId)) {
-    return { error: 'Taraflardan biri zaten bir eşleşmeye sahip.' };
-  }
-  const couple: Couple = { id: createId(), memberIds: [invitation.inviterId, inviteeId], createdAt: nowIso(), endedAt: null };
-  db.couples.push(couple);
-  invitation.status = 'accepted';
-  invitation.inviteeId = inviteeId;
-  const invitee = db.users.find((u) => u.id === inviteeId);
-  addMockNotification(db, invitation.inviterId, 'couple', 'Eşleşme tamamlandı', `${invitee?.displayName ?? 'Partneriniz'} davetinizi kabul etti.`);
-  addMockNotification(db, inviteeId, 'couple', 'Eşleşme tamamlandı', `${invitation.inviterName} ile artık ortak alanınızı kullanabilirsiniz.`);
-  return { data: couple };
-}
-
 export const coupleService = {
   async getState(userId: string): Promise<CoupleState> {
-    if (isMockMode) {
-      const db = await mockStore.read();
-      const couple = activeCoupleOf(db, userId);
-      const partnerId = couple?.memberIds.find((id) => id !== userId);
-      return {
-        couple,
-        partner: db.users.find((u) => u.id === partnerId) ?? null,
-        pendingInvitation: db.invitations.find((i) => i.inviterId === userId && i.status === 'pending') ?? null,
-      };
-    }
 
-    const client = requireSupabase();
+    const client = supabase;
     const { data: membership } = await client
       .from('couple_members')
       .select('couple_id, couples!inner(id, created_at, ended_at)')
@@ -82,27 +54,8 @@ export const coupleService = {
   },
 
   async createInvitation(user: User): Promise<ServiceResult<Invitation>> {
-    if (isMockMode) {
-      return mockStore.update((db) => {
-        if (activeCoupleOf(db, user.id)) return { error: 'Zaten bir partnerle eşleşmişsiniz.' };
-        db.invitations.forEach((i) => {
-          if (i.inviterId === user.id && i.status === 'pending') i.status = 'cancelled';
-        });
-        const invitation: Invitation = {
-          id: createId(),
-          code: generateCode(),
-          inviterId: user.id,
-          inviterName: user.displayName,
-          inviteeId: null,
-          status: 'pending',
-          createdAt: nowIso(),
-        };
-        db.invitations.push(invitation);
-        return { data: invitation };
-      });
-    }
 
-    const client = requireSupabase();
+    const client = supabase;
     await client.from('invitations').update({ status: 'cancelled', updated_at: nowIso() }).eq('inviter_id', user.id).eq('status', 'pending');
     const { data, error } = await client
       .from('invitations')
@@ -117,44 +70,19 @@ export const coupleService = {
     const code = rawCode.trim().toUpperCase();
     if (code.length !== 6) return { error: 'Davet kodu 6 karakter olmalı.' };
 
-    if (isMockMode) {
-      return mockStore.update((db) => {
-        const invitation = db.invitations.find((i) => i.code === code && i.status === 'pending');
-        if (!invitation) return { error: 'Bu koda ait geçerli bir davet bulunamadı.' };
-        const result = mockAccept(db, invitation, userId);
-        return result.error ? { error: result.error } : {};
-      });
-    }
     // Güvenlik için kabul işlemi sunucu tarafındaki accept_invitation() fonksiyonuyla yapılır.
-    const { error } = await requireSupabase().rpc('accept_invitation', { p_code: code });
+    const { error } = await supabase.rpc('accept_invitation', { p_code: code });
     return error ? { error: error.message } : {};
   },
 
   async rejectInvitation(rawCode: string): Promise<ServiceResult> {
     const code = rawCode.trim().toUpperCase();
-    if (isMockMode) {
-      return mockStore.update((db) => {
-        const invitation = db.invitations.find((i) => i.code === code && i.status === 'pending');
-        if (!invitation) return { error: 'Bu koda ait geçerli bir davet bulunamadı.' };
-        invitation.status = 'rejected';
-        addMockNotification(db, invitation.inviterId, 'invitation', 'Davet reddedildi', 'Gönderdiğiniz davet reddedildi.');
-        return {};
-      });
-    }
-    const { error } = await requireSupabase().rpc('reject_invitation', { p_code: code });
+    const { error } = await supabase.rpc('reject_invitation', { p_code: code });
     return error ? { error: error.message } : {};
   },
 
   async cancelInvitation(userId: string): Promise<ServiceResult> {
-    if (isMockMode) {
-      await mockStore.update((db) => {
-        db.invitations.forEach((i) => {
-          if (i.inviterId === userId && i.status === 'pending') i.status = 'cancelled';
-        });
-      });
-      return {};
-    }
-    const { error } = await requireSupabase()
+    const { error } = await supabase
       .from('invitations')
       .update({ status: 'cancelled', updated_at: nowIso() })
       .eq('inviter_id', userId)
@@ -163,51 +91,7 @@ export const coupleService = {
   },
 
   async endCouple(userId: string): Promise<ServiceResult> {
-    if (isMockMode) {
-      return mockStore.update((db) => {
-        const couple = activeCoupleOf(db, userId);
-        if (!couple) return { error: 'Aktif bir eşleşme bulunamadı.' };
-        couple.endedAt = nowIso();
-        const partnerId = couple.memberIds.find((id) => id !== userId);
-        if (partnerId) addMockNotification(db, partnerId, 'couple', 'Eşleşme sonlandırıldı', 'Ortak alan erişimi kapatıldı.');
-        return {};
-      });
-    }
-    const { error } = await requireSupabase().rpc('end_couple');
+    const { error } = await supabase.rpc('end_couple');
     return error ? { error: error.message } : {};
-  },
-
-  /**
-   * Yalnızca mock mod: tek cihazda test edebilmek için demo partnerin daveti
-   * kabul etmesini ve bir karşılama notu bırakmasını simüle eder.
-   */
-  async simulatePartnerAccept(userId: string): Promise<ServiceResult> {
-    if (!isMockMode) return { error: 'Simülasyon yalnızca mock modda kullanılabilir.' };
-    return mockStore.update((db) => {
-      const invitation = db.invitations.find((i) => i.inviterId === userId && i.status === 'pending');
-      if (!invitation) return { error: 'Önce bir davet kodu oluşturun.' };
-      const partner: User = {
-        id: createId(),
-        email: `demo.partner.${invitation.code.toLowerCase()}@ikimiz.app`,
-        fullName: 'Deniz (Demo Partner)',
-        displayName: 'Deniz',
-        createdAt: nowIso(),
-      };
-      db.users.push(partner);
-      const result = mockAccept(db, invitation, partner.id);
-      if (result.error || !result.data) return { error: result.error };
-      db.screenNotes.unshift({
-        id: createId(),
-        coupleId: result.data.id,
-        senderId: partner.id,
-        receiverId: userId,
-        text: 'Merhaba! Artık ortak alanımız hazır.',
-        emoji: '🌿',
-        backgroundColor: '#E8F0E6',
-        createdAt: nowIso(),
-      });
-      addMockNotification(db, userId, 'screen_note', 'Yeni ekran notu', '🌿 Merhaba! Artık ortak alanımız hazır.');
-      return {};
-    });
   },
 };

@@ -7,7 +7,6 @@ import { Badge, Button, Card, Divider, Input, Screen } from '@/src/components/ui
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
-import { mockStore } from '@/src/lib/mock-store';
 import { formatDate } from '@/src/utils/date';
 import { showSoon } from '@/src/utils/soon';
 
@@ -32,7 +31,7 @@ function SettingsRow({ icon, title, value, soon, onPress }: RowProps) {
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, isMockMode, updateProfile, signOut, deleteAccount } = useAuth();
+  const { user, updateProfile, signOut, deleteAccount } = useAuth();
   const couple = useCouple();
   const [editing, setEditing] = useState(false);
   const [fullName, setFullName] = useState(user?.fullName ?? '');
@@ -69,19 +68,6 @@ export default function ProfileScreen() {
         onPress: async () => {
           const result = await deleteAccount();
           if (result.error) Alert.alert('Silinemedi', result.error);
-        },
-      },
-    ]);
-
-  const confirmResetDemo = () =>
-    Alert.alert('Demo verilerini sıfırla', 'Bu cihazdaki tüm demo hesapları, eşleşmeler ve notlar silinir.', [
-      { text: 'Vazgeç', style: 'cancel' },
-      {
-        text: 'Sıfırla',
-        style: 'destructive',
-        onPress: async () => {
-          await mockStore.reset();
-          await signOut();
         },
       },
     ]);
@@ -139,7 +125,7 @@ export default function ProfileScreen() {
         <View style={styles.row}>
           <Feather name="database" size={18} color={colors.earth2} style={styles.rowIcon} />
           <Text style={styles.rowTitle}>Veri kaynağı</Text>
-          <Badge label={isMockMode ? 'Demo (yerel)' : 'Supabase'} tone={isMockMode ? 'earth' : 'accent'} />
+          <Badge label="Supabase" tone="accent" />
         </View>
         <Divider inset={34} />
         <View style={styles.row}>
@@ -147,12 +133,6 @@ export default function ProfileScreen() {
           <Text style={styles.rowTitle}>Sürüm</Text>
           <Text style={styles.rowValue}>{Constants.expoConfig?.version ?? '1.0.0'}</Text>
         </View>
-        {isMockMode ? (
-          <>
-            <Divider inset={34} />
-            <SettingsRow icon="refresh-ccw" title="Demo verilerini sıfırla" onPress={confirmResetDemo} />
-          </>
-        ) : null}
       </Card>
 
       <Button title="Çıkış Yap" icon="log-out" variant="secondary" onPress={confirmSignOut} style={styles.section} />

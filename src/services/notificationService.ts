@@ -1,5 +1,4 @@
-import { mockStore, nowIso } from '@/src/lib/mock-store';
-import { isMockMode, requireSupabase } from '@/src/lib/supabase';
+import { nowIso, supabase } from '@/src/lib/supabase';
 import { AppNotification } from '@/src/types';
 
 const mapNotification = (row: any): AppNotification => ({
@@ -14,11 +13,7 @@ const mapNotification = (row: any): AppNotification => ({
 
 export const notificationService = {
   async list(userId: string): Promise<AppNotification[]> {
-    if (isMockMode) {
-      const db = await mockStore.read();
-      return db.notifications.filter((n) => n.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    }
-    const { data, error } = await requireSupabase()
+    const { data, error } = await supabase
       .from('notifications')
       .select('*')
       .eq('owner_id', userId)
@@ -30,25 +25,10 @@ export const notificationService = {
   },
 
   async markAllRead(userId: string): Promise<void> {
-    if (isMockMode) {
-      await mockStore.update((db) => {
-        db.notifications.forEach((n) => {
-          if (n.userId === userId && !n.readAt) n.readAt = nowIso();
-        });
-      });
-      return;
-    }
-    await requireSupabase().from('notifications').update({ read_at: nowIso() }).eq('owner_id', userId).is('read_at', null);
+    await supabase.from('notifications').update({ read_at: nowIso() }).eq('owner_id', userId).is('read_at', null);
   },
 
   async markRead(id: string): Promise<void> {
-    if (isMockMode) {
-      await mockStore.update((db) => {
-        const n = db.notifications.find((x) => x.id === id);
-        if (n && !n.readAt) n.readAt = nowIso();
-      });
-      return;
-    }
-    await requireSupabase().from('notifications').update({ read_at: nowIso() }).eq('id', id);
+    await supabase.from('notifications').update({ read_at: nowIso() }).eq('id', id);
   },
 };

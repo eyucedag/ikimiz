@@ -13,13 +13,12 @@
 1. [Özellikler (Aşama 1)](#özellikler-aşama-1)
 2. [Kurulum](#kurulum)
 3. [Expo Go ile çalıştırma](#expo-go-ile-çalıştırma)
-4. [Ortam değişkenleri](#ortam-değişkenleri)
-5. [Mock (demo) mod](#mock-demo-mod)
-6. [Supabase kurulumu](#supabase-kurulumu)
-7. [Klasör yapısı](#klasör-yapısı)
-8. [Tasarım sistemi](#tasarım-sistemi)
-9. [Platform desteği](#platform-desteği)
-10. [Aşama 2 yol haritası](#aşama-2-yol-haritası)
+4. [Supabase bağlantısı](#supabase-bağlantısı)
+5. [Supabase kurulumu](#supabase-kurulumu)
+6. [Klasör yapısı](#klasör-yapısı)
+7. [Tasarım sistemi](#tasarım-sistemi)
+8. [Platform desteği](#platform-desteği)
+9. [Aşama 2 yol haritası](#aşama-2-yol-haritası)
 
 ---
 
@@ -57,7 +56,7 @@ Faydalı komutlar:
 
 ```bash
 npm run typecheck   # TypeScript kontrolü (tsc --noEmit)
-npm test            # Mock mod servis akışı testleri (Jest)
+npm test            # Servis doğrulama testleri (Jest)
 npm run android     # Android emülatörü/cihazı ile başlat
 npm run ios         # iOS simülatörü ile başlat (yalnızca macOS)
 ```
@@ -77,32 +76,11 @@ npm run ios         # iOS simülatörü ile başlat (yalnızca macOS)
 
 ---
 
-## Ortam değişkenleri
+## Supabase bağlantısı
 
-`.env.example` dosyasını `.env` olarak kopyalayın:
+Uygulama doğrudan Supabase projesine (`phrfepvdjebxfmfkhiju`) bağlanır. Expo Go `.env` dosyası okuyamadığından proje URL'si ve **anon (public)** anahtar `src/lib/supabase.ts` içine gömülüdür. Anon anahtar istemcide kullanılmak için tasarlanmıştır; veriler Row Level Security ile korunur. **service_role anahtarı asla uygulamaya eklenmemelidir.**
 
-```bash
-cp .env.example .env
-```
-
-| Değişken | Açıklama |
-| --- | --- |
-| `EXPO_PUBLIC_SUPABASE_URL` | Supabase proje adresi (Project Settings → API) |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Supabase “anon public” anahtarı |
-
-`.env` dosyası `.gitignore` içindedir; depoya eklenmez. Değişiklikten sonra Metro'yu `npx expo start -c` ile önbelleği temizleyerek yeniden başlatın.
-
----
-
-## Mock (demo) mod
-
-İki değişkenden biri boşsa uygulama **otomatik olarak mock modda** açılır; Supabase gerekmez.
-
-- Tüm veriler cihazda **AsyncStorage** içinde saklanır (`src/lib/mock-store.ts`).
-- Hoş geldin ve giriş ekranlarında **“Test Kullanıcısı ile Devam Et”** butonu görünür (`test@ikimiz.app` / `123456`).
-- Tek cihazda eşleşmeyi denemek için: **Profil → Eşleşme durumu → Partner Davet Et → Davet Kodu Oluştur → “Partner Kabulünü Simüle Et”**. “Deniz” adlı demo partner daveti kabul eder ve size bir karşılama notu bırakır.
-- **Profil → Demo verilerini sıfırla** ile cihazdaki tüm demo veriler silinir.
-- Profil ekranındaki “Veri kaynağı” satırı hangi modda olduğunuzu gösterir.
+Yerel mock (demo) mod kaldırılmıştır; tüm veriler Supabase'de tutulur.
 
 ---
 
@@ -111,7 +89,7 @@ cp .env.example .env
 1. [supabase.com](https://supabase.com) üzerinde yeni bir proje oluşturun.
 2. **SQL Editor → New query** açın, `supabase/schema.sql` dosyasının tamamını yapıştırıp **Run** deyin. Betik tekrar çalıştırılabilir.
 3. **Authentication → Providers → Email** sağlayıcısının açık olduğundan emin olun. Hızlı test için “Confirm email” seçeneğini kapatabilirsiniz; açıksa kayıttan sonra doğrulama e-postası gerekir.
-4. **Project Settings → API** sayfasındaki URL ve anon anahtarını `.env` dosyasına yazın.
+4. Başka bir Supabase projesi kullanacaksanız **Project Settings → API** sayfasındaki URL ve anon anahtarını `src/lib/supabase.ts` dosyasına yazın.
 5. `npx expo start -c` ile uygulamayı yeniden başlatın.
 
 **Şema özeti** — 17 tablo:
@@ -144,16 +122,15 @@ ikimiz/
 │   │                           # SectionHeader, Badge, Divider, Screen
 │   ├── constants/              # theme.ts (tasarım token'ları), categories.ts
 │   ├── hooks/                  # useAuth, useCouple, useScreenNotes, useAppState
-│   ├── lib/                    # supabase.ts (client + mock algılama), mock-store.ts
+│   ├── lib/                    # supabase.ts (Supabase istemcisi)
 │   ├── services/               # authService, coupleService, screenNoteService, notificationService
 │   ├── types/                  # Tüm TypeScript tipleri
 │   └── utils/                  # Türkçe tarih biçimleri, "Yakında" bildirimi
 ├── supabase/schema.sql         # Veritabanı şeması + RLS
-├── assets/                     # Simge ve açılış görseli
-└── .env.example
+└── assets/                     # Simge ve açılış görseli
 ```
 
-**Katmanlar:** Ekranlar yalnızca hook'ları kullanır → hook'lar servisleri çağırır → servisler mock modda `mock-store`, gerçek modda Supabase ile konuşur. Yeni bir modül eklerken aynı düzen izlenir.
+**Katmanlar:** Ekranlar yalnızca hook'ları kullanır → hook'lar servisleri çağırır → servisler Supabase ile konuşur. Yeni bir modül eklerken aynı düzen izlenir.
 
 ---
 

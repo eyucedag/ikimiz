@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Button, Divider, Screen } from '@/src/components/ui';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
-import { useAuth } from '@/src/hooks/useAuth';
 import { showSocialSoon } from '@/src/utils/soon';
 
 const highlights: { icon: keyof typeof Feather.glyphMap; text: string }[] = [
@@ -15,16 +14,6 @@ const highlights: { icon: keyof typeof Feather.glyphMap; text: string }[] = [
 
 export default function WelcomeScreen() {
   const router = useRouter();
-  const { isMockMode, signInAsTestUser } = useAuth();
-  const [loading, setLoading] = useState(false);
-
-  const continueAsTest = async () => {
-    setLoading(true);
-    const result = await signInAsTestUser();
-    setLoading(false);
-    if (result.error) Alert.alert('Giriş yapılamadı', result.error);
-  };
-
   return (
     <Screen>
       <View style={styles.hero}>
@@ -51,14 +40,6 @@ export default function WelcomeScreen() {
       <Button title="Google ile devam et" icon="globe" variant="secondary" onPress={() => showSocialSoon('Google')} />
       <Button title="Apple ile devam et" icon="smartphone" variant="secondary" onPress={() => showSocialSoon('Apple')} style={styles.gap} />
 
-      {isMockMode ? (
-        <View style={styles.mockBox}>
-          <Text style={styles.mockText}>
-            Uygulama şu an demo (mock) modda çalışıyor; veriler yalnızca bu cihazda saklanır.
-          </Text>
-          <Button title="Test Kullanıcısı ile Devam Et" icon="play" variant="ghost" loading={loading} onPress={continueAsTest} />
-        </View>
-      ) : null}
     </Screen>
   );
 }
@@ -80,6 +61,4 @@ const styles = StyleSheet.create({
   item: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs },
   itemText: { marginLeft: spacing.md, fontSize: fontSize.md, color: colors.text },
   gap: { marginTop: spacing.md },
-  mockBox: { marginTop: spacing.xxl, alignItems: 'center' },
-  mockText: { fontSize: fontSize.xs, color: colors.textTertiary, textAlign: 'center', marginBottom: spacing.xs },
 });

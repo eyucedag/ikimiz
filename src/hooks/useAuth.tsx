@@ -5,10 +5,8 @@ import { ServiceResult, User } from '@/src/types';
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
-  isMockMode: boolean;
   signIn: (email: string, password: string) => Promise<ServiceResult<User>>;
   signUp: (fullName: string, email: string, password: string) => Promise<ServiceResult<User | null>>;
-  signInAsTestUser: () => Promise<ServiceResult<User>>;
   resetPassword: (email: string) => Promise<ServiceResult>;
   signOut: () => Promise<void>;
   updateProfile: (fullName: string, displayName: string) => Promise<ServiceResult<User>>;
@@ -45,10 +43,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       user,
       loading,
-      isMockMode: authService.isMockMode,
       signIn: async (email, password) => withUser(await authService.signIn(email, password)),
       signUp: async (fullName, email, password) => withUser(await authService.signUp(fullName, email, password)),
-      signInAsTestUser: async () => withUser(await authService.signInAsTestUser()),
       resetPassword: (email) => authService.resetPassword(email),
       signOut: async () => {
         await authService.signOut();
