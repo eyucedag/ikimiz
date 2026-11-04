@@ -13,6 +13,7 @@ const mapNote = (row: any): ScreenNote => ({
   backgroundColor: row.background_color,
   imageUrl: null,
   createdAt: row.created_at,
+  readAt: row.read_at ?? null,
 });
 
 export interface SendNoteInput {
@@ -96,5 +97,10 @@ export const screenNoteService = {
       body: `${input.senderName}: ${text}`,
     });
     return { data: note };
+  },
+
+  async markRead(noteId: string): Promise<ServiceResult> {
+    const { error } = await supabase.rpc('mark_screen_note_read', { p_note_id: noteId });
+    return error ? { error: error.message } : {};
   },
 };

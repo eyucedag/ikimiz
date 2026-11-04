@@ -46,6 +46,7 @@ export interface ScreenNote {
   backgroundColor: string;
   imageUrl?: string | null;
   createdAt: string;
+  readAt?: string | null;
 }
 
 export type NotificationCategory = 'system' | 'invitation' | 'couple' | 'screen_note' | 'event' | 'task' | 'reminder';

@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Modal, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Badge, Button, Card, EmptyState, Screen, SectionHeader } from '@/src/components/ui';
 import { MoodSummaryCard } from '@/src/components/MoodSummaryCard';
 import { KissCategoryButton } from '@/src/components/KissCategoryButton';
@@ -16,6 +16,7 @@ import { useMoods } from '@/src/hooks/useMoods';
 import { supabase } from '@/src/lib/supabase';
 import { greeting, relativeTime, todayLabel } from '@/src/utils/date';
 import { useCoupleDirection } from '@/src/hooks/useCoupleDirection';
+import { useAutomaticNearbySteps } from '@/src/hooks/useAutomaticNearbySteps';
 
 export default function TodayScreen() {
   const noteColor = getCategoryColor('ekrana-not');
@@ -23,7 +24,7 @@ export default function TodayScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const couple = useCouple();
-  const { latestFromPartner, refresh: refreshNotes } = useScreenNotes(couple);
+  const { latestFromPartner, refresh: refreshNotes, markRead } = useScreenNotes(couple);
   const moods = useMoods(couple);
   const { upcoming, refreshNotifications } = useAppState();
   const { width, height } = useWindowDimensions();
@@ -31,6 +32,7 @@ export default function TodayScreen() {
   const [photoVisible, setPhotoVisible] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const direction = useCoupleDirection(couple.couple?.id, user?.id, couple.partner?.id);
+  useAutomaticNearbySteps(user?.id, couple.couple?.id, couple.partner?.id);
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
@@ -48,6 +50,10 @@ export default function TodayScreen() {
     const seconds = elapsed % 60;
     return `${days} gün ${hours} saat ${minutes} dakika ${seconds} saniye`;
   }, [couple.couple?.relationshipStartedAt, now]);
+
+  useFocusEffect(useCallback(() => {
+    if (latestFromPartner && !latestFromPartner.readAt) void markRead(latestFromPartner.id);
+  }, [latestFromPartner?.id, latestFromPartner?.readAt, markRead]));
 
   useEffect(() => {
     const coupleId = couple.couple?.id;
@@ -156,24 +162,30 @@ export default function TodayScreen() {
       <Card style={[styles.section, styles.compactCard, { borderColor: noteColor.color, borderWidth: 1.5 }]}>
         {couple.isPaired ? (
           <>
-            <SectionHeader title="Partnerinden Not" actionLabel="Tüm Notlar" actionColor={noteColor.color} onAction={() => router.push('/screen-note/history')} />
+            <View style={styles.noteHeader}>
+              <Text style={styles.noteHeaderTitle}>Partnerinden Not</Text>
+              <Pressable onPress={() => router.push('/screen-note/history')} accessibilityRole="link" hitSlop={8}>
+                <Text style={[styles.noteHistoryLink, { color: noteColor.color }]}>Tüm Notlar</Text>
+              </Pressable>
+              <Pressable onPress={() => router.push('/screen-note/compose')} accessibilityRole="button" accessibilityLabel="Yeni Not Bırak" style={[styles.newNoteIcon, { backgroundColor: noteColor.tint }]}>
+                <Feather name="edit-3" size={15} color={noteColor.color} />
+              </Pressable>
+            </View>
             {latestFromPartner ? (
               <View style={[styles.note, { backgroundColor: latestFromPartner.backgroundColor }]}>
                 {latestFromPartner.emoji ? <Text style={styles.noteEmoji}>{latestFromPartner.emoji}</Text> : null}
-                {latestFromPartner.imageUrl ? <Image source={{ uri: latestFromPartner.imageUrl }} style={styles.noteSticker} resizeMode="contain" /> : null}
-                <Text style={styles.noteText}>{latestFromPartner.text}</Text>
+                <Text style={styles.noteText} numberOfLines={2}>{latestFromPartner.text}</Text>
                 <Text style={styles.noteMeta}>
                   {couple.partner?.displayName} · {relativeTime(latestFromPartner.createdAt)}
                 </Text>
               </View>
             ) : (
-              <Text style={styles.muted}>{couple.partner?.displayName} henüz bir not bırakmadı. İlk notu siz bırakın.</Text>
+              <Text style={styles.muted}>{couple.partner?.displayName} henüz bir not bırakmadı.</Text>
             )}
-            <Button title="Yeni Not Bırak" icon="edit-3" toneColor={noteColor.color} onPress={() => router.push('/screen-note/compose')} style={styles.cardButton} />
           </>
         ) : (
           <>
-            <SectionHeader title="Partnerinden Not" />
+            <View style={styles.noteHeader}><Text style={styles.noteHeaderTitle}>Partnerinden Not</Text></View>
             <View style={styles.connectRow}>
               <View style={[styles.connectIcon, { backgroundColor: noteColor.tint }]}>
                 <Feather name="link" size={20} color={noteColor.color} />
@@ -208,20 +220,15 @@ export default function TodayScreen() {
 
       {/* Yaklaşanlar */}
       <Card style={[styles.section, styles.compactCard, { borderColor: calendarColor.color, borderWidth: 1.5 }]}>
-        <SectionHeader title="Yaklaşanlar" />
+        <SectionHeader title="Yaklaşanlar" compact />
         {upcoming.length === 0 ? (
-          <EmptyState
-            compact
-            icon="sun"
-            title="Önünüz açık"
-            description="Etkinlikler, görevler ve hatırlatmalar eklendiğinde en yakın olanlar burada sıralanacak."
-            actionLabel="Takvimi Keşfet"
-            onAction={() => router.push('/categories/takvim')}
-            toneColor={calendarColor.color}
-            toneTint={calendarColor.tint}
-          />
+          <Pressable onPress={() => router.push('/categories/takvim')} accessibilityRole="button" accessibilityLabel="Takvimi keşfet" style={styles.upcomingCompact}>
+            <View style={[styles.upcomingIcon, { backgroundColor: calendarColor.tint }]}><Feather name="sun" size={18} color={calendarColor.color} /></View>
+            <View style={styles.upcomingCopy}><Text style={styles.upcomingTitle}>Önünüz açık</Text><Text style={styles.upcomingDescription} numberOfLines={1}>Yeni planlar burada görünecek.</Text></View>
+            <Feather name="chevron-right" size={18} color={calendarColor.color} />
+          </Pressable>
         ) : (
-          upcoming.map((item) => (
+          upcoming.slice(0, 2).map((item) => (
             <View key={item.id} style={styles.upcomingRow}>
               <Text style={styles.upcomingTitle}>{item.title}</Text>
               <Text style={styles.muted}>{item.subtitle}</Text>
@@ -302,14 +309,16 @@ const styles = StyleSheet.create({
   duration: { fontSize: fontSize.sm, color: '#1676E8', fontWeight: '700', marginTop: spacing.xs },
   durationMissing: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: spacing.xs },
   section: { marginBottom: spacing.lg },
-  compactCard: { paddingVertical: spacing.md },
-  note: { borderRadius: radius.card, padding: spacing.lg },
+  compactCard: { paddingVertical: spacing.xs },
+  noteHeader: { minHeight: 28, flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
+  noteHeaderTitle: { flex: 1, color: colors.text, fontWeight: '600', fontSize: fontSize.md },
+  noteHistoryLink: { fontSize: fontSize.xs, fontWeight: '600', marginRight: spacing.sm },
+  newNoteIcon: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  note: { borderRadius: radius.card, paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
   noteEmoji: { fontSize: fontSize.xxl, marginBottom: spacing.xs },
-  noteSticker: { width: 120, height: 120, alignSelf: 'center', marginBottom: spacing.sm },
-  noteText: { fontSize: fontSize.lg, color: colors.text, lineHeight: 24 },
-  noteMeta: { fontSize: fontSize.xs, color: colors.textSecondary, marginTop: spacing.sm },
+  noteText: { fontSize: fontSize.md, color: colors.text, lineHeight: 20 },
+  noteMeta: { fontSize: fontSize.xs, color: colors.textSecondary, marginTop: spacing.xs },
   muted: { fontSize: fontSize.sm, color: colors.textSecondary, lineHeight: 19 },
-  cardButton: { marginTop: spacing.lg },
   connectRow: { flexDirection: 'row', alignItems: 'center' },
   connectIcon: {
     width: 40,
@@ -322,8 +331,13 @@ const styles = StyleSheet.create({
   },
   connectText: { flex: 1, fontSize: fontSize.sm, color: colors.textSecondary, lineHeight: 19 },
   buttonRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg },
+  cardButton: { marginTop: spacing.sm },
   flex: { flex: 1 },
-  upcomingRow: { paddingVertical: spacing.sm },
+  upcomingRow: { paddingVertical: spacing.xs },
+  upcomingCompact: { minHeight: 42, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  upcomingIcon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  upcomingCopy: { flex: 1 },
+  upcomingDescription: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 1 },
   upcomingTitle: { fontSize: fontSize.md, color: colors.text, fontWeight: '500' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -spacing.xs },
   tile: { padding: spacing.xs },

@@ -7,6 +7,7 @@ export interface CoupleLocation {
   longitude: number;
   heading: number | null;
   updatedAt: string;
+  directionEnabled: boolean;
 }
 
 export interface CoupleSteps {
@@ -20,13 +21,15 @@ export const presenceService = {
   async locations(coupleId: string): Promise<CoupleLocation[]> {
     const { data, error } = await supabase.from('couple_live_locations').select('*').eq('couple_id', coupleId);
     if (error) throw new Error(error.message);
-    return (data ?? []).map((row: any) => ({ userId: row.user_id, coupleId: row.couple_id, latitude: Number(row.latitude), longitude: Number(row.longitude), heading: row.heading == null ? null : Number(row.heading), updatedAt: row.updated_at }));
+    return (data ?? []).map((row: any) => ({ userId: row.user_id, coupleId: row.couple_id, latitude: Number(row.latitude), longitude: Number(row.longitude), heading: row.heading == null ? null : Number(row.heading), updatedAt: row.updated_at, directionEnabled: row.direction_enabled === true }));
   },
-  async updateLocation(location: Omit<CoupleLocation, 'updatedAt'>): Promise<void> {
-    const { error } = await supabase.from('couple_live_locations').upsert({
+  async updateLocation(location: Omit<CoupleLocation, 'updatedAt' | 'directionEnabled'> & { directionEnabled?: boolean }): Promise<void> {
+    const values: Record<string, unknown> = {
       user_id: location.userId, couple_id: location.coupleId, latitude: location.latitude,
       longitude: location.longitude, heading: location.heading, updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id' });
+    };
+    if (location.directionEnabled !== undefined) values.direction_enabled = location.directionEnabled;
+    const { error } = await supabase.from('couple_live_locations').upsert(values, { onConflict: 'user_id' });
     if (error) throw new Error(error.message);
   },
   async clearLocation(userId: string): Promise<void> {

@@ -23,10 +23,12 @@ function PersonMood({ name, entry, mine }: { name: string; entry: MoodEntry | nu
   return (
     <View style={styles.person} accessible accessibilityLabel={`${name}: ${option?.label ?? (mine ? 'Henüz seçmediniz' : 'Henüz paylaşmadı')}`}>
       <View style={[styles.emojiCircle, option && { backgroundColor: `${option.color}18` }]}>
-        {option ? <Text style={styles.emoji}>{option.emoji}</Text> : <Feather name="sun" size={23} color={colors.textSecondary} />}
+        {option ? <Text style={styles.emoji}>{option.emoji}</Text> : <Feather name="sun" size={18} color={colors.textSecondary} />}
       </View>
-      <Text style={styles.name} numberOfLines={2}>{name}</Text>
-      <Text style={[styles.status, !!option && styles.selectedStatus]}>{option?.label ?? (mine ? 'Henüz seçmediniz' : 'Henüz paylaşmadı')}</Text>
+      <View style={styles.personCopy}>
+        <Text style={styles.name} numberOfLines={1}>{name}</Text>
+        <Text style={[styles.status, !!option && styles.selectedStatus]} numberOfLines={1}>{option?.label ?? (mine ? 'Henüz seçmediniz' : 'Henüz paylaşmadı')}</Text>
+      </View>
     </View>
   );
 }
@@ -40,7 +42,6 @@ export function MoodSummaryCard({ today, partnerToday, partnerName, paired, load
         <View style={[styles.headingIcon, { backgroundColor: categoryColor.tint }]}><Feather name="heart" size={19} color={categoryColor.color} /></View>
         <View style={styles.flex}>
           <Text style={styles.title} accessibilityRole="header">Ruh Halim</Text>
-          <Text style={styles.subtitle}>Bugün birbirinize bir alan açın.</Text>
         </View>
       </View>
 
@@ -56,7 +57,7 @@ export function MoodSummaryCard({ today, partnerToday, partnerName, paired, load
           <PersonMood name={partnerName || 'Partneriniz'} entry={partnerToday} />
         </View>
       ) : (
-        <Text style={styles.unpaired}>Partnerinizle eşleşin; günlük ruh halinizi ve kısa notunuzu birbirinizle paylaşın.</Text>
+          <Text style={styles.unpaired} numberOfLines={2}>Partnerinizle eşleşin; günlük ruh halinizi paylaşın.</Text>
       )}
 
       {error ? <Text style={styles.error} accessibilityLiveRegion="polite">{error}</Text> : null}
@@ -66,6 +67,7 @@ export function MoodSummaryCard({ today, partnerToday, partnerName, paired, load
         variant="secondary"
         toneColor={categoryColor.color}
         onPress={onPress}
+        compact
         style={styles.action}
       />
     </Card>
@@ -73,23 +75,23 @@ export function MoodSummaryCard({ today, partnerToday, partnerName, paired, load
 }
 
 const styles = StyleSheet.create({
-  card: { marginBottom: spacing.lg, paddingVertical: spacing.md },
+  card: { marginBottom: spacing.lg, paddingVertical: spacing.sm },
   heading: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  headingIcon: { width: 38, height: 38, borderRadius: radius.card, backgroundColor: colors.accentLight, alignItems: 'center', justifyContent: 'center' },
+  headingIcon: { width: 30, height: 30, borderRadius: radius.control, backgroundColor: colors.accentLight, alignItems: 'center', justifyContent: 'center' },
   flex: { flex: 1 },
-  title: { fontSize: fontSize.lg, fontWeight: '600', color: colors.text },
-  subtitle: { fontSize: fontSize.sm, color: colors.textSecondary, lineHeight: 19, marginTop: 2 },
-  people: { flexDirection: 'row', alignItems: 'stretch', marginTop: spacing.lg },
-  person: { flex: 1, alignItems: 'center', paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
-  emojiCircle: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.beige, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm },
-  emoji: { fontSize: 29 },
-  name: { fontSize: fontSize.sm, fontWeight: '600', color: colors.text, textAlign: 'center' },
-  status: { fontSize: fontSize.sm, color: colors.textSecondary, textAlign: 'center', lineHeight: 19, marginTop: spacing.xs },
+  title: { fontSize: fontSize.md, fontWeight: '600', color: colors.text },
+  people: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm },
+  person: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.xs },
+  personCopy: { flex: 1, minWidth: 0 },
+  emojiCircle: { width: 34, height: 34, flexShrink: 0, borderRadius: 17, backgroundColor: colors.beige, alignItems: 'center', justifyContent: 'center' },
+  emoji: { fontSize: 21 },
+  name: { fontSize: fontSize.xs, fontWeight: '600', color: colors.text },
+  status: { fontSize: 10, color: colors.textSecondary, lineHeight: 13, marginTop: 1 },
   selectedStatus: { color: colors.text },
-  divider: { width: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: spacing.sm },
-  unpaired: { fontSize: fontSize.sm, color: colors.textSecondary, lineHeight: 20, marginTop: spacing.lg },
-  loading: { minHeight: 110, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  divider: { width: StyleSheet.hairlineWidth, height: 36, backgroundColor: colors.border, marginHorizontal: spacing.xs },
+  unpaired: { fontSize: fontSize.xs, color: colors.textSecondary, lineHeight: 16, marginTop: spacing.sm },
+  loading: { minHeight: 44, alignItems: 'center', justifyContent: 'center', gap: spacing.xs },
   muted: { fontSize: fontSize.sm, color: colors.textSecondary },
   error: { fontSize: fontSize.sm, color: colors.error, lineHeight: 19, marginTop: spacing.md },
-  action: { marginTop: spacing.lg },
+  action: { marginTop: spacing.sm },
 });

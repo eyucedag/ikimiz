@@ -7,12 +7,13 @@ interface SectionHeaderProps {
   actionLabel?: string;
   onAction?: () => void;
   actionColor?: string;
+  compact?: boolean;
 }
 
-export function SectionHeader({ title, actionLabel, onAction, actionColor }: SectionHeaderProps) {
+export function SectionHeader({ title, actionLabel, onAction, actionColor, compact }: SectionHeaderProps) {
   return (
-    <View style={styles.row}>
-      <Text style={styles.title} accessibilityRole="header">
+    <View style={[styles.row, compact && styles.compactRow]}>
+      <Text style={[styles.title, compact && styles.compactTitle]} accessibilityRole="header">
         {title}
       </Text>
       {actionLabel && onAction ? (
@@ -26,6 +27,8 @@ export function SectionHeader({ title, actionLabel, onAction, actionColor }: Sec
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
+  compactRow: { marginBottom: spacing.xs },
   title: { fontSize: fontSize.lg, fontWeight: '600', color: colors.text },
+  compactTitle: { fontSize: fontSize.md },
   action: { fontSize: fontSize.sm, fontWeight: '600', color: colors.accent },
 });

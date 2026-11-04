@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { EmptyState, IconButton, Screen } from '@/src/components/ui';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
@@ -71,10 +71,12 @@ export default function NoteHistoryScreen() {
               <Text style={styles.noteText}>
                 {n.emoji ? `${n.emoji} ` : ''}{n.text}
               </Text>
-              {n.imageUrl ? <Image source={{ uri: n.imageUrl }} style={styles.sticker} resizeMode="contain" /> : null}
-              <Text style={styles.meta}>
-                {mine ? 'Siz' : couple.partner?.displayName ?? 'Partneriniz'} · {formatDateTime(n.createdAt)}
-              </Text>
+              <View style={styles.metaRow}>
+                <Text style={styles.meta}>
+                  {mine ? 'Siz' : couple.partner?.displayName ?? 'Partneriniz'} · {formatDateTime(n.createdAt)}
+                </Text>
+                {mine && n.readAt ? <Text style={styles.readChecks} accessibilityLabel="Partneriniz notu gördü">✓✓</Text> : null}
+              </View>
             </View>
           );
         })
@@ -92,6 +94,7 @@ const styles = StyleSheet.create({
   mine: { alignSelf: 'flex-end' },
   theirs: { alignSelf: 'flex-start' },
   noteText: { fontSize: fontSize.md, color: colors.text, lineHeight: 22 },
-  sticker: { width: 140, height: 140, alignSelf: 'center', marginTop: spacing.sm },
   meta: { fontSize: fontSize.xs, color: colors.textSecondary, marginTop: spacing.sm },
+  metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+  readChecks: { color: '#34B7F1', fontSize: fontSize.md, fontWeight: '800', marginTop: spacing.sm },
 });

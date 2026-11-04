@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { screenNoteService } from '@/src/services/screenNoteService';
 import { CoupleState, ScreenNote, ServiceResult } from '@/src/types';
 import { useAuth } from './useAuth';
+import { supabase } from '@/src/lib/supabase';
 
 type NoteDraft = { text: string; emoji: string; backgroundColor: string; stickerUri?: string | null };
 
@@ -30,6 +31,14 @@ export function useScreenNotes(coupleState: Pick<CoupleState, 'couple' | 'partne
     }, [refresh]),
   );
 
+  useEffect(() => {
+    if (!coupleId) return;
+    const channel = supabase.channel(`screen-notes-${coupleId}-${user?.id ?? 'guest'}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'screen_notes', filter: `couple_id=eq.${coupleId}` }, () => { void refresh(); })
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [coupleId, user?.id, refresh]);
+
   const latestFromPartner = useMemo(() => notes.find((n) => n.senderId !== user?.id) ?? null, [notes, user]);
 
   const send = useCallback(
@@ -48,5 +57,11 @@ export function useScreenNotes(coupleState: Pick<CoupleState, 'couple' | 'partne
     [user, coupleState.couple, coupleState.partner],
   );
 
-  return { notes, latestFromPartner, loading, refresh, send };
+  const markRead = useCallback(async (noteId: string) => {
+    const result = await screenNoteService.markRead(noteId);
+    if (!result.error) setNotes((previous) => previous.map((note) => note.id === noteId ? { ...note, readAt: note.readAt ?? new Date().toISOString() } : note));
+    return result;
+  }, []);
+
+  return { notes, latestFromPartner, loading, refresh, send, markRead };
 }

@@ -35,12 +35,12 @@ export function useCoupleDirection(coupleId?: string, userId?: string, partnerId
     subscriptions.current.push(await Location.watchPositionAsync({ accuracy: Location.Accuracy.Balanced, timeInterval: 10000, distanceInterval: 10 }, (position) => {
       setLocations((current) => [...current.filter((item) => item.userId !== userId), {
         userId, coupleId, latitude: position.coords.latitude, longitude: position.coords.longitude,
-        heading: position.coords.heading, updatedAt: new Date().toISOString(),
+        heading: position.coords.heading, updatedAt: new Date().toISOString(), directionEnabled: true,
       }]);
       const now = Date.now();
       if (now - lastWrite.current >= 10000) {
         lastWrite.current = now;
-        void presenceService.updateLocation({ userId, coupleId, latitude: position.coords.latitude, longitude: position.coords.longitude, heading: position.coords.heading }).catch(() => setError('Konum paylaşılmadı. Supabase kurulum SQL’ini çalıştırın.'));
+        void presenceService.updateLocation({ userId, coupleId, latitude: position.coords.latitude, longitude: position.coords.longitude, heading: position.coords.heading, directionEnabled: true }).catch(() => setError('Konum paylaşılmadı. Supabase kurulum SQL’ini çalıştırın.'));
       }
     }));
     await refresh();
@@ -62,7 +62,7 @@ export function useCoupleDirection(coupleId?: string, userId?: string, partnerId
   const presence = useMemo(() => {
     const mine = locations.find((item) => item.userId === userId);
     const partner = locations.find((item) => item.userId === partnerId);
-    const isFresh = (location?: CoupleLocation) => !!location && Date.now() - new Date(location.updatedAt).getTime() <= 120000;
+    const isFresh = (location?: CoupleLocation) => !!location?.directionEnabled && Date.now() - new Date(location.updatedAt).getTime() <= 120000;
     const mineFresh = isFresh(mine);
     const partnerFresh = isFresh(partner);
     const bothSharing = sharing && mineFresh && partnerFresh;
