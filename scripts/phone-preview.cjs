@@ -20,12 +20,19 @@ async function main() {
   if (!process.env.EXPO_TOKEN) {
     throw new Error('GitHub Actions repository secret EXPO_TOKEN is required.');
   }
-  const expectedAccount = require('../app.json').expo.owner;
-  const identity = spawnSync(process.execPath, [expoCli, 'whoami'], { encoding: 'utf8' });
-  if (identity.status !== 0 || identity.stdout.trim() !== expectedAccount) {
-    throw new Error('EXPO_TOKEN must belong to the Expo account ' + expectedAccount + '.');
+  const config = require('../app.json').expo;
+  const expectedAccount = config.owner;
+  if (!config.extra?.eas?.projectId) {
+    throw new Error('A linked EAS project is required for shared Expo Go previews.');
   }
-  console.log('Expo account verified: ' + expectedAccount);
+  const identity = spawnSync(process.execPath, [expoCli, 'whoami'], { encoding: 'utf8' });
+  if (identity.status !== 0 || !identity.stdout.trim()) {
+    const detail = (identity.stderr || identity.stdout || 'No Expo account returned.')
+      .replaceAll(process.env.EXPO_TOKEN, '***').trim();
+    throw new Error('Expo authentication failed: ' + detail);
+  }
+  const signedInAs = identity.stdout.trim();
+  console.log('Expo account verified: ' + signedInAs);
   server = spawn(process.execPath, [expoCli, 'start', '--tunnel', '--go', '--port', '8081'], {
     stdio: 'inherit',
     env: { ...process.env, CI: '1', EXPO_NO_TELEMETRY: '1' },
@@ -62,6 +69,7 @@ async function main() {
   const preview = {
     url: previewUrl,
     account: expectedAccount,
+    signedInAs,
     expiresAt: new Date(Date.now() + durationMs).toISOString(),
   };
   await writeFile(path.join(outputDirectory, 'preview.json'), JSON.stringify(preview, null, 2));
