@@ -1,6 +1,6 @@
 -- =====================================================================
 -- İkimiz — Supabase (PostgreSQL) şeması
--- Aşama 1: kimlik, eşleşme, ekran notları, bildirimler, ruh halleri (uygulamada aktif)
+-- Aşama 1: kimlik, eşleşme, ekran notları, bildirimler, ruh halleri, öpücük (uygulamada aktif)
 -- Aşama 2: takvim, listeler, notlar, görevler, hatırlatmalar, hediye radarı,
 --          bilinmesi gerekenler (tablolar hazır, arayüz sonraki aşamada)
 --
@@ -8,7 +8,7 @@
 -- yapıştırıp "Run". Betik tekrar çalıştırılabilir (idempotent) olacak
 -- şekilde yazılmıştır.
 --
--- ORTAK SÜTUN SÖZLEŞMESİ (18 tablonun tamamında):
+-- ORTAK SÜTUN SÖZLEŞMESİ (Öpücük olay tablosu dışındaki 18 tabloda):
 --   id          uuid        birincil anahtar
 --   created_at  timestamptz oluşturulma zamanı
 --   updated_at  timestamptz set_updated_at() tetikleyicisiyle güncellenir
@@ -440,6 +440,56 @@ create policy mood_entries_update on public.mood_entries for update to authentic
 drop policy if exists mood_entries_delete on public.mood_entries;
 create policy mood_entries_delete on public.mood_entries for delete to authenticated
   using (owner_id = auth.uid());
+
+-- =====================================================================
+-- 19) kisses — partnere sabah ve akşam öpücüğü
+-- Her kullanıcı yerel gününde dönem başına bir öpücük gönderebilir.
+-- =====================================================================
+create table if not exists public.kisses (
+  id          uuid primary key default gen_random_uuid(),
+  created_at  timestamptz not null default now(),
+  owner_id    uuid not null references auth.users(id) on delete cascade,
+  partner_id  uuid not null references auth.users(id) on delete cascade,
+  couple_id   uuid not null references public.couples(id) on delete cascade,
+  local_date  date not null,
+  period      text not null check (period in ('morning', 'evening')),
+  constraint kisses_owner_period_day_key unique (owner_id, local_date, period),
+  constraint kisses_no_self_send check (owner_id <> partner_id)
+);
+
+create index if not exists kisses_partner_created_idx
+  on public.kisses(partner_id, created_at desc);
+
+alter table public.kisses enable row level security;
+grant select, insert on table public.kisses to authenticated;
+
+drop policy if exists kisses_select on public.kisses;
+create policy kisses_select on public.kisses for select to authenticated using (
+  owner_id = auth.uid()
+  or (
+    partner_id = auth.uid()
+    and public.is_couple_member(couple_id)
+    and public.is_couple_member(couple_id, owner_id)
+  )
+);
+
+drop policy if exists kisses_insert on public.kisses;
+create policy kisses_insert on public.kisses for insert to authenticated with check (
+  owner_id = auth.uid()
+  and owner_id <> partner_id
+  and public.is_couple_member(couple_id)
+  and public.is_couple_member(couple_id, partner_id)
+);
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'kisses'
+  ) then
+    alter publication supabase_realtime add table public.kisses;
+  end if;
+end $$;
 
 -- ---------------------------------------------------------------------
 -- updated_at tetikleyicileri ve RLS'nin diğer tablolarda açılması

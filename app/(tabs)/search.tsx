@@ -27,6 +27,7 @@ export default function SearchScreen() {
     const match = (...fields: (string | undefined)[]) => fields.some((f) => f && normalize(f).includes(q));
 
     const fromCategories = categories
+      .filter((c) => c.slug !== 'opucuk')
       .filter((c) => match(c.title, c.description))
       .map((c) => ({
         id: `cat-${c.slug}`,

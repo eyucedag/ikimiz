@@ -1,6 +1,6 @@
 # İkimiz
 
-**İkimiz**, çiftlerin ortak hayatını tek ve sakin bir alanda düzenlemesi için geliştirilen Türkçe bir mobil uygulamadır. Takvim, listeler, notlar, görevler, hediye fikirleri ve hatırlatmalar gibi modüller aşamalı olarak eklenir. İlk aşamada hesap yönetimi, partner eşleşmesi, **Ekrana Not** ve **Ruh Halim** özellikleri bulunur.
+**İkimiz**, çiftlerin ortak hayatını tek ve sakin bir alanda düzenlemesi için geliştirilen Türkçe bir mobil uygulamadır. Takvim, listeler, notlar, görevler, hediye fikirleri ve hatırlatmalar gibi modüller aşamalı olarak eklenir. İlk aşamada hesap yönetimi, partner eşleşmesi, **Ekrana Not**, **Ruh Halim** ve **Öpücük** özellikleri bulunur.
 
 - **Teknoloji:** React Native · Expo SDK 58 · React Native 0.88 · TypeScript · Expo Router · Supabase
 - **Platformlar:** iPhone, iPad ve Android telefon/tablet — **web sürümü yoktur.**
@@ -33,6 +33,7 @@
 | Eşleşme durumu ve onaylı sonlandırma | ✅ Çalışıyor |
 | Ekrana Not: metin + emoji + arka plan rengi, geçmiş | ✅ Çalışıyor |
 | Ruh Halim: günlük ruh hali, kısa not, ortak 30 günlük geçmiş | ✅ Çalışıyor |
+| Öpücük: sabah ve akşam birer kez, partnere animasyonlu gönderim | ✅ Çalışıyor |
 | Uygulama içi bildirimler (okundu işaretleme, sekme rozeti) | ✅ Çalışıyor |
 | Arama (kategoriler, ekran notları, bildirimler) | ✅ Çalışıyor |
 | Profil düzenleme, çıkış, hesap silme | ✅ Çalışıyor |
@@ -95,13 +96,13 @@ Yerel mock (demo) mod kaldırılmıştır; tüm veriler Supabase'de tutulur.
 4. Başka bir Supabase projesi kullanacaksanız **Project Settings → API** sayfasındaki URL ve anon anahtarını `src/lib/supabase.ts` dosyasına yazın.
 5. `npx expo start -c` ile uygulamayı yeniden başlatın.
 
-Mevcut kuruluma **Ruh Halim** eklemek için SQL Editor'da yalnızca `supabase/migrations/20261104_mood_entries.sql` dosyasını çalıştırın. Bu ek kurulum, mevcut verileri silmeden yeni tabloyu ve erişim kurallarını oluşturur. Ruh hali ve not aktif partnerle paylaşılır; herkes yalnızca kendi kaydını değiştirebilir. Partnerin değişiklikleri ekran açıkken en geç 15 saniyede veya ekran yenilendiğinde görünür.
+Mevcut kuruluma **Ruh Halim** eklemek için `supabase/migrations/20261104_mood_entries.sql`, **Öpücük** eklemek için `supabase/migrations/20261104_kisses.sql` dosyasını Supabase SQL Editor'da çalıştırın. Bu ek kurulumlar mevcut verileri silmeden tabloları ve erişim kurallarını oluşturur. Ruh hali ve not aktif partnerle paylaşılır; herkes yalnızca kendi kaydını değiştirebilir. Öpücük tablosu sabah/akşam haklarını ve partner uygulaması açıkken anlık animasyonu sağlar; partner daha sonra uygulamayı açarsa son 24 saatteki öpücük animasyonu gösterilir.
 
-**Şema özeti** — 18 tablo:
+**Şema özeti** — 19 tablo:
 
 | Aşama 1 (aktif) | Aşama 2 (hazır) |
 | --- | --- |
-| `profiles`, `couples`, `couple_members`, `invitations`, `screen_notes`, `notifications`, `mood_entries` | `calendar_events`, `important_dates`, `lists`, `list_items`, `note_folders`, `notes`, `tasks`, `reminders`, `gift_ideas`, `partner_facts`, `user_settings` |
+| `profiles`, `couples`, `couple_members`, `invitations`, `screen_notes`, `notifications`, `mood_entries`, `kisses` | `calendar_events`, `important_dates`, `lists`, `list_items`, `note_folders`, `notes`, `tasks`, `reminders`, `gift_ideas`, `partner_facts`, `user_settings` |
 
 - Her tabloda ortak sütunlar bulunur: `id`, `created_at`, `updated_at`, `owner_id`, `couple_id`, `visibility` (`personal` | `shared`), `is_deleted`.
 - Tüm tablolarda **Row Level Security** açıktır; her tablonun üzerinde erişim kuralı yorum olarak açıklanmıştır.

@@ -44,7 +44,7 @@ export interface ScreenNote {
   createdAt: string;
 }
 
-export type NotificationCategory = 'system' | 'invitation' | 'couple' | 'screen_note';
+export type NotificationCategory = 'system' | 'invitation' | 'couple' | 'screen_note' | 'event' | 'task' | 'reminder';
 
 export interface AppNotification {
   id: string;

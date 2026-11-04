@@ -4,6 +4,7 @@ import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Badge, Button, Card, EmptyState, Screen, SectionHeader } from '@/src/components/ui';
 import { MoodSummaryCard } from '@/src/components/MoodSummaryCard';
+import { KissCategoryButton } from '@/src/components/KissCategoryButton';
 import { categories, getCategoryColor, getCategoryRoute, isCategoryReady } from '@/src/constants/categories';
 import { colors, fontSize, layout, radius, spacing } from '@/src/constants/theme';
 import { useAppState } from '@/src/hooks/useAppState';
@@ -125,7 +126,7 @@ export default function TodayScreen() {
       {/* Kategoriler */}
       <SectionHeader title="Kategoriler" />
       <View style={styles.grid}>
-        {categories.map((c) => (
+        {categories.filter((c) => c.slug !== 'opucuk').map((c) => (
           <Pressable
             key={c.slug}
             onPress={() => router.push(getCategoryRoute(c.slug))}
@@ -145,6 +146,7 @@ export default function TodayScreen() {
           </Pressable>
         ))}
       </View>
+      <KissCategoryButton ownerId={user?.id} partnerId={couple.partner?.id} coupleId={couple.couple?.id} />
     </Screen>
   );
 }

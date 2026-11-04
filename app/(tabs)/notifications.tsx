@@ -13,6 +13,9 @@ const categoryMeta: Record<NotificationCategory, { icon: keyof typeof Feather.gl
   invitation: { icon: 'send', route: '/couple/status' },
   couple: { icon: 'link', route: '/couple/status' },
   screen_note: { icon: 'edit-3', route: '/screen-note/history' },
+  event: { icon: 'calendar' },
+  task: { icon: 'check-square' },
+  reminder: { icon: 'bell' },
 };
 
 export default function NotificationsScreen() {
