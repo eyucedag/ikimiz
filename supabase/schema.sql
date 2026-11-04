@@ -541,6 +541,15 @@ begin
   end if;
 end $$;
 
+do $$ begin
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'calendar_events') then
+    alter publication supabase_realtime add table public.calendar_events;
+  end if;
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'important_dates') then
+    alter publication supabase_realtime add table public.important_dates;
+  end if;
+end $$;
+
 create index if not exists kisses_partner_created_idx
   on public.kisses(partner_id, created_at desc);
 

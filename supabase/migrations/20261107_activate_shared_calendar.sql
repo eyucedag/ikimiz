@@ -30,3 +30,9 @@ create policy calendar_events_update on public.calendar_events for update to aut
 drop policy if exists calendar_events_delete on public.calendar_events;
 create policy calendar_events_delete on public.calendar_events for delete to authenticated using (owner_id = auth.uid());
 grant select, insert, update, delete on public.calendar_events to authenticated;
+
+do $$ begin
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'calendar_events') then
+    alter publication supabase_realtime add table public.calendar_events;
+  end if;
+end $$;

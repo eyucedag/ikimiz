@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
@@ -10,6 +10,7 @@ import { useCouple } from '@/src/hooks/useCouple';
 import { calendarService, CoupleCalendarEvent } from '@/src/services/calendarService';
 import { ImportantDate, importantDateService } from '@/src/services/importantDateService';
 import { TravelPlace, travelService } from '@/src/services/travelService';
+import { supabase } from '@/src/lib/supabase';
 
 type Entry = { id: string; date: string; title: string; detail: string; kind: 'event' | 'special' | 'travel' | 'relationship'; color: string; ownerId?: string };
 const startOfMonth = (value: Date) => new Date(value.getFullYear(), value.getMonth(), 1);
@@ -40,6 +41,17 @@ export default function CalendarScreen() {
     } catch (e) { setError(e instanceof Error ? e.message : 'Takvim yüklenemedi.'); }
   }, [couple.couple?.id]);
   useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
+  useEffect(() => {
+    const coupleId = couple.couple?.id;
+    if (!coupleId) return;
+    const channel = supabase.channel(`calendar-${coupleId}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events', filter: `couple_id=eq.${coupleId}` }, () => { void refresh(); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'important_dates', filter: `couple_id=eq.${coupleId}` }, () => { void refresh(); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'travel_places', filter: `couple_id=eq.${coupleId}` }, () => { void refresh(); })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'couples', filter: `id=eq.${coupleId}` }, () => { void couple.refresh(); void refresh(); })
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [couple.couple?.id, couple.refresh, refresh]);
 
   const entries = useMemo<Entry[]>(() => {
     const year = month.getFullYear();

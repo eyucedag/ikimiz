@@ -30,3 +30,9 @@ drop policy if exists important_dates_delete on public.important_dates;
 create policy important_dates_delete on public.important_dates for delete to authenticated using (owner_id = auth.uid());
 
 grant select, insert, update, delete on public.important_dates to authenticated;
+
+do $$ begin
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'important_dates') then
+    alter publication supabase_realtime add table public.important_dates;
+  end if;
+end $$;
