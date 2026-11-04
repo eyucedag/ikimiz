@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { colors, fontSize, layout, spacing } from '@/src/constants/theme';
 import { IconButton } from './IconButton';
+import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 
 interface ScreenProps {
   children: React.ReactNode;
@@ -36,6 +37,7 @@ interface ScreenProps {
 export function Screen({ children, title, showBack = true, headerRight, scroll = true, refreshing, onRefresh, inTabs, scrollRef }: ScreenProps) {
   const router = useRouter();
   const { width } = useWindowDimensions();
+  const { backgroundColor } = useAppAppearance();
   const contentWidth = Math.min(width, layout.maxContentWidth);
 
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)'));
@@ -64,7 +66,7 @@ export function Screen({ children, title, showBack = true, headerRight, scroll =
   );
 
   return (
-    <SafeAreaView style={styles.safe} edges={inTabs ? ['top', 'left', 'right'] : ['top', 'left', 'right', 'bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor }]} edges={inTabs ? ['top', 'left', 'right'] : ['top', 'left', 'right', 'bottom']}>
       <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.center}>{header}</View>
         <View style={[styles.fill, !scroll && styles.center]}>{body}</View>

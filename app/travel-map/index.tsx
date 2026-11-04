@@ -10,6 +10,7 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
 import { findCoordinates, TravelPlace, travelService } from '@/src/services/travelService';
 import { supabase } from '@/src/lib/supabase';
+import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 
 function todayLocal() {
   const date = new Date();
@@ -28,6 +29,7 @@ function formatLocalDate(value: Date) {
 export default function TravelMapScreen() {
   const { user } = useAuth();
   const couple = useCouple();
+  const { surfaceColor } = useAppAppearance();
   const [places, setPlaces] = useState<TravelPlace[]>([]);
   const [city, setCity] = useState('');
   const [country, setCountry] = useState('Türkiye');
@@ -137,7 +139,7 @@ export default function TravelMapScreen() {
             <Input compact label="Ülke" placeholder="Türkiye" value={country} onChangeText={setCountry} autoCorrect={false} />
             <Input compact label="Şehir" placeholder="İstanbul" value={city} onChangeText={setCity} autoCorrect={false} />
             <Text style={styles.inputLabel}>Ziyaret tarihi</Text>
-            <Pressable accessibilityRole="button" onPress={() => { setDraftDate(parseLocalDate(visitedOn)); setShowDatePicker(true); }} style={({ pressed }) => [styles.dateButton, pressed && styles.dateButtonPressed]}>
+            <Pressable accessibilityRole="button" onPress={() => { setDraftDate(parseLocalDate(visitedOn)); setShowDatePicker(true); }} style={({ pressed }) => [styles.dateButton, { backgroundColor: surfaceColor }, pressed && styles.dateButtonPressed]}>
               <Feather name="calendar" size={17} color="#0B8F87" />
               <Text style={styles.dateText}>{parseLocalDate(visitedOn).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
             </Pressable>
@@ -156,7 +158,7 @@ export default function TravelMapScreen() {
             ) : null}
             <Modal visible={showDatePicker && Platform.OS === 'ios'} transparent animationType="slide" onRequestClose={() => setShowDatePicker(false)}>
               <View style={styles.modalBackdrop}>
-                <View style={styles.dateModal}>
+                <View style={[styles.dateModal, { backgroundColor: surfaceColor }]}>
                   <View style={styles.dateModalHeader}>
                     <Button title="Vazgeç" variant="ghost" compact onPress={() => setShowDatePicker(false)} />
                     <Text style={styles.dateModalTitle}>Ziyaret tarihi</Text>

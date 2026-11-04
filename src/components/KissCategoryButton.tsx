@@ -43,7 +43,7 @@ export function KissCategoryButton({ ownerId, partnerId, coupleId }: Props) {
         {sending ? <ActivityIndicator color={styles.lips.color} /> : <Text style={styles.lips}>💋</Text>}
       </Pressable>
       <Text style={styles.title}>Öpücük</Text>
-      <Text style={styles.usage}>Ne zaman istersen</Text>
+      <Text style={styles.usage}>Ne zaman istersen 💖</Text>
       {!paired ? <Text style={styles.message}>Öpücük göndermek için partnerinizle eşleşin.</Text> : null}
       {notice ? <Text style={styles.success}>{notice}</Text> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}

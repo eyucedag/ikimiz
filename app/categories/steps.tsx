@@ -8,6 +8,7 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
 import { CoupleSteps, presenceService } from '@/src/services/presenceService';
 import { supabase } from '@/src/lib/supabase';
+import { getCategoryColor } from '@/src/constants/categories';
 
 const localDate = () => {
   const d = new Date();
@@ -15,6 +16,7 @@ const localDate = () => {
 };
 
 export default function StepsScreen() {
+  const categoryColor = getCategoryColor('birlikte-adimlar');
   const { user } = useAuth();
   const couple = useCouple();
   const [rows, setRows] = useState<CoupleSteps[]>([]);
@@ -40,16 +42,16 @@ export default function StepsScreen() {
 
   return (
     <Screen title="Birlikte Atılan Adımlar">
-      <Card style={styles.hero}>
-        <View style={styles.icon}><Feather name="activity" size={22} color="#1676E8" /></View>
-        <Text style={styles.total}>{total.toLocaleString('tr-TR')}</Text>
+      <Card style={[styles.hero, { borderColor: categoryColor.color }]}>
+        <View style={[styles.icon, { backgroundColor: categoryColor.tint }]}><Feather name="activity" size={22} color={categoryColor.color} /></View>
+        <Text style={[styles.total, { color: categoryColor.color }]}>{total.toLocaleString('tr-TR')}</Text>
         <Text style={styles.caption}>bugün birlikte atılan adım</Text>
         <Text style={styles.detail}>Uygulama açıkken ve ikiniz 40 metre yakınken telefonların adım sensörü otomatik sayar. Konum ve hareket izinleri gerekir.</Text>
       </Card>
-      <Card style={styles.rows}>
+      <Card style={[styles.rows, { borderColor: categoryColor.color }]}>
         {[{ id: user?.id, name: 'Sen' }, { id: couple.partner?.id, name: couple.partner?.displayName ?? 'Partnerin' }].map((person) => {
           const count = rows.find((row) => row.userId === person.id)?.steps ?? 0;
-          return <View key={person.id} style={styles.personRow}><Text style={styles.person}>{person.name}</Text><Text style={styles.count}>{count.toLocaleString('tr-TR')}</Text></View>;
+          return <View key={person.id} style={styles.personRow}><Text style={styles.person}>{person.name}</Text><Text style={[styles.count, { color: categoryColor.color }]}>{count.toLocaleString('tr-TR')}</Text></View>;
         })}
       </Card>
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -58,13 +60,13 @@ export default function StepsScreen() {
 }
 
 const styles = StyleSheet.create({
-  hero: { alignItems: 'center', paddingVertical: spacing.xl, borderColor: '#1676E8', borderWidth: 1.5 },
-  icon: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#DFEBFF', alignItems: 'center', justifyContent: 'center' },
-  total: { color: '#1676E8', fontSize: 40, fontWeight: '800', marginTop: spacing.sm },
+  hero: { alignItems: 'center', paddingVertical: spacing.xl, borderWidth: 1.5 },
+  icon: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' },
+  total: { fontSize: 40, fontWeight: '800', marginTop: spacing.sm },
   caption: { color: colors.text, fontSize: fontSize.md, fontWeight: '600' },
   detail: { color: colors.textSecondary, textAlign: 'center', fontSize: fontSize.sm, marginTop: spacing.md, lineHeight: 20 },
-  rows: { marginTop: spacing.md, paddingVertical: 0, borderColor: '#1676E8', borderWidth: 1.5 },
+  rows: { marginTop: spacing.md, paddingVertical: 0, borderWidth: 1.5 },
   personRow: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
-  person: { color: colors.text, fontSize: fontSize.md }, count: { color: '#1676E8', fontSize: fontSize.md, fontWeight: '700' },
+  person: { color: colors.text, fontSize: fontSize.md }, count: { fontSize: fontSize.md, fontWeight: '700' },
   error: { color: colors.error, marginTop: spacing.sm },
 });

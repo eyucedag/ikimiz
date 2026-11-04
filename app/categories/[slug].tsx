@@ -8,7 +8,6 @@ import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 
 /** Aşama 2'de her kategori için planlanan başlıca özellikler. */
 const plannedFeatures: Record<string, string[]> = {
-  takvim: ['Ortak ve kişisel etkinlikler', 'Yıl dönümü ve doğum günleri', 'Tekrarlayan etkinlikler (RRULE)'],
   listeler: ['Market, film, seyahat listeleri', 'Maddeleri birlikte işaretleme', 'Kişisel veya ortak görünürlük'],
   notlar: ['Klasörlerle düzen', 'Kişisel ve ortak notlar', 'Hızlı arama'],
   gorevler: ['Partnere görev atama', 'Tekrarlayan görevler', 'Son tarih ve öncelik'],
@@ -25,6 +24,7 @@ export default function CategoryScreen() {
   if (slug === 'ruh-halim') return <Redirect href="/mood" />;
   if (slug === 'gezilen-yerler') return <Redirect href="/travel-map" />;
   if (slug === 'ozel-gunler') return <Redirect href="/special-dates" />;
+  if (slug === 'takvim') return <Redirect href="/calendar" />;
   if (slug === 'opucuk') return <Redirect href="/(tabs)" />;
 
   if (!category) {

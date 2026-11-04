@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import { StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
+import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -9,18 +10,19 @@ interface InputProps extends TextInputProps {
   compact?: boolean;
 }
 
-export const Input = forwardRef<React.ComponentRef<typeof TextInput>, InputProps>(({ label, error, hint, compact, style, ...rest }, ref) => (
-  <View style={[styles.wrapper, compact && styles.wrapperCompact]}>
+export const Input = forwardRef<React.ComponentRef<typeof TextInput>, InputProps>(({ label, error, hint, compact, style, ...rest }, ref) => {
+  const { surfaceColor } = useAppAppearance();
+  return <View style={[styles.wrapper, compact && styles.wrapperCompact]}>
     {label ? <Text style={styles.label}>{label}</Text> : null}
     <TextInput
       ref={ref}
       placeholderTextColor={colors.textTertiary}
-      style={[styles.input, compact && styles.inputCompact, !!error && styles.inputError, style]}
+      style={[styles.input, { backgroundColor: surfaceColor }, compact && styles.inputCompact, !!error && styles.inputError, style]}
       {...rest}
     />
     {error ? <Text style={styles.error}>{error}</Text> : hint ? <Text style={styles.hint}>{hint}</Text> : null}
-  </View>
-));
+  </View>;
+});
 
 Input.displayName = 'Input';
 

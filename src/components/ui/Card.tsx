@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { colors, radius, shadow, spacing } from '@/src/constants/theme';
+import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 
 interface CardProps {
   children: React.ReactNode;
@@ -10,19 +11,20 @@ interface CardProps {
 }
 
 export function Card({ children, style, onPress, accessibilityLabel }: CardProps) {
+  const { surfaceColor } = useAppAppearance();
   if (onPress) {
     return (
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
-        style={({ pressed }) => [styles.card, pressed && styles.pressed, style]}
+        style={({ pressed }) => [styles.card, { backgroundColor: surfaceColor }, pressed && styles.pressed, style]}
       >
         {children}
       </Pressable>
     );
   }
-  return <View style={[styles.card, style]}>{children}</View>;
+  return <View style={[styles.card, { backgroundColor: surfaceColor }, style]}>{children}</View>;
 }
 
 const styles = StyleSheet.create({

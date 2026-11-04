@@ -100,15 +100,15 @@ export default function NoteHistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  filters: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg },
-  pill: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: radius.pill, backgroundColor: colors.beige },
+  filters: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.sm },
+  pill: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: radius.pill, backgroundColor: colors.beige },
   pillText: { fontSize: fontSize.sm, color: colors.textSecondary, fontWeight: '500' },
   pillTextActive: { color: colors.white },
-  note: { borderRadius: radius.card, borderWidth: 1.5, padding: spacing.lg, marginBottom: spacing.md, maxWidth: '88%' },
+  note: { borderRadius: radius.card, borderWidth: 1.5, padding: spacing.md, marginBottom: spacing.sm, maxWidth: '100%' },
   mine: { alignSelf: 'flex-end' },
   theirs: { alignSelf: 'flex-start' },
-  noteText: { fontSize: fontSize.md, color: colors.text, lineHeight: 22 },
-  meta: { fontSize: fontSize.xs, color: colors.textSecondary, marginTop: spacing.sm },
+  noteText: { fontSize: fontSize.sm, color: colors.text, lineHeight: 20 },
+  meta: { fontSize: fontSize.xs, color: colors.textSecondary, marginTop: spacing.xs, flex: 1 },
   metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
   metaActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   editButton: { width: 28, height: 28 },

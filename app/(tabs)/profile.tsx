@@ -5,7 +5,8 @@ import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Badge, Button, Card, Divider, Input, Screen } from '@/src/components/ui';
-import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
+import { appBackgroundColors, colors, fontSize, radius, spacing } from '@/src/constants/theme';
+import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
 import { formatDate } from '@/src/utils/date';
@@ -37,6 +38,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { user, updateProfile, signOut, deleteAccount } = useAuth();
   const couple = useCouple();
+  const appearance = useAppAppearance();
   const [editing, setEditing] = useState(false);
   const [fullName, setFullName] = useState(user?.fullName ?? '');
   const [displayName, setDisplayName] = useState(user?.displayName ?? '');
@@ -114,7 +116,7 @@ export default function ProfileScreen() {
   return (
     <Screen inTabs>
       <Text style={styles.title} accessibilityRole="header">
-        Profil
+        Ayarlar
       </Text>
 
       <Card style={styles.section}>
@@ -155,13 +157,13 @@ export default function ProfileScreen() {
           {datePicker && Platform.OS === 'android' ? <DateTimePicker value={startedAt} mode="date" display="calendar" maximumDate={new Date()} onChange={(_event, date) => { setDatePicker(false); if (date) setStartedAt((old) => { const value = new Date(old); value.setFullYear(date.getFullYear(), date.getMonth(), date.getDate()); return value; }); }} /> : null}
           {timePicker && Platform.OS === 'android' ? <DateTimePicker value={startedAt} mode="time" display="clock" onChange={(_event, date) => { setTimePicker(false); if (date) setStartedAt((old) => { const value = new Date(old); value.setHours(date.getHours(), date.getMinutes(), 0, 0); return value; }); }} /> : null}
           <Modal visible={datePicker && Platform.OS === 'ios'} transparent animationType="slide" onRequestClose={() => setDatePicker(false)}>
-            <View style={styles.pickerBackdrop}><View style={styles.pickerSheet}>
+            <View style={styles.pickerBackdrop}><View style={[styles.pickerSheet, { backgroundColor: appearance.surfaceColor }]}>
               <View style={styles.pickerHeader}><Button title="Vazgeç" variant="ghost" compact onPress={() => setDatePicker(false)} /><Text style={styles.pickerTitle}>Başlangıç tarihi</Text><Button title="Tamam" variant="ghost" compact onPress={() => setDatePicker(false)} /></View>
               <DateTimePicker value={startedAt} mode="date" display="spinner" locale="tr-TR" themeVariant="light" textColor={colors.text} accentColor={colors.accent} maximumDate={new Date()} onChange={(_event, date) => { if (date) setStartedAt((old) => { const value = new Date(old); value.setFullYear(date.getFullYear(), date.getMonth(), date.getDate()); return value; }); }} />
             </View></View>
           </Modal>
           <Modal visible={timePicker && Platform.OS === 'ios'} transparent animationType="slide" onRequestClose={() => setTimePicker(false)}>
-            <View style={styles.pickerBackdrop}><View style={styles.pickerSheet}>
+            <View style={styles.pickerBackdrop}><View style={[styles.pickerSheet, { backgroundColor: appearance.surfaceColor }]}>
               <View style={styles.pickerHeader}><Button title="Vazgeç" variant="ghost" compact onPress={() => setTimePicker(false)} /><Text style={styles.pickerTitle}>Başlangıç saati</Text><Button title="Tamam" variant="ghost" compact onPress={() => setTimePicker(false)} /></View>
               <DateTimePicker value={startedAt} mode="time" display="spinner" locale="tr-TR" themeVariant="light" textColor={colors.text} accentColor={colors.accent} onChange={(_event, date) => { if (date) setStartedAt((old) => { const value = new Date(old); value.setHours(date.getHours(), date.getMinutes(), 0, 0); return value; }); }} />
             </View></View>
@@ -171,8 +173,17 @@ export default function ProfileScreen() {
         </Card>
       </> : null}
 
-      <Text style={styles.groupTitle}>Ayarlar</Text>
+      <Text style={styles.groupTitle}>Tercihler</Text>
       <Card style={styles.groupCard}>
+        <Text style={styles.themeTitle}>Uygulama arka planı</Text>
+        <Text style={styles.themeHint}>Açık alanların rengini seçin.</Text>
+        <View style={styles.backgroundOptions}>
+          {appBackgroundColors.map((option) => <Pressable key={option.color} onPress={() => appearance.setBackgroundColor(option.color)} accessibilityRole="button" accessibilityLabel={`${option.label} arka plan`} accessibilityState={{ selected: appearance.backgroundColor === option.color }} style={[styles.backgroundOption, { backgroundColor: option.color, borderColor: appearance.backgroundColor === option.color ? colors.accent : colors.border }]}>
+            {appearance.backgroundColor === option.color ? <Feather name="check" size={16} color={colors.accent} /> : null}
+          </Pressable>)}
+        </View>
+        <View style={styles.backgroundLabels}>{appBackgroundColors.map((option) => <Text key={option.color} style={styles.backgroundLabel}>{option.label}</Text>)}</View>
+        <Divider inset={34} />
         <SettingsRow icon="bell" title="Bildirim tercihleri" soon onPress={() => showSoon('Bildirim tercihleri', 'Push bildirimleri ve sessiz saatler Aşama 2’de eklenecek.')} />
         <Divider inset={34} />
         <SettingsRow icon="globe" title="Dil" value="Türkçe" soon onPress={() => showSoon('Dil seçimi', 'Uygulama şimdilik yalnızca Türkçe olarak sunuluyor.')} />
@@ -211,6 +222,12 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   groupTitle: { fontSize: fontSize.xs, fontWeight: '600', color: colors.textTertiary, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.xs },
   groupCard: { paddingVertical: spacing.xs, marginBottom: spacing.lg, borderRadius: radius.card },
+  themeTitle: { fontSize: fontSize.sm, fontWeight: '600', color: colors.text, marginHorizontal: spacing.sm },
+  themeHint: { fontSize: fontSize.xs, color: colors.textSecondary, marginHorizontal: spacing.sm, marginTop: 2, marginBottom: spacing.sm },
+  backgroundOptions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, paddingHorizontal: spacing.sm },
+  backgroundOption: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  backgroundLabels: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: spacing.sm, marginTop: spacing.xs, marginBottom: spacing.sm },
+  backgroundLabel: { fontSize: 9, color: colors.textTertiary },
   relationshipCard: { paddingVertical: spacing.md, marginBottom: spacing.lg, borderRadius: radius.card },
   inlineError: { color: colors.error, fontSize: fontSize.sm, marginTop: spacing.sm },
   saveStart: { marginTop: spacing.md },

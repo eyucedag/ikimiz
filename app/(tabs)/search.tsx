@@ -10,11 +10,13 @@ import { useCouple } from '@/src/hooks/useCouple';
 import { useScreenNotes } from '@/src/hooks/useScreenNotes';
 import { SearchResult } from '@/src/types';
 import { relativeTime } from '@/src/utils/date';
+import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 
 /** Türkçe karakterlere duyarlı, büyük/küçük harf bağımsız eşleşme. */
 const normalize = (s: string) => s.toLocaleLowerCase('tr-TR');
 
 export default function SearchScreen() {
+  const { surfaceColor } = useAppAppearance();
   const router = useRouter();
   const couple = useCouple();
   const { notes } = useScreenNotes(couple);
@@ -63,7 +65,7 @@ export default function SearchScreen() {
       <Text style={styles.title} accessibilityRole="header">
         Ara
       </Text>
-      <View style={styles.searchBox}>
+      <View style={[styles.searchBox, { backgroundColor: surfaceColor }]}>
         <Feather name="search" size={18} color={colors.textTertiary} />
         <TextInput
           value={query}

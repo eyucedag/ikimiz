@@ -8,6 +8,7 @@ import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
 import { ImportantDate, ImportantDateKind, importantDateService } from '@/src/services/importantDateService';
+import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 
 const kinds: { value: ImportantDateKind; label: string }[] = [
   { value: 'anniversary', label: 'Yıl dönümü' },
@@ -22,6 +23,7 @@ const dateLabel = (value: string) => toDate(value).toLocaleDateString('tr-TR', {
 export default function SpecialDatesScreen() {
   const { user } = useAuth();
   const couple = useCouple();
+  const appearance = useAppAppearance();
   const [items, setItems] = useState<ImportantDate[]>([]);
   const [title, setTitle] = useState('');
   const [date, setDate] = useState(today());
@@ -78,7 +80,7 @@ export default function SpecialDatesScreen() {
           </Pressable>
           {pickerOpen && Platform.OS === 'android' ? <DateTimePicker value={draftDate} mode="date" display="default" onChange={(_, selected) => { if (selected) setDate(toKey(selected)); setPickerOpen(false); }} /> : null}
           <Modal transparent visible={pickerOpen && Platform.OS === 'ios'} animationType="slide" onRequestClose={() => setPickerOpen(false)}>
-            <View style={styles.modalBackdrop}><View style={styles.dateModal}>
+            <View style={styles.modalBackdrop}><View style={[styles.dateModal, { backgroundColor: appearance.surfaceColor }]}>
               <View style={styles.modalHeader}><Button title="Vazgeç" compact variant="ghost" onPress={() => setPickerOpen(false)} /><Text style={styles.formTitle}>Tarih seç</Text><Button title="Tamam" compact variant="ghost" toneColor={categoryColor} onPress={() => { setDate(toKey(draftDate)); setPickerOpen(false); }} /></View>
               <DateTimePicker value={draftDate} mode="date" display="spinner" locale="tr-TR" themeVariant="light" textColor={colors.text} onChange={(_, selected) => { if (selected) setDraftDate(selected); }} />
             </View></View>

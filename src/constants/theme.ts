@@ -15,6 +15,17 @@ export const colors = {
   white: '#FFFFFF',
 };
 
+export const appBackgroundColors = [
+  { label: 'Krem', color: '#FAF8F5' },
+  { label: 'Pembe', color: '#FFF0F5' },
+  { label: 'Şeftali', color: '#FFF3E7' },
+  { label: 'Sarı', color: '#FFFBE5' },
+  { label: 'Yeşil', color: '#F0F7E8' },
+  { label: 'Turkuaz', color: '#EAF8F5' },
+  { label: 'Mavi', color: '#EDF4FF' },
+  { label: 'Lila', color: '#F5EFFA' },
+];
+
 export const fontSize = {
   xs: 11,
   sm: 13,
@@ -54,6 +65,6 @@ export const layout = {
 };
 
 /** Ekrana Not için görseldeki sıcak gökkuşağı paletinden yumuşak tonlar */
-export const noteColors = ['#F6E4E1', '#F7E8D5', '#F8F0D2', '#E8EEDC', '#DDECEA', '#E5EAF0'];
+export const noteColors = ['#F7DDE9', '#F9E2D0', '#F7EFC6', '#E2EECF', '#D5ECE8', '#DCE7F8', '#E9DDF2'];
 
 export const noteEmojis = ['🌿', '☕', '✨', '🌙', '🌻', '🍂', '😊', '🤗'];

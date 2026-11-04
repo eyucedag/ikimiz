@@ -12,6 +12,7 @@ import { useMoods } from '@/src/hooks/useMoods';
 import { MoodDraft, MoodEntry, MoodValue } from '@/src/types/mood';
 import { formatDate, relativeTime, todayLabel } from '@/src/utils/date';
 import { getLocalMoodDate } from '@/src/utils/mood';
+import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 
 function SharedNotice() {
   const categoryColor = getCategoryColor('ruh-halim');
@@ -54,6 +55,7 @@ export default function MoodScreen() {
   const { user } = useAuth();
   const couple = useCouple();
   const moods = useMoods(couple);
+  const appearance = useAppAppearance();
   const { width } = useWindowDimensions();
   const [selectedMood, setSelectedMood] = useState<MoodValue | null>(null);
   const [note, setNote] = useState('');
@@ -247,7 +249,7 @@ export default function MoodScreen() {
                       accessibilityRole="button"
                       accessibilityLabel={option.label}
                       accessibilityState={{ selected, disabled: moods.saving || !draftIsCurrent }}
-                      style={({ pressed }) => [styles.moodOption, selected && { borderColor: categoryColor.color, backgroundColor: categoryColor.tint }, pressed && styles.pressed, moods.saving && styles.disabled]}
+                      style={({ pressed }) => [styles.moodOption, { backgroundColor: appearance.backgroundColor }, selected && { borderColor: categoryColor.color, backgroundColor: categoryColor.tint }, pressed && styles.pressed, moods.saving && styles.disabled]}
                     >
                       <View style={styles.selectionMark}>{selected ? <Feather name="check-circle" size={15} color={categoryColor.color} /> : null}</View>
                       <Text style={styles.moodEmoji} accessible={false}>{option.emoji}</Text>
@@ -273,7 +275,7 @@ export default function MoodScreen() {
               textAlignVertical="top"
               accessibilityLabel="Bugünkü ruh haliniz için kısa not"
               accessibilityHint={`İsteğe bağlı, en fazla ${MOOD_NOTE_MAX_LENGTH} karakter. Notunuz mevcut partnerinizle paylaşılır.`}
-              style={[styles.noteInput, moods.saving && styles.disabled]}
+              style={[styles.noteInput, { backgroundColor: appearance.backgroundColor }, moods.saving && styles.disabled]}
             />
             <Text style={styles.counter}>{draftIsCurrent ? note.length : 0}/{MOOD_NOTE_MAX_LENGTH}</Text>
 
@@ -308,7 +310,7 @@ export default function MoodScreen() {
                     <Text style={styles.muted}>Paylaşım · {relativeTime(partnerToday.updatedAt)}</Text>
                   </View>
                 </View>
-                {partnerToday.note ? <Text style={styles.partnerNote}>{partnerToday.note}</Text> : <Text style={styles.muted}>Bugün bir not eklemedi.</Text>}
+                {partnerToday.note ? <Text style={[styles.partnerNote, { backgroundColor: appearance.backgroundColor }]}>{partnerToday.note}</Text> : <Text style={styles.muted}>Bugün bir not eklemedi.</Text>}
               </>
             ) : (
               <View style={styles.partnerEmpty}>

@@ -4,6 +4,7 @@ import { Tabs } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { colors, fontSize, shadow } from '@/src/constants/theme';
 import { useAppState } from '@/src/hooks/useAppState';
+import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 
 type IconName = keyof typeof Feather.glyphMap;
 
@@ -20,6 +21,7 @@ type AddTabButtonProps = {
 
 /** Ortadaki büyük, yuvarlak "+" butonu */
 function AddTabButton({ onPress, accessibilityState }: AddTabButtonProps) {
+  const { backgroundColor } = useAppAppearance();
   return (
     <View style={styles.addWrap}>
       <Pressable
@@ -27,7 +29,7 @@ function AddTabButton({ onPress, accessibilityState }: AddTabButtonProps) {
         accessibilityRole="button"
         accessibilityLabel="Hızlı ekle"
         accessibilityState={accessibilityState}
-        style={({ pressed }) => [styles.addButton, pressed && styles.addPressed]}
+        style={({ pressed }) => [styles.addButton, { borderColor: backgroundColor }, pressed && styles.addPressed]}
       >
         <Feather name="plus" size={28} color={colors.white} />
       </Pressable>
@@ -37,6 +39,7 @@ function AddTabButton({ onPress, accessibilityState }: AddTabButtonProps) {
 
 export default function TabsLayout() {
   const { unreadCount } = useAppState();
+  const { surfaceColor } = useAppAppearance();
 
   return (
     <Tabs
@@ -44,7 +47,7 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textTertiary,
-        tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.border },
+        tabBarStyle: { backgroundColor: surfaceColor, borderTopColor: colors.border },
         tabBarLabelStyle: { fontSize: fontSize.xs, fontWeight: '500' },
       }}
     >
@@ -63,7 +66,7 @@ export default function TabsLayout() {
           tabBarBadgeStyle: { backgroundColor: colors.earth2, fontSize: 10 },
         }}
       />
-      <Tabs.Screen name="profile" options={{ title: 'Profil', tabBarIcon: tabIcon('user') }} />
+      <Tabs.Screen name="profile" options={{ title: 'Ayarlar', tabBarIcon: tabIcon('settings') }} />
     </Tabs>
   );
 }

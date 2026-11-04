@@ -9,6 +9,7 @@ import { KissCategoryButton } from '@/src/components/KissCategoryButton';
 import { categories, getCategoryColor, getCategoryRoute, isCategoryReady } from '@/src/constants/categories';
 import { colors, fontSize, layout, radius, spacing } from '@/src/constants/theme';
 import { useAppState } from '@/src/hooks/useAppState';
+import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
 import { useScreenNotes } from '@/src/hooks/useScreenNotes';
@@ -25,6 +26,7 @@ export default function TodayScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const couple = useCouple();
+  const { surfaceColor } = useAppAppearance();
   const { latestFromPartner, refresh: refreshNotes, markRead } = useScreenNotes(couple);
   const moods = useMoods(couple);
   const { upcoming, refreshNotifications } = useAppState();
@@ -229,7 +231,7 @@ export default function TodayScreen() {
       <Card style={[styles.section, styles.compactCard, { borderColor: calendarColor.color, borderWidth: 1.5 }]}>
         <SectionHeader title="Yaklaşanlar" compact />
         {upcoming.length === 0 ? (
-          <Pressable onPress={() => router.push('/categories/takvim')} accessibilityRole="button" accessibilityLabel="Takvimi keşfet" style={styles.upcomingCompact}>
+          <Pressable onPress={() => router.push('/calendar')} accessibilityRole="button" accessibilityLabel="Takvimi aç" style={styles.upcomingCompact}>
             <View style={[styles.upcomingIcon, { backgroundColor: calendarColor.tint }]}><Feather name="sun" size={18} color={calendarColor.color} /></View>
             <View style={styles.upcomingCopy}><Text style={styles.upcomingTitle}>Önünüz açık</Text><Text style={styles.upcomingDescription} numberOfLines={1}>Yeni planlar burada görünecek.</Text></View>
             <Feather name="chevron-right" size={18} color={calendarColor.color} />
@@ -255,7 +257,7 @@ export default function TodayScreen() {
             accessibilityLabel={c.title}
             style={({ pressed }) => [styles.tile, { width: `${100 / columns}%` }, pressed && styles.pressed]}
           >
-            <View style={[styles.tileInner, { borderColor: c.color, borderTopColor: c.color }]}>
+            <View style={[styles.tileInner, { backgroundColor: surfaceColor, borderColor: c.color, borderTopColor: c.color }]}>
               <View style={[styles.tileIcon, { backgroundColor: c.tint }]}>
                 <Feather name={c.icon as keyof typeof Feather.glyphMap} size={20} color={c.color} />
               </View>

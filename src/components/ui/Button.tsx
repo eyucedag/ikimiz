@@ -2,6 +2,7 @@ import React from 'react';
 import { ActivityIndicator, Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
+import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -25,8 +26,9 @@ const palette: Record<Variant, { bg: string; fg: string; border: string }> = {
 };
 
 export function Button({ title, onPress, variant = 'primary', icon, loading, disabled, style, compact, toneColor }: ButtonProps) {
+  const { surfaceColor } = useAppAppearance();
   const p = palette[variant];
-  const backgroundColor = toneColor && variant === 'primary' ? toneColor : p.bg;
+  const backgroundColor = toneColor && variant === 'primary' ? toneColor : variant === 'secondary' || variant === 'danger' ? surfaceColor : p.bg;
   const foregroundColor = toneColor && variant !== 'primary' ? toneColor : p.fg;
   const borderColor = toneColor && variant !== 'ghost' ? toneColor : p.border;
   const inactive = disabled || loading;

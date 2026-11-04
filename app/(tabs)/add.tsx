@@ -21,7 +21,7 @@ const actions: QuickAction[] = [
   { key: 'travel', title: 'Gezdiğimiz Yerler', description: 'Gittiğiniz şehirleri ortak haritaya ekle', icon: 'map-pin', category: 'gezilen-yerler', route: '/travel-map' },
   { key: 'special-date', title: 'Özel Gün', description: 'Yıl dönümü, doğum günü veya anlamlı bir tarih ekle', icon: 'gift', category: 'ozel-gunler', route: '/special-dates' },
   { key: 'screen-note', title: 'Ekran Notu', description: "Partnerinizin ana ekranına kısa not", icon: 'edit-3', category: 'ekrana-not', route: '/screen-note/compose' },
-  { key: 'event', title: 'Etkinlik', description: 'Takvime plan veya önemli gün', icon: 'calendar', category: 'takvim', soonDetail: 'Ortak takvim ve tekrarlayan etkinlikler Aşama 2’de eklenecek.' },
+  { key: 'event', title: 'Etkinlik', description: 'Ortak takvime bir etkinlik ekle', icon: 'calendar', category: 'takvim', route: '/calendar' },
   { key: 'list', title: 'Liste', description: 'Market, film, seyahat listesi', icon: 'list', category: 'listeler', soonDetail: 'Paylaşılan listeler Aşama 2’de eklenecek.' },
   { key: 'note', title: 'Not', description: 'Kişisel veya ortak not', icon: 'file-text', category: 'notlar', soonDetail: 'Klasörlü notlar Aşama 2’de eklenecek.' },
   { key: 'task', title: 'Görev', description: 'Atanabilir ve tekrarlanabilir iş', icon: 'check-square', category: 'gorevler', soonDetail: 'Görevler ve atamalar Aşama 2’de eklenecek.' },
