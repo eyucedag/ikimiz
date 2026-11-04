@@ -17,7 +17,8 @@ jobs:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.pull_request.head.repo.full_name == github.repository &&
-       github.event.pull_request.head.ref == 'codex/shared-expo-update')
+       (github.event.pull_request.head.ref == 'codex/shared-expo-update' ||
+        github.event.pull_request.head.ref == 'codex/ruh-halim'))
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:

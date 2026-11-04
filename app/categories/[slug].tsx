@@ -23,6 +23,7 @@ export default function CategoryScreen() {
   const category = getCategory(slug);
 
   if (slug === 'ekrana-not') return <Redirect href="/screen-note/compose" />;
+  if (slug === 'ruh-halim') return <Redirect href="/mood" />;
 
   if (!category) {
     return (

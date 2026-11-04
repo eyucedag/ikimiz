@@ -1,6 +1,7 @@
 import { Category } from '@/src/types';
 
 export const categories: Category[] = [
+  { slug: 'ruh-halim', title: 'Ruh Halim', icon: 'smile', description: 'Bugünkü ruh halinizi paylaşın, birbirinizin nasıl hissettiğini görün.' },
   { slug: 'takvim', title: 'Takvim & Önemli Günler', icon: 'calendar', description: 'Ortak takvim, yıl dönümleri ve doğum günleri tek yerde.' },
   { slug: 'listeler', title: 'Listeler', icon: 'list', description: 'Market, film, seyahat gibi ortak listeleri birlikte yönetin.' },
   { slug: 'notlar', title: 'Notlar', icon: 'file-text', description: 'Klasörlerle düzenlenen kişisel ve ortak notlar.' },
@@ -12,3 +13,11 @@ export const categories: Category[] = [
 ];
 
 export const getCategory = (slug?: string) => categories.find((c) => c.slug === slug);
+
+const readyRoutes: Record<string, string> = {
+  'ekrana-not': '/screen-note/compose',
+  'ruh-halim': '/mood',
+};
+
+export const getCategoryRoute = (slug: string) => readyRoutes[slug] ?? `/categories/${slug}`;
+export const isCategoryReady = (slug: string) => Object.prototype.hasOwnProperty.call(readyRoutes, slug);

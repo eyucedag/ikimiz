@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Card, Divider, EmptyState, Screen } from '@/src/components/ui';
-import { categories } from '@/src/constants/categories';
+import { categories, getCategoryRoute } from '@/src/constants/categories';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAppState } from '@/src/hooks/useAppState';
 import { useCouple } from '@/src/hooks/useCouple';
@@ -33,7 +33,7 @@ export default function SearchScreen() {
         group: 'Kategoriler',
         title: c.title,
         subtitle: c.description,
-        route: c.slug === 'ekrana-not' ? '/screen-note/compose' : `/categories/${c.slug}`,
+        route: getCategoryRoute(c.slug),
       }));
     const fromNotes = notes
       .filter((n) => match(n.text))

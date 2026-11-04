@@ -3,23 +3,22 @@ import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-na
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Badge, Button, Card, EmptyState, Screen, SectionHeader } from '@/src/components/ui';
-import { categories } from '@/src/constants/categories';
+import { MoodSummaryCard } from '@/src/components/MoodSummaryCard';
+import { categories, getCategoryRoute, isCategoryReady } from '@/src/constants/categories';
 import { colors, fontSize, layout, radius, spacing } from '@/src/constants/theme';
 import { useAppState } from '@/src/hooks/useAppState';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
 import { useScreenNotes } from '@/src/hooks/useScreenNotes';
-import { Category } from '@/src/types';
+import { useMoods } from '@/src/hooks/useMoods';
 import { greeting, relativeTime, todayLabel } from '@/src/utils/date';
-
-/** Ekrana Not Aşama 1'de çalışır; diğer kategoriler "Yakında" ekranına gider. */
-const categoryRoute = (c: Category) => (c.slug === 'ekrana-not' ? '/screen-note/compose' : `/categories/${c.slug}`);
 
 export default function TodayScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const couple = useCouple();
   const { latestFromPartner, refresh: refreshNotes } = useScreenNotes(couple);
+  const moods = useMoods(couple);
   const { upcoming, refreshNotifications } = useAppState();
   const { width } = useWindowDimensions();
   const [refreshing, setRefreshing] = useState(false);
@@ -28,8 +27,11 @@ export default function TodayScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([couple.refresh(), refreshNotes(), refreshNotifications()]);
-    setRefreshing(false);
+    try {
+      await Promise.all([couple.refresh(), refreshNotes(), moods.refresh(), refreshNotifications()]);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   return (
@@ -86,6 +88,16 @@ export default function TodayScreen() {
         )}
       </Card>
 
+      <MoodSummaryCard
+        today={moods.today}
+        partnerToday={moods.partnerToday}
+        partnerName={couple.partner?.displayName ?? 'Partneriniz'}
+        paired={couple.isPaired}
+        loading={moods.loading || couple.loading}
+        error={moods.error}
+        onPress={() => router.push('/mood')}
+      />
+
       {/* Yaklaşanlar */}
       <Card style={styles.section}>
         <SectionHeader title="Yaklaşanlar" />
@@ -114,7 +126,7 @@ export default function TodayScreen() {
         {categories.map((c) => (
           <Pressable
             key={c.slug}
-            onPress={() => router.push(categoryRoute(c))}
+            onPress={() => router.push(getCategoryRoute(c.slug))}
             accessibilityRole="button"
             accessibilityLabel={c.title}
             style={({ pressed }) => [styles.tile, { width: `${100 / columns}%` }, pressed && styles.pressed]}
@@ -126,7 +138,7 @@ export default function TodayScreen() {
               <Text style={styles.tileTitle} numberOfLines={2}>
                 {c.title}
               </Text>
-              {c.slug !== 'ekrana-not' ? <Badge label="Yakında" tone="neutral" /> : <Badge label="Hazır" />}
+              {isCategoryReady(c.slug) ? <Badge label="Hazır" /> : <Badge label="Yakında" tone="neutral" />}
             </View>
           </Pressable>
         ))}
