@@ -22,22 +22,29 @@ export const coupleService = {
     let membershipError: any;
     ({ data: membership, error: membershipError } = await client
       .from('couple_members')
-      .select('couple_id, couples!inner(id, created_at, ended_at, photo_path)')
+      .select('couple_id, couples!inner(id, created_at, ended_at, photo_path, relationship_started_at)')
       .eq('user_id', userId)
       .eq('is_deleted', false)
       .is('couples.ended_at', null)
       .maybeSingle());
 
     // Yeni fotoğraf migration'ı henüz uygulanmadıysa mevcut eşleşme akışını koru.
-    if (membershipError?.code === '42703' || membershipError?.code === 'PGRST204' || membershipError?.message?.includes('photo_path')) {
+    if (membershipError?.code === '42703' || membershipError?.code === 'PGRST204' || membershipError?.message?.includes('photo_path') || membershipError?.message?.includes('relationship_started_at')) {
       const fallback = await client.from('couple_members')
-        .select('couple_id, couples!inner(id, created_at, ended_at)')
+        .select('couple_id, couples!inner(id, created_at, ended_at, photo_path)')
         .eq('user_id', userId)
         .eq('is_deleted', false)
         .is('couples.ended_at', null)
         .maybeSingle();
-      membership = fallback.data;
-      membershipError = fallback.error;
+      if (fallback.error?.message?.includes('photo_path')) {
+        const older = await client.from('couple_members').select('couple_id, couples!inner(id, created_at, ended_at)')
+          .eq('user_id', userId).eq('is_deleted', false).is('couples.ended_at', null).maybeSingle();
+        membership = older.data;
+        membershipError = older.error;
+      } else {
+        membership = fallback.data;
+        membershipError = fallback.error;
+      }
     }
 
     const { data: pending } = await client
@@ -67,7 +74,7 @@ export const coupleService = {
       photoUrl = signedPhoto?.signedUrl ?? null;
     }
     return {
-      couple: { id: membership.couple_id, memberIds, createdAt: c?.created_at ?? nowIso(), endedAt: null, photoPath, photoUrl },
+      couple: { id: membership.couple_id, memberIds, createdAt: c?.created_at ?? nowIso(), endedAt: null, photoPath, photoUrl, relationshipStartedAt: c?.relationship_started_at ?? null },
       partner,
       pendingInvitation: pending ? mapInvitation(pending) : null,
     };
@@ -112,6 +119,11 @@ export const coupleService = {
 
   async endCouple(userId: string): Promise<ServiceResult> {
     const { error } = await supabase.rpc('end_couple');
+    return error ? { error: error.message } : {};
+  },
+
+  async setRelationshipStartedAt(startedAt: string): Promise<ServiceResult> {
+    const { error } = await supabase.rpc('set_relationship_started_at', { p_started_at: startedAt });
     return error ? { error: error.message } : {};
   },
 };

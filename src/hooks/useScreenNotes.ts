@@ -4,7 +4,7 @@ import { screenNoteService } from '@/src/services/screenNoteService';
 import { CoupleState, ScreenNote, ServiceResult } from '@/src/types';
 import { useAuth } from './useAuth';
 
-type NoteDraft = { text: string; emoji: string; backgroundColor: string };
+type NoteDraft = { text: string; emoji: string; backgroundColor: string; stickerUri?: string | null };
 
 /** Ekrana Not verisi. Eşleşme bilgisi useCouple'dan parametre olarak gelir. */
 export function useScreenNotes(coupleState: Pick<CoupleState, 'couple' | 'partner'>) {

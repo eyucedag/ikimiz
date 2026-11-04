@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Badge, Button, Card, Divider, Input, Screen } from '@/src/components/ui';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
 import { formatDate } from '@/src/utils/date';
 import { showSoon } from '@/src/utils/soon';
+import { coupleService } from '@/src/services/coupleService';
 
 interface RowProps {
   icon: keyof typeof Feather.glyphMap;
@@ -39,11 +41,20 @@ export default function ProfileScreen() {
   const [displayName, setDisplayName] = useState(user?.displayName ?? '');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [startedAt, setStartedAt] = useState(new Date());
+  const [datePicker, setDatePicker] = useState(false);
+  const [timePicker, setTimePicker] = useState(false);
+  const [savingStart, setSavingStart] = useState(false);
+  const [startError, setStartError] = useState('');
 
   useEffect(() => {
     setFullName(user?.fullName ?? '');
     setDisplayName(user?.displayName ?? '');
   }, [user]);
+
+  useEffect(() => {
+    if (couple.couple?.relationshipStartedAt) setStartedAt(new Date(couple.couple.relationshipStartedAt));
+  }, [couple.couple?.relationshipStartedAt]);
 
   const save = async () => {
     setError('');
@@ -52,6 +63,16 @@ export default function ProfileScreen() {
     setSaving(false);
     if (result.error) setError(result.error);
     else setEditing(false);
+  };
+
+  const saveRelationshipStart = async () => {
+    setStartError('');
+    if (startedAt.getTime() > Date.now()) { setStartError('Başlangıç zamanı gelecekte olamaz.'); return; }
+    setSavingStart(true);
+    const result = await coupleService.setRelationshipStartedAt(startedAt.toISOString());
+    setSavingStart(false);
+    if (result.error) setStartError('Başlangıç zamanı kaydedilemedi. Supabase kurulum SQL’ini çalıştırın.');
+    else await couple.refresh();
   };
 
   const confirmSignOut = () =>
@@ -112,6 +133,21 @@ export default function ProfileScreen() {
         <SettingsRow icon="link" title="Eşleşme durumu" value={coupleSummary} onPress={() => router.push('/couple/status')} />
       </Card>
 
+      {couple.isPaired ? <>
+        <Text style={styles.groupTitle}>İlişkiniz</Text>
+        <Card style={styles.relationshipCard}>
+          <Text style={styles.meta}>Başlangıç tarihini ve saatini girin. Bu bilgi ikinizin ana ekranındaki sayaçta görünür.</Text>
+          <View style={styles.buttonRow}>
+            <Button title={startedAt.toLocaleDateString('tr-TR')} icon="calendar" variant="secondary" onPress={() => setDatePicker(true)} style={styles.flex} />
+            <Button title={startedAt.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })} icon="clock" variant="secondary" onPress={() => setTimePicker(true)} style={styles.flex} />
+          </View>
+          {datePicker ? <DateTimePicker value={startedAt} mode="date" display="default" maximumDate={new Date()} onChange={(_event, date) => { setDatePicker(false); if (date) setStartedAt((old) => { const value = new Date(old); value.setFullYear(date.getFullYear(), date.getMonth(), date.getDate()); return value; }); }} /> : null}
+          {timePicker ? <DateTimePicker value={startedAt} mode="time" display="default" onChange={(_event, date) => { setTimePicker(false); if (date) setStartedAt((old) => { const value = new Date(old); value.setHours(date.getHours(), date.getMinutes(), 0, 0); return value; }); }} /> : null}
+          {startError ? <Text style={styles.inlineError}>{startError}</Text> : null}
+          <Button title="İlişki başlangıcını kaydet" icon="save" loading={savingStart} onPress={() => { void saveRelationshipStart(); }} style={styles.saveStart} />
+        </Card>
+      </> : null}
+
       <Text style={styles.groupTitle}>Ayarlar</Text>
       <Card style={styles.groupCard}>
         <SettingsRow icon="bell" title="Bildirim tercihleri" soon onPress={() => showSoon('Bildirim tercihleri', 'Push bildirimleri ve sessiz saatler Aşama 2’de eklenecek.')} />
@@ -152,6 +188,9 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   groupTitle: { fontSize: fontSize.xs, fontWeight: '600', color: colors.textTertiary, textTransform: 'uppercase', marginBottom: spacing.sm, marginTop: spacing.xs },
   groupCard: { paddingVertical: spacing.xs, marginBottom: spacing.lg, borderRadius: radius.card },
+  relationshipCard: { paddingVertical: spacing.md, marginBottom: spacing.lg, borderRadius: radius.card },
+  inlineError: { color: colors.error, fontSize: fontSize.sm, marginTop: spacing.sm },
+  saveStart: { marginTop: spacing.md },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md, minHeight: 48 },
   rowIcon: { width: 34 },
   rowTitle: { flex: 1, fontSize: fontSize.md, color: colors.text },

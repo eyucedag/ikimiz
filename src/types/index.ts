@@ -15,6 +15,7 @@ export interface Couple {
   endedAt?: string | null;
   photoPath?: string | null;
   photoUrl?: string | null;
+  relationshipStartedAt?: string | null;
 }
 
 export type InvitationStatus = 'pending' | 'accepted' | 'rejected' | 'cancelled';
@@ -43,6 +44,7 @@ export interface ScreenNote {
   text: string;
   emoji: string;
   backgroundColor: string;
+  imageUrl?: string | null;
   createdAt: string;
 }
 

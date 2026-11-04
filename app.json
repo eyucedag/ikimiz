@@ -33,7 +33,15 @@
           "backgroundColor": "#FAF8F5"
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-location",
+        { "locationWhenInUsePermission": "Partnerinizin yönünü göstermek için uygulama açıkken konum paylaşılır." }
+      ],
+      [
+        "expo-sensors",
+        { "motionPermission": "İkimiz, birlikte olduğunuz sırada adım saymak için hareket verisine erişir." }
+      ]
     ],
     "owner": "eyucedag",
     "extra": {

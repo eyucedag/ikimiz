@@ -75,3 +75,14 @@ export async function searchCities(search: string, country: string): Promise<Cit
     longitude: Number(result.lon),
   })).filter((result) => result.city.length > 0);
 }
+
+export async function findCoordinates(city: string, country: string): Promise<{ latitude: number; longitude: number }> {
+  const query = new URLSearchParams({ q: `${city}, ${country}`, format: 'jsonv2', limit: '1' });
+  const response = await fetch(`https://nominatim.openstreetmap.org/search?${query.toString()}`, {
+    headers: { 'Accept-Language': 'tr,en' },
+  });
+  if (!response.ok) throw new Error('Konum bulunamadı. Şehir ve ülke adını kontrol edip yeniden deneyin.');
+  const results = await response.json() as Array<{ lat: string; lon: string }>;
+  if (!results[0]) throw new Error('Bu şehir ve ülke için haritada konum bulunamadı. Adları kontrol edip yeniden deneyin.');
+  return { latitude: Number(results[0].lat), longitude: Number(results[0].lon) };
+}

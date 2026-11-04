@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Modal, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
@@ -15,6 +15,7 @@ import { useScreenNotes } from '@/src/hooks/useScreenNotes';
 import { useMoods } from '@/src/hooks/useMoods';
 import { supabase } from '@/src/lib/supabase';
 import { greeting, relativeTime, todayLabel } from '@/src/utils/date';
+import { useCoupleDirection } from '@/src/hooks/useCoupleDirection';
 
 export default function TodayScreen() {
   const noteColor = getCategoryColor('ekrana-not');
@@ -29,6 +30,24 @@ export default function TodayScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [photoVisible, setPhotoVisible] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const direction = useCoupleDirection(couple.couple?.id, user?.id, couple.partner?.id);
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const togetherDuration = useMemo(() => {
+    const startedAt = couple.couple?.relationshipStartedAt;
+    if (!startedAt) return null;
+    const elapsed = Math.max(0, Math.floor((now - new Date(startedAt).getTime()) / 1000));
+    const days = Math.floor(elapsed / 86400);
+    const hours = Math.floor((elapsed % 86400) / 3600);
+    const minutes = Math.floor((elapsed % 3600) / 60);
+    const seconds = elapsed % 60;
+    return `${days} gün · ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }, [couple.couple?.relationshipStartedAt, now]);
 
   useEffect(() => {
     const coupleId = couple.couple?.id;
@@ -112,18 +131,31 @@ export default function TodayScreen() {
           <View style={styles.identityText}>
             <Text style={styles.appTitle} accessibilityRole="header">İkimiz</Text>
             <Text style={styles.subtitle}>{greeting()}, {user?.displayName} · {todayLabel()}</Text>
+            {togetherDuration ? <Text style={styles.duration}>{togetherDuration}</Text> : couple.isPaired ? <Text style={styles.durationMissing}>Birlikte olduğunuz zamanı profilden ekleyin</Text> : null}
           </View>
         </View>
+        {couple.isPaired ? (
+          <Pressable
+            onPress={() => direction.sharing ? direction.stop() : void direction.start()}
+            accessibilityRole="button"
+            accessibilityLabel={direction.angle == null ? 'Partner yönünü görmek için konum paylaşımını aç' : 'Partnerin yönünü göster'}
+            style={[styles.directionButton, direction.sharing && styles.directionButtonActive]}
+          >
+            <Feather name="navigation" size={21} color={direction.sharing ? '#1676E8' : colors.textSecondary} style={direction.angle == null ? undefined : { transform: [{ rotate: `${direction.angle}deg` }] }} />
+          </Pressable>
+        ) : null}
       </View>
+      {direction.error ? <Text style={styles.directionHint}>{direction.error}</Text> : direction.sharing ? <Text style={styles.directionHint}>Konumun yalnızca uygulama açıkken partnerinle paylaşılır.</Text> : null}
 
       {/* Partnerinden Not */}
-      <Card style={[styles.section, { borderColor: noteColor.color, borderWidth: 1.5 }]}>
+      <Card style={[styles.section, styles.narrowCard, { borderColor: noteColor.color, borderWidth: 1.5 }]}>
         {couple.isPaired ? (
           <>
             <SectionHeader title="Partnerinden Not" actionLabel="Tüm Notlar" actionColor={noteColor.color} onAction={() => router.push('/screen-note/history')} />
             {latestFromPartner ? (
               <View style={[styles.note, { backgroundColor: latestFromPartner.backgroundColor }]}>
-                <Text style={styles.noteEmoji}>{latestFromPartner.emoji}</Text>
+                {latestFromPartner.emoji ? <Text style={styles.noteEmoji}>{latestFromPartner.emoji}</Text> : null}
+                {latestFromPartner.imageUrl ? <Image source={{ uri: latestFromPartner.imageUrl }} style={styles.noteSticker} resizeMode="contain" /> : null}
                 <Text style={styles.noteText}>{latestFromPartner.text}</Text>
                 <Text style={styles.noteMeta}>
                   {couple.partner?.displayName} · {relativeTime(latestFromPartner.createdAt)}
@@ -170,7 +202,7 @@ export default function TodayScreen() {
       />
 
       {/* Yaklaşanlar */}
-      <Card style={[styles.section, { borderColor: calendarColor.color, borderWidth: 1.5 }]}>
+      <Card style={[styles.section, styles.narrowCard, { borderColor: calendarColor.color, borderWidth: 1.5 }]}>
         <SectionHeader title="Yaklaşanlar" />
         {upcoming.length === 0 ? (
           <EmptyState
@@ -196,7 +228,7 @@ export default function TodayScreen() {
       {/* Kategoriler */}
       <SectionHeader title="Kategoriler" />
       <View style={styles.grid}>
-        {categories.filter((c) => c.slug !== 'opucuk').map((c) => (
+        {categories.filter((c) => c.slug !== 'opucuk' && c.slug !== 'ekrana-not').map((c) => (
           <Pressable
             key={c.slug}
             onPress={() => router.push(getCategoryRoute(c.slug))}
@@ -246,9 +278,12 @@ export default function TodayScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: { marginTop: spacing.sm, marginBottom: spacing.xl },
+  header: { marginTop: spacing.sm, marginBottom: spacing.xl, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   identityRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   identityText: { flex: 1 },
+  directionButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentLight },
+  directionButtonActive: { backgroundColor: '#DFEBFF' },
+  directionHint: { color: colors.textSecondary, fontSize: fontSize.xs, marginLeft: 68, marginTop: -spacing.lg, marginBottom: spacing.sm },
   couplePhoto: { width: 54, height: 54, borderRadius: 27, borderWidth: 1.5, borderColor: colors.border },
   photoPlaceholder: { width: 54, height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentLight, borderWidth: 1.5, borderColor: colors.border },
   photoModalBackdrop: { flex: 1, backgroundColor: 'rgba(18,15,18,0.94)', alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
@@ -260,9 +295,13 @@ const styles = StyleSheet.create({
   photoUploading: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
   appTitle: { fontSize: fontSize.xxxl, fontWeight: '700', color: colors.text },
   subtitle: { fontSize: fontSize.sm, color: colors.textSecondary, marginTop: spacing.xs },
+  duration: { fontSize: fontSize.sm, color: '#1676E8', fontWeight: '700', marginTop: spacing.xs, fontVariant: ['tabular-nums'] },
+  durationMissing: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: spacing.xs },
   section: { marginBottom: spacing.lg },
+  narrowCard: { width: '92%', alignSelf: 'center' },
   note: { borderRadius: radius.card, padding: spacing.lg },
   noteEmoji: { fontSize: fontSize.xxl, marginBottom: spacing.xs },
+  noteSticker: { width: 120, height: 120, alignSelf: 'center', marginBottom: spacing.sm },
   noteText: { fontSize: fontSize.lg, color: colors.text, lineHeight: 24 },
   noteMeta: { fontSize: fontSize.xs, color: colors.textSecondary, marginTop: spacing.sm },
   muted: { fontSize: fontSize.sm, color: colors.textSecondary, lineHeight: 19 },

@@ -7,6 +7,7 @@ export interface KissRecord {
   coupleId: string;
   localDate: string;
   createdAt: string;
+  senderName?: string;
 }
 
 function toLocalDate(date: Date): string {

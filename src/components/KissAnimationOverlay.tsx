@@ -33,7 +33,7 @@ export function KissAnimationOverlay({ event, onFinish }: { event: KissRecord | 
         <Text style={styles.sparkleLeft}>❤</Text>
         <Animated.Text style={[styles.lips, { opacity, transform: [{ scale }, { rotate: '-12deg' }] }]}>💋</Animated.Text>
         <Text style={styles.sparkleRight}>❤</Text>
-        <Text style={styles.message}>Sana bir öpücük gönderdi!</Text>
+        <Text style={styles.message}>{event.senderName ?? 'Partnerin'} sana bir öpücük gönderdi.</Text>
       </View>
     </View>
   );

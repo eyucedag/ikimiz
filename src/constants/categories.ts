@@ -12,6 +12,7 @@ export const categories: Category[] = [
   { slug: 'unutma', title: 'Unutma!', icon: 'bell', color: '#7948EA', tint: '#ECE4FF', description: 'Zamanı gelince hatırlatılan önemli şeyler.' },
   { slug: 'opucuk', title: 'Öpücük', icon: 'heart', color: '#E5163D', tint: '#FFF0F3', description: 'İstediğiniz zaman partnerinize animasyonlu öpücük gönderin.' },
   { slug: 'gezilen-yerler', title: 'Gezdiğimiz Yerler', icon: 'map-pin', color: '#0B8F87', tint: '#D8F4EF', description: 'Birlikte gittiğiniz şehirleri ve ülkeleri haritada biriktirin.' },
+  { slug: 'birlikte-adimlar', title: 'Birlikte Atılan Adımlar', icon: 'activity', color: '#1676E8', tint: '#DFEBFF', description: 'Telefonunuzun adım sayarından günlük adımlarınızı paylaşın.' },
 ];
 
 export const getCategory = (slug?: string) => categories.find((c) => c.slug === slug);
@@ -21,6 +22,7 @@ const readyRoutes: Record<string, string> = {
   'ekrana-not': '/screen-note/compose',
   'ruh-halim': '/mood',
   'gezilen-yerler': '/travel-map',
+  'birlikte-adimlar': '/categories/steps',
 };
 
 export const getCategoryRoute = (slug: string) => readyRoutes[slug] ?? `/categories/${slug}`;

@@ -39,14 +39,19 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     const showIncoming = (row: Record<string, unknown>) => {
       if (!active || row.partner_id !== user.id || typeof row.id !== 'string' || row.id === lastSeenId) return;
       lastSeenId = row.id;
-      setIncomingKiss({
+      const record: KissRecord = {
         id: row.id,
         ownerId: String(row.owner_id),
         partnerId: String(row.partner_id),
         coupleId: String(row.couple_id),
         localDate: String(row.local_date),
         createdAt: String(row.created_at),
-      });
+      };
+      setIncomingKiss(record);
+      void supabase.from('profiles').select('display_name').eq('id', record.ownerId).maybeSingle()
+        .then(({ data }) => {
+          if (data?.display_name) setIncomingKiss((current) => current?.id === record.id ? { ...current, senderName: data.display_name } : current);
+        });
       void AsyncStorage.setItem(seenKey, row.id);
     };
     void (async () => {

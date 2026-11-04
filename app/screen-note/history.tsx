@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { EmptyState, IconButton, Screen } from '@/src/components/ui';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
@@ -69,8 +69,9 @@ export default function NoteHistoryScreen() {
           return (
             <View key={n.id} style={[styles.note, { backgroundColor: n.backgroundColor, borderColor: categoryColor.color }, mine ? styles.mine : styles.theirs]}>
               <Text style={styles.noteText}>
-                {n.emoji} {n.text}
+                {n.emoji ? `${n.emoji} ` : ''}{n.text}
               </Text>
+              {n.imageUrl ? <Image source={{ uri: n.imageUrl }} style={styles.sticker} resizeMode="contain" /> : null}
               <Text style={styles.meta}>
                 {mine ? 'Siz' : couple.partner?.displayName ?? 'Partneriniz'} · {formatDateTime(n.createdAt)}
               </Text>
@@ -91,5 +92,6 @@ const styles = StyleSheet.create({
   mine: { alignSelf: 'flex-end' },
   theirs: { alignSelf: 'flex-start' },
   noteText: { fontSize: fontSize.md, color: colors.text, lineHeight: 22 },
+  sticker: { width: 140, height: 140, alignSelf: 'center', marginTop: spacing.sm },
   meta: { fontSize: fontSize.xs, color: colors.textSecondary, marginTop: spacing.sm },
 });

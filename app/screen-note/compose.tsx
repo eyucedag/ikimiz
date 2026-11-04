@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Button, EmptyState, Screen } from '@/src/components/ui';
-import { colors, fontSize, noteColors, noteEmojis, radius, spacing } from '@/src/constants/theme';
+import { colors, fontSize, noteColors, radius, spacing } from '@/src/constants/theme';
 import { getCategoryColor } from '@/src/constants/categories';
 import { useCouple } from '@/src/hooks/useCouple';
 import { useScreenNotes } from '@/src/hooks/useScreenNotes';
@@ -15,7 +16,7 @@ export default function ComposeNoteScreen() {
   const couple = useCouple();
   const { send } = useScreenNotes(couple);
   const [text, setText] = useState('');
-  const [emoji, setEmoji] = useState(noteEmojis[0]);
+  const [stickerUri, setStickerUri] = useState<string | null>(null);
   const [backgroundColor, setBackgroundColor] = useState(noteColors[0]);
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
@@ -23,7 +24,7 @@ export default function ComposeNoteScreen() {
   const submit = async () => {
     setError('');
     setSending(true);
-    const result = await send({ text, emoji, backgroundColor });
+    const result = await send({ text, emoji: '', backgroundColor, stickerUri });
     setSending(false);
     if (result.error) {
       setError(result.error);
@@ -32,6 +33,13 @@ export default function ComposeNoteScreen() {
     Alert.alert('Not gönderildi', `${couple.partner?.displayName ?? 'Partneriniz'} notunuzu ana ekranında görecek.`, [
       { text: 'Tamam', onPress: () => (router.canGoBack() ? router.back() : router.replace('/(tabs)')) },
     ]);
+  };
+
+  const addSticker = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) { Alert.alert('Fotoğraf izni gerekli', 'Sticker olarak kullanacağınız görseli seçmek için fotoğraf izni verin.'); return; }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, quality: 0.82 });
+    if (!result.canceled && result.assets[0]) setStickerUri(result.assets[0].uri);
   };
 
   if (!couple.loading && !couple.isPaired) {
@@ -52,7 +60,6 @@ export default function ComposeNoteScreen() {
     <Screen title="Ekrana Not">
       {/* Canlı önizleme */}
       <View style={[styles.preview, { backgroundColor, borderColor: categoryColor.color }]}>
-        <Text style={styles.previewEmoji}>{emoji}</Text>
         <TextInput
           value={text}
           onChangeText={setText}
@@ -67,22 +74,11 @@ export default function ComposeNoteScreen() {
         <Text style={styles.counter}>
           {text.length}/{SCREEN_NOTE_MAX_LENGTH}
         </Text>
+        {stickerUri ? <Image source={{ uri: stickerUri }} style={styles.stickerPreview} resizeMode="contain" /> : null}
       </View>
 
-      <Text style={styles.label}>Emoji</Text>
-      <View style={styles.optionRow}>
-        {noteEmojis.map((e) => (
-          <Pressable
-            key={e}
-            onPress={() => setEmoji(e)}
-            style={[styles.emojiOption, { borderColor: categoryColor.color }, e === emoji && styles.selected, e === emoji && { backgroundColor: categoryColor.tint }]}
-            accessibilityRole="button"
-            accessibilityState={{ selected: e === emoji }}
-          >
-            <Text style={styles.emojiText}>{e}</Text>
-          </Pressable>
-        ))}
-      </View>
+      <Text style={styles.keyboardHint}>Emoji eklemek için klavyenizdeki emoji tuşunu kullanın.</Text>
+      <Button title={stickerUri ? 'Sticker görselini değiştir' : 'Sticker ekle'} icon="image" variant="secondary" onPress={() => { void addSticker(); }} style={styles.stickerButton} />
 
       <Text style={styles.label}>Arka plan</Text>
       <View style={styles.optionRow}>
@@ -108,9 +104,11 @@ export default function ComposeNoteScreen() {
 
 const styles = StyleSheet.create({
   preview: { borderRadius: radius.card, borderWidth: 1.5, padding: spacing.lg, minHeight: 170, marginBottom: spacing.xl },
-  previewEmoji: { fontSize: fontSize.xxxl, marginBottom: spacing.sm },
   previewInput: { flex: 1, fontSize: fontSize.lg, color: colors.text, lineHeight: 24, textAlignVertical: 'top', minHeight: 72 },
   counter: { alignSelf: 'flex-end', fontSize: fontSize.xs, color: colors.textTertiary },
+  keyboardHint: { color: colors.textSecondary, fontSize: fontSize.sm, marginBottom: spacing.sm },
+  stickerButton: { marginBottom: spacing.lg },
+  stickerPreview: { width: 120, height: 120, alignSelf: 'center', marginTop: spacing.sm },
   label: { fontSize: fontSize.sm, fontWeight: '600', color: colors.textSecondary, marginBottom: spacing.sm },
   optionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.xl },
   emojiOption: {
