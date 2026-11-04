@@ -47,7 +47,12 @@ export const importantDateService = {
     return saved;
   },
   async remove(id: string): Promise<void> {
-    const { error } = await supabase.from('important_dates').update({ is_deleted: true }).eq('id', id);
-    if (error) throw new Error('Özel gün kaldırılamadı.');
+    const { data, error } = await supabase.from('important_dates')
+      .delete()
+      .eq('id', id)
+      .select('id')
+      .maybeSingle();
+    if (error) throw new Error(`Özel gün kaldırılamadı: ${error.message}`);
+    if (!data) throw new Error('Özel gün bulunamadı veya kaldırma yetkiniz yok.');
   },
 };
