@@ -526,11 +526,13 @@ create table if not exists public.travel_places (
 );
 create index if not exists travel_places_couple_date_idx on public.travel_places(couple_id, visited_on desc);
 alter table public.travel_places enable row level security;
-grant select, insert, delete on table public.travel_places to authenticated;
+grant select, insert, update, delete on table public.travel_places to authenticated;
 drop policy if exists travel_places_select on public.travel_places;
 create policy travel_places_select on public.travel_places for select to authenticated using (public.is_couple_member(couple_id));
 drop policy if exists travel_places_insert on public.travel_places;
 create policy travel_places_insert on public.travel_places for insert to authenticated with check (owner_id = auth.uid() and public.is_couple_member(couple_id));
+drop policy if exists travel_places_update on public.travel_places;
+create policy travel_places_update on public.travel_places for update to authenticated using (owner_id = auth.uid() and public.is_couple_member(couple_id)) with check (owner_id = auth.uid() and public.is_couple_member(couple_id));
 drop policy if exists travel_places_delete on public.travel_places;
 create policy travel_places_delete on public.travel_places for delete to authenticated using (owner_id = auth.uid() and public.is_couple_member(couple_id));
 

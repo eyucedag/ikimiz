@@ -4,6 +4,7 @@ import {
   Platform,
   RefreshControl,
   ScrollView,
+  ScrollViewInstance,
   StyleSheet,
   Text,
   useWindowDimensions,
@@ -25,13 +26,14 @@ interface ScreenProps {
   onRefresh?: () => void;
   /** Sekme ekranlarında alt güvenli alanı sekme çubuğu yönetir. */
   inTabs?: boolean;
+  scrollRef?: React.RefObject<ScrollViewInstance | null>;
 }
 
 /**
  * Tüm ekranların ortak kabuğu: güvenli alan, krem zemin ve tabletlerde
  * en fazla 600pt genişliğinde ortalanmış içerik.
  */
-export function Screen({ children, title, showBack = true, headerRight, scroll = true, refreshing, onRefresh, inTabs }: ScreenProps) {
+export function Screen({ children, title, showBack = true, headerRight, scroll = true, refreshing, onRefresh, inTabs, scrollRef }: ScreenProps) {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const contentWidth = Math.min(width, layout.maxContentWidth);
@@ -50,6 +52,7 @@ export function Screen({ children, title, showBack = true, headerRight, scroll =
 
   const body = scroll ? (
     <ScrollView
+      ref={scrollRef}
       contentContainerStyle={styles.scrollContent}
       keyboardShouldPersistTaps="handled"
       refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={colors.accent} /> : undefined}

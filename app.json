@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "İkimiz",
+    "name": "\u0130kimiz",
     "slug": "ikimiz",
     "version": "1.0.0",
     "orientation": "default",
@@ -32,7 +32,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#FAF8F5"
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "owner": "eyucedag",
     "extra": {

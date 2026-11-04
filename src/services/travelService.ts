@@ -35,6 +35,14 @@ export const travelService = {
     if (error || !data) throw new Error(error?.message.includes('travel_places') ? 'Gezilen Yerler için Supabase SQL migration dosyasını çalıştırın.' : 'Yer eklenemedi. Lütfen bağlantınızı kontrol edip yeniden deneyin.');
     return mapPlace(data as Record<string, unknown>);
   },
+  async update(id: string, input: Pick<TravelPlace, 'city' | 'country' | 'note' | 'latitude' | 'longitude' | 'visitedOn'>): Promise<TravelPlace> {
+    const { data, error } = await supabase.from('travel_places').update({
+      city: input.city, country: input.country, note: input.note, latitude: input.latitude,
+      longitude: input.longitude, visited_on: input.visitedOn,
+    }).eq('id', id).select('*').single();
+    if (error || !data) throw new Error('Ziyaret düzenlenemedi. Lütfen yeniden deneyin.');
+    return mapPlace(data as Record<string, unknown>);
+  },
   async remove(id: string): Promise<void> {
     const { error } = await supabase.from('travel_places').delete().eq('id', id);
     if (error) throw new Error('Yer silinemedi. Lütfen yeniden deneyin.');
