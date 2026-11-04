@@ -1,17 +1,17 @@
 export const colors = {
-  background: '#FAF8F5',
+  background: '#FBF6F1',
   card: '#FFFFFF',
-  accent: '#7D9B76',
-  accentLight: '#E8F0E6',
-  beige: '#F0EBE3',
-  earth1: '#C4A882',
-  earth2: '#A67C5B',
+  accent: '#0F8582',
+  accentLight: '#DCEFED',
+  beige: '#F3E8DC',
+  earth1: '#D99A53',
+  earth2: '#B85E3F',
   text: '#2D2D2D',
-  textSecondary: '#6B6B6B',
-  textTertiary: '#9E9E9E',
-  border: '#E8E3DC',
+  textSecondary: '#70645F',
+  textTertiary: '#A69A93',
+  border: '#EDE1D8',
   error: '#C0392B',
-  success: '#7D9B76',
+  success: '#728B48',
   white: '#FFFFFF',
 };
 
@@ -53,7 +53,7 @@ export const layout = {
   maxContentWidth: 600,
 };
 
-/** Ekrana Not için yumuşak toprak/bej arka plan tonları */
-export const noteColors = ['#F0EBE3', '#E8F0E6', '#F5E6D3', '#EADFD0', '#E3E8DE', '#F3EDE4'];
+/** Ekrana Not için görseldeki sıcak gökkuşağı paletinden yumuşak tonlar */
+export const noteColors = ['#F6E4E1', '#F7E8D5', '#F8F0D2', '#E8EEDC', '#DDECEA', '#E5EAF0'];
 
 export const noteEmojis = ['🌿', '☕', '✨', '🌙', '🌻', '🍂', '😊', '🤗'];
