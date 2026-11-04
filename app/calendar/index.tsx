@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
-import { Button, Card, EmptyState, Input, Screen } from '@/src/components/ui';
+import { Button, Card, CoupleLoading, EmptyState, Input, Screen } from '@/src/components/ui';
 import { getCategoryColor } from '@/src/constants/categories';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -110,6 +110,8 @@ export default function CalendarScreen() {
       catch (e) { setError(e instanceof Error ? e.message : 'Etkinlik kaldırılamadı.'); }
     } },
   ]);
+
+  if (couple.loading) return <Screen title="Takvim"><CoupleLoading /></Screen>;
 
   return <Screen title="Takvim" onRefresh={refresh}>
     {!couple.isPaired ? <EmptyState icon="users" title="Önce eşleşin" description="Ortak takviminizi kullanmak için partnerinizle eşleşin." /> : <>

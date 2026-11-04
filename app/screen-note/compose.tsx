@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Button, EmptyState, Screen } from '@/src/components/ui';
+import { Button, CoupleLoading, EmptyState, Screen } from '@/src/components/ui';
 import { colors, fontSize, noteColors, radius, spacing } from '@/src/constants/theme';
 import { getCategoryColor } from '@/src/constants/categories';
 import { useCouple } from '@/src/hooks/useCouple';
@@ -47,7 +47,9 @@ export default function ComposeNoteScreen() {
     ]);
   };
 
-  if (!couple.loading && !couple.isPaired) {
+  if (couple.loading) return <Screen title={noteId ? 'Notu Düzenle' : 'Ekrana Not'}><CoupleLoading /></Screen>;
+
+  if (!couple.isPaired) {
     return (
       <Screen title="Ekrana Not">
         <EmptyState

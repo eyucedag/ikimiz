@@ -4,7 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import MapView, { Marker } from 'react-native-maps';
 import { useFocusEffect } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { Button, Card, EmptyState, Input, Screen } from '@/src/components/ui';
+import { Button, Card, CoupleLoading, EmptyState, Input, Screen } from '@/src/components/ui';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
@@ -111,6 +111,8 @@ export default function TravelMapScreen() {
       catch (e) { setError(e instanceof Error ? e.message : 'Yer kaldırılamadı.'); }
     } },
   ]);
+
+  if (couple.loading) return <Screen title="Gezdiğimiz Yerler"><CoupleLoading /></Screen>;
 
   return (
     <Screen title="Gezdiğimiz Yerler" scrollRef={scrollRef}>

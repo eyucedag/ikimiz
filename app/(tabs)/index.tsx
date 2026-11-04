@@ -146,7 +146,9 @@ export default function TodayScreen() {
             {togetherDuration ? <Text style={styles.duration}>{togetherDuration}</Text> : couple.isPaired ? <Text style={styles.durationMissing}>Birlikte olduğunuz zamanı profilden ekleyin</Text> : null}
           </View>
         </View>
-        {couple.isPaired ? (
+        {couple.loading ? (
+          <View style={styles.noteHeader}><Text style={styles.noteHeaderTitle}>Partnerinden Not</Text><ActivityIndicator color={noteColor.color} /></View>
+        ) : couple.isPaired ? (
           <Pressable
             onPress={() => direction.sharing ? direction.stop() : void direction.start()}
             accessibilityRole="button"

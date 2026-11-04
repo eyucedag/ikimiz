@@ -3,7 +3,7 @@ import { Alert, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
-import { Button, Card, EmptyState, Input, Screen } from '@/src/components/ui';
+import { Button, Card, CoupleLoading, EmptyState, Input, Screen } from '@/src/components/ui';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
@@ -61,6 +61,8 @@ export default function SpecialDatesScreen() {
       catch (e) { setError(e instanceof Error ? e.message : 'Özel gün kaldırılamadı.'); }
     } },
   ]);
+
+  if (couple.loading) return <Screen title="Özel Günler"><CoupleLoading /></Screen>;
 
   return (
     <Screen title="Özel Günler" refreshing={false} onRefresh={refresh}>

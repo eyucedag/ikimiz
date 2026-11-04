@@ -1,6 +1,7 @@
 export { Badge } from './Badge';
 export { Button } from './Button';
 export { Card } from './Card';
+export { CoupleLoading } from './CoupleLoading';
 export { Divider } from './Divider';
 export { EmptyState } from './EmptyState';
 export { IconButton } from './IconButton';

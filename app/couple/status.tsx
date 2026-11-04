@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Badge, Button, Card, Divider, EmptyState, Screen } from '@/src/components/ui';
+import { Badge, Button, Card, CoupleLoading, Divider, EmptyState, Screen } from '@/src/components/ui';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useCouple } from '@/src/hooks/useCouple';
 import { formatDate } from '@/src/utils/date';
@@ -31,7 +31,7 @@ export default function CoupleStatusScreen() {
       ],
     );
 
-  if (couple.loading) return <Screen title="Eşleşme Durumu">{null}</Screen>;
+  if (couple.loading) return <Screen title="Eşleşme Durumu"><CoupleLoading /></Screen>;
 
   if (!couple.isPaired) {
     return (

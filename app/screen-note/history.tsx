@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { EmptyState, IconButton, Screen } from '@/src/components/ui';
+import { CoupleLoading, EmptyState, IconButton, Screen } from '@/src/components/ui';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { getCategoryColor } from '@/src/constants/categories';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -44,6 +44,8 @@ export default function NoteHistoryScreen() {
       if (note.receiverId === user?.id && !note.readAt) void markRead(note.id);
     }
   }, [notes, markRead, user?.id]);
+
+  if (couple.loading) return <Screen title="Not Geçmişi"><CoupleLoading /></Screen>;
 
   return (
     <Screen

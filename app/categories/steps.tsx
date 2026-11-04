@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { Card, EmptyState, Screen } from '@/src/components/ui';
+import { Card, CoupleLoading, EmptyState, Screen } from '@/src/components/ui';
 import { colors, fontSize, spacing } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
@@ -38,6 +38,7 @@ export default function StepsScreen() {
   }, [couple.couple?.id, refresh]);
 
   const total = useMemo(() => rows.reduce((sum, row) => sum + row.steps, 0), [rows]);
+  if (couple.loading) return <Screen title="Birlikte Atılan Adımlar"><CoupleLoading /></Screen>;
   if (!couple.couple) return <Screen title="Birlikte Atılan Adımlar"><EmptyState icon="users" title="Önce eşleşin" description="Ortak adım sayacı partnerinizle eşleşince kullanılabilir." /></Screen>;
 
   return (
