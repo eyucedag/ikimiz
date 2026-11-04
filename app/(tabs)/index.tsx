@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Badge, Button, Card, EmptyState, Screen, SectionHeader } from '@/src/components/ui';
@@ -12,6 +12,7 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
 import { useScreenNotes } from '@/src/hooks/useScreenNotes';
 import { useMoods } from '@/src/hooks/useMoods';
+import { supabase } from '@/src/lib/supabase';
 import { greeting, relativeTime, todayLabel } from '@/src/utils/date';
 
 export default function TodayScreen() {
@@ -25,6 +26,17 @@ export default function TodayScreen() {
   const { upcoming, refreshNotifications } = useAppState();
   const { width } = useWindowDimensions();
   const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    const coupleId = couple.couple?.id;
+    if (!coupleId) return;
+    const channel = supabase.channel(`home-couple-photo-${coupleId}`)
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'couples', filter: `id=eq.${coupleId}`,
+      }, () => { void couple.refresh(); })
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [couple.couple?.id, couple.refresh]);
 
   const columns = Math.min(width, layout.maxContentWidth) >= 520 ? 4 : 2;
 
@@ -40,12 +52,19 @@ export default function TodayScreen() {
   return (
     <Screen inTabs refreshing={refreshing} onRefresh={onRefresh}>
       <View style={styles.header}>
-        <Text style={styles.appTitle} accessibilityRole="header">
-          İkimiz
-        </Text>
-        <Text style={styles.subtitle}>
-          {greeting()}, {user?.displayName} · {todayLabel()}
-        </Text>
+        <View style={styles.identityRow}>
+          {couple.couple?.photoUrl ? (
+            <Image source={{ uri: couple.couple.photoUrl }} style={styles.couplePhoto} accessibilityLabel="İkinizin ortak fotoğrafı" />
+          ) : (
+            <View style={styles.photoPlaceholder} accessibilityLabel="Ortak fotoğraf eklenmemiş">
+              <Feather name="users" size={23} color={colors.textSecondary} />
+            </View>
+          )}
+          <View style={styles.identityText}>
+            <Text style={styles.appTitle} accessibilityRole="header">İkimiz</Text>
+            <Text style={styles.subtitle}>{greeting()}, {user?.displayName} · {todayLabel()}</Text>
+          </View>
+        </View>
       </View>
 
       {/* Partnerinden Not */}
@@ -157,6 +176,10 @@ export default function TodayScreen() {
 
 const styles = StyleSheet.create({
   header: { marginTop: spacing.sm, marginBottom: spacing.xl },
+  identityRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  identityText: { flex: 1 },
+  couplePhoto: { width: 54, height: 54, borderRadius: 27, borderWidth: 1.5, borderColor: colors.border },
+  photoPlaceholder: { width: 54, height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentLight, borderWidth: 1.5, borderColor: colors.border },
   appTitle: { fontSize: fontSize.xxxl, fontWeight: '700', color: colors.text },
   subtitle: { fontSize: fontSize.sm, color: colors.textSecondary, marginTop: spacing.xs },
   section: { marginBottom: spacing.lg },

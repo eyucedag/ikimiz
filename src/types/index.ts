@@ -13,6 +13,8 @@ export interface Couple {
   memberIds: string[];
   createdAt: string;
   endedAt?: string | null;
+  photoPath?: string | null;
+  photoUrl?: string | null;
 }
 
 export type InvitationStatus = 'pending' | 'accepted' | 'rejected' | 'cancelled';

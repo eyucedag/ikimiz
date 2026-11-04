@@ -1,6 +1,6 @@
 # İkimiz
 
-**İkimiz**, çiftlerin ortak hayatını tek ve sakin bir alanda düzenlemesi için geliştirilen Türkçe bir mobil uygulamadır. Takvim, listeler, notlar, görevler, hediye fikirleri ve hatırlatmalar gibi modüller aşamalı olarak eklenir. İlk aşamada hesap yönetimi, partner eşleşmesi, **Ekrana Not**, **Ruh Halim** ve **Öpücük** özellikleri bulunur.
+**İkimiz**, çiftlerin ortak hayatını tek ve sakin bir alanda düzenlemesi için geliştirilen Türkçe bir mobil uygulamadır. Takvim, listeler, notlar, görevler, hediye fikirleri ve hatırlatmalar gibi modüller aşamalı olarak eklenir. İlk aşamada hesap yönetimi, partner eşleşmesi, **Ortak Fotoğraf**, **Ekrana Not**, **Ruh Halim** ve **Öpücük** özellikleri bulunur.
 
 - **Teknoloji:** React Native · Expo SDK 58 · React Native 0.88 · TypeScript · Expo Router · Supabase
 - **Platformlar:** iPhone, iPad ve Android telefon/tablet — **web sürümü yoktur.**
@@ -34,6 +34,7 @@
 | Ekrana Not: metin + emoji + arka plan rengi, geçmiş | ✅ Çalışıyor |
 | Ruh Halim: günlük ruh hali, kısa not, ortak 30 günlük geçmiş | ✅ Çalışıyor |
 | Öpücük: sabah ve akşam birer kez, partnere animasyonlu gönderim | ✅ Çalışıyor |
+| Ortak Fotoğraf: iki telefonda gösterilen, partnerlerden biri tarafından değiştirilebilen fotoğraf | ✅ Çalışıyor |
 | Uygulama içi bildirimler (okundu işaretleme, sekme rozeti) | ✅ Çalışıyor |
 | Arama (kategoriler, ekran notları, bildirimler) | ✅ Çalışıyor |
 | Profil düzenleme, çıkış, hesap silme | ✅ Çalışıyor |
@@ -96,7 +97,7 @@ Yerel mock (demo) mod kaldırılmıştır; tüm veriler Supabase'de tutulur.
 4. Başka bir Supabase projesi kullanacaksanız **Project Settings → API** sayfasındaki URL ve anon anahtarını `src/lib/supabase.ts` dosyasına yazın.
 5. `npx expo start -c` ile uygulamayı yeniden başlatın.
 
-Mevcut kuruluma **Ruh Halim** eklemek için `supabase/migrations/20261104_mood_entries.sql`, **Öpücük** eklemek için `supabase/migrations/20261104_kisses.sql` dosyasını Supabase SQL Editor'da çalıştırın. Bu ek kurulumlar mevcut verileri silmeden tabloları ve erişim kurallarını oluşturur. Ruh hali ve not aktif partnerle paylaşılır; herkes yalnızca kendi kaydını değiştirebilir. Öpücük tablosu sabah/akşam haklarını ve partner uygulaması açıkken anlık animasyonu sağlar; partner daha sonra uygulamayı açarsa son 24 saatteki öpücük animasyonu gösterilir.
+Mevcut kuruluma **Ruh Halim** eklemek için `supabase/migrations/20261104_mood_entries.sql`, **Öpücük** için `supabase/migrations/20261104_kisses.sql`, **Ortak Fotoğraf** için `supabase/migrations/20261104_couple_photo.sql` dosyasını Supabase SQL Editor'da çalıştırın. Bu ek kurulumlar mevcut verileri silmeden tabloları, Storage alanını ve erişim kurallarını oluşturur. Ruh hali ve not aktif partnerle paylaşılır; herkes yalnızca kendi kaydını değiştirebilir. Öpücük tablosu sabah/akşam haklarını ve partner uygulaması açıkken anlık animasyonu sağlar; partner daha sonra uygulamayı açarsa son 24 saatteki öpücük animasyonu gösterilir. Ortak fotoğrafı eşleşmedeki iki kullanıcı da değiştirebilir ve yalnızca aktif çift üyeleri görebilir.
 
 **Şema özeti** — 19 tablo:
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
@@ -9,18 +10,20 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
 import { formatDate } from '@/src/utils/date';
 import { showSoon } from '@/src/utils/soon';
+import { supabase } from '@/src/lib/supabase';
 
 interface RowProps {
   icon: keyof typeof Feather.glyphMap;
   title: string;
   value?: string;
   soon?: boolean;
+  disabled?: boolean;
   onPress: () => void;
 }
 
-function SettingsRow({ icon, title, value, soon, onPress }: RowProps) {
+function SettingsRow({ icon, title, value, soon, disabled, onPress }: RowProps) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.row, pressed && styles.pressed]} accessibilityRole="button">
+    <Pressable onPress={onPress} disabled={disabled} style={({ pressed }) => [styles.row, pressed && styles.pressed, disabled && styles.disabled]} accessibilityRole="button" accessibilityState={{ disabled: !!disabled }}>
       <Feather name={icon} size={18} color={colors.earth2} style={styles.rowIcon} />
       <Text style={styles.rowTitle}>{title}</Text>
       {value ? <Text style={styles.rowValue}>{value}</Text> : null}
@@ -38,6 +41,7 @@ export default function ProfileScreen() {
   const [displayName, setDisplayName] = useState(user?.displayName ?? '');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   useEffect(() => {
     setFullName(user?.fullName ?? '');
@@ -71,6 +75,57 @@ export default function ProfileScreen() {
         },
       },
     ]);
+
+  const chooseCouplePhoto = async () => {
+    if (!couple.couple) {
+      Alert.alert('Önce eşleşin', 'Ortak fotoğraf eklemek için partnerinizle eşleşmeniz gerekiyor.');
+      return;
+    }
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.82,
+        exif: false,
+      });
+      if (result.canceled || !result.assets[0]) return;
+      const asset = result.assets[0];
+      if (asset.fileSize && asset.fileSize > 8 * 1024 * 1024) {
+        Alert.alert('Fotoğraf çok büyük', 'Lütfen 8 MB’tan küçük bir fotoğraf seçin.');
+        return;
+      }
+
+      setUploadingPhoto(true);
+      const mimeType = asset.mimeType === 'image/png' || asset.mimeType === 'image/webp' ? asset.mimeType : 'image/jpeg';
+      const response = await fetch(asset.uri);
+      if (!response.ok) throw new Error('Seçilen fotoğraf okunamadı.');
+      const file = await response.arrayBuffer();
+      if (file.byteLength > 8 * 1024 * 1024) throw new Error('Fotoğraf 8 MB’tan büyük. Daha küçük bir fotoğraf seçin.');
+
+      const photoPath = `${couple.couple.id}/photo`;
+      const { error: uploadError } = await supabase.storage.from('couple-photos').upload(photoPath, file, {
+        contentType: mimeType,
+        cacheControl: '0',
+        upsert: true,
+      });
+      if (uploadError) {
+        if (uploadError.message.toLowerCase().includes('bucket') || uploadError.message.toLowerCase().includes('row-level security')) {
+          throw new Error('Fotoğraf yükleme ayarı henüz tamamlanmadı. Supabase SQL Editor’da ortak fotoğraf kurulum SQL’ini çalıştırın.');
+        }
+        throw new Error(uploadError.message);
+      }
+
+      const { error: saveError } = await supabase.rpc('set_couple_photo_path', { p_path: photoPath });
+      if (saveError) throw new Error('Ortak fotoğraf ayarı Supabase’e eklenmemiş olabilir. Önce ortak fotoğraf SQL kurulumunu çalıştırın.');
+      await couple.refresh();
+      Alert.alert('Fotoğraf güncellendi', 'Ortak fotoğrafınız ikinizin ana ekranında görünecek.');
+    } catch (uploadError) {
+      Alert.alert('Fotoğraf yüklenemedi', uploadError instanceof Error ? uploadError.message : 'Bağlantınızı kontrol edip yeniden deneyin.');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   const coupleSummary = couple.partner
     ? `${couple.partner.displayName} ile eşleştiniz`
@@ -109,6 +164,14 @@ export default function ProfileScreen() {
       <Text style={styles.groupTitle}>Eşleşme</Text>
       <Card style={styles.groupCard}>
         <SettingsRow icon="link" title="Eşleşme durumu" value={coupleSummary} onPress={() => router.push('/couple/status')} />
+        <Divider inset={34} />
+        <SettingsRow
+          icon="image"
+          title="Ortak fotoğraf"
+          value={uploadingPhoto ? 'Yükleniyor…' : couple.couple?.photoPath ? 'Değiştir' : 'Ekle'}
+          disabled={uploadingPhoto}
+          onPress={() => { void chooseCouplePhoto(); }}
+        />
       </Card>
 
       <Text style={styles.groupTitle}>Ayarlar</Text>
@@ -156,4 +219,5 @@ const styles = StyleSheet.create({
   rowTitle: { flex: 1, fontSize: fontSize.md, color: colors.text },
   rowValue: { fontSize: fontSize.sm, color: colors.textSecondary, marginRight: spacing.sm, flexShrink: 1 },
   pressed: { opacity: 0.6 },
+  disabled: { opacity: 0.55 },
 });
