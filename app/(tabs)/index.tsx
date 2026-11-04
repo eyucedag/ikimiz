@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Modal, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Badge, Button, Card, EmptyState, Screen, SectionHeader } from '@/src/components/ui';
@@ -24,8 +25,10 @@ export default function TodayScreen() {
   const { latestFromPartner, refresh: refreshNotes } = useScreenNotes(couple);
   const moods = useMoods(couple);
   const { upcoming, refreshNotifications } = useAppState();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const [refreshing, setRefreshing] = useState(false);
+  const [photoVisible, setPhotoVisible] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   useEffect(() => {
     const coupleId = couple.couple?.id;
@@ -49,16 +52,62 @@ export default function TodayScreen() {
     }
   };
 
+  const changeCouplePhoto = async () => {
+    if (!couple.couple) {
+      Alert.alert('Önce eşleşin', 'Ortak fotoğraf eklemek için partnerinizle eşleşmeniz gerekiyor.');
+      return;
+    }
+    setPhotoVisible(false);
+    try {
+      await new Promise<void>((resolve) => setTimeout(resolve, 250));
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.82, exif: false,
+      });
+      if (result.canceled || !result.assets[0]) return;
+      const asset = result.assets[0];
+      if (asset.fileSize && asset.fileSize > 8 * 1024 * 1024) {
+        Alert.alert('Fotoğraf çok büyük', 'Lütfen 8 MB’tan küçük bir fotoğraf seçin.');
+        return;
+      }
+      setUploadingPhoto(true);
+      const mimeType = asset.mimeType === 'image/png' || asset.mimeType === 'image/webp' ? asset.mimeType : 'image/jpeg';
+      const response = await fetch(asset.uri);
+      if (!response.ok) throw new Error('Seçilen fotoğraf okunamadı.');
+      const file = await response.arrayBuffer();
+      if (file.byteLength > 8 * 1024 * 1024) throw new Error('Fotoğraf 8 MB’tan büyük. Daha küçük bir fotoğraf seçin.');
+      const photoPath = `${couple.couple.id}/photo`;
+      const { error: uploadError } = await supabase.storage.from('couple-photos').upload(photoPath, file, {
+        contentType: mimeType, cacheControl: '0', upsert: true,
+      });
+      if (uploadError) {
+        if (uploadError.message.toLowerCase().includes('bucket') || uploadError.message.toLowerCase().includes('row-level security')) {
+          throw new Error('Fotoğraf yükleme ayarı henüz tamamlanmadı. Supabase SQL Editor’da ortak fotoğraf kurulum SQL’ini çalıştırın.');
+        }
+        throw new Error(uploadError.message);
+      }
+      const { error: saveError } = await supabase.rpc('set_couple_photo_path', { p_path: photoPath });
+      if (saveError) throw new Error('Ortak fotoğraf ayarı Supabase’e eklenmemiş olabilir. Önce ortak fotoğraf SQL kurulumunu çalıştırın.');
+      await couple.refresh();
+      Alert.alert('Fotoğraf güncellendi', 'Ortak fotoğrafınız ikinizin ana ekranında görünecek.');
+    } catch (error) {
+      Alert.alert('Fotoğraf yüklenemedi', error instanceof Error ? error.message : 'Bağlantınızı kontrol edip yeniden deneyin.');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
   return (
     <Screen inTabs refreshing={refreshing} onRefresh={onRefresh}>
       <View style={styles.header}>
         <View style={styles.identityRow}>
           {couple.couple?.photoUrl ? (
-            <Image source={{ uri: couple.couple.photoUrl }} style={styles.couplePhoto} accessibilityLabel="İkinizin ortak fotoğrafı" />
+            <Pressable onPress={() => setPhotoVisible(true)} accessibilityRole="button" accessibilityLabel="Ortak fotoğrafı görüntüle">
+              <Image source={{ uri: couple.couple.photoUrl }} style={styles.couplePhoto} accessibilityLabel="İkinizin ortak fotoğrafı" />
+            </Pressable>
           ) : (
-            <View style={styles.photoPlaceholder} accessibilityLabel="Ortak fotoğraf eklenmemiş">
+            <Pressable onPress={() => setPhotoVisible(true)} accessibilityRole="button" accessibilityLabel="Ortak fotoğrafı görüntüle veya ekle" style={styles.photoPlaceholder}>
               <Feather name="users" size={23} color={colors.textSecondary} />
-            </View>
+            </Pressable>
           )}
           <View style={styles.identityText}>
             <Text style={styles.appTitle} accessibilityRole="header">İkimiz</Text>
@@ -170,6 +219,28 @@ export default function TodayScreen() {
         ))}
       </View>
       <KissCategoryButton ownerId={user?.id} partnerId={couple.partner?.id} coupleId={couple.couple?.id} />
+      <Modal visible={photoVisible} transparent animationType="fade" onRequestClose={() => setPhotoVisible(false)}>
+        <View style={styles.photoModalBackdrop}>
+          <Pressable onPress={() => setPhotoVisible(false)} accessibilityRole="button" accessibilityLabel="Fotoğrafı kapat" style={styles.photoClose}>
+            <Feather name="x" size={22} color={colors.white} />
+          </Pressable>
+          {couple.couple?.photoUrl ? (
+            <Image source={{ uri: couple.couple.photoUrl }} style={[styles.photoModalImage, { width: width * 0.9, height: height * 0.68 }]} resizeMode="contain" accessibilityLabel="İkinizin ortak fotoğrafı" />
+          ) : (
+            <View style={styles.photoModalPlaceholder}><Feather name="users" size={54} color={colors.white} /><Text style={styles.photoModalHint}>Henüz ortak fotoğraf eklenmedi</Text></View>
+          )}
+          <Button
+            title={uploadingPhoto ? 'Yükleniyor…' : couple.couple?.photoPath ? 'Fotoğrafı değiştir' : 'Fotoğraf ekle'}
+            icon={uploadingPhoto ? undefined : 'image'}
+            loading={uploadingPhoto}
+            disabled={uploadingPhoto}
+            onPress={() => { void changeCouplePhoto(); }}
+            style={styles.photoChangeButton}
+            toneColor="#E5163D"
+          />
+        </View>
+      </Modal>
+      {uploadingPhoto ? <View pointerEvents="none" style={styles.photoUploading}><ActivityIndicator color="#E5163D" /></View> : null}
     </Screen>
   );
 }
@@ -180,6 +251,13 @@ const styles = StyleSheet.create({
   identityText: { flex: 1 },
   couplePhoto: { width: 54, height: 54, borderRadius: 27, borderWidth: 1.5, borderColor: colors.border },
   photoPlaceholder: { width: 54, height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentLight, borderWidth: 1.5, borderColor: colors.border },
+  photoModalBackdrop: { flex: 1, backgroundColor: 'rgba(18,15,18,0.94)', alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
+  photoClose: { position: 'absolute', top: 52, right: spacing.lg, width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center', zIndex: 1 },
+  photoModalImage: { maxWidth: '100%', borderRadius: radius.card },
+  photoModalPlaceholder: { minHeight: 240, alignItems: 'center', justifyContent: 'center' },
+  photoModalHint: { marginTop: spacing.md, color: colors.white, fontSize: fontSize.md },
+  photoChangeButton: { minWidth: 220, marginTop: spacing.xl },
+  photoUploading: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
   appTitle: { fontSize: fontSize.xxxl, fontWeight: '700', color: colors.text },
   subtitle: { fontSize: fontSize.sm, color: colors.textSecondary, marginTop: spacing.xs },
   section: { marginBottom: spacing.lg },
