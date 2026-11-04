@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { EmptyState, IconButton, Screen } from '@/src/components/ui';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { getCategoryColor } from '@/src/constants/categories';
@@ -22,7 +22,7 @@ export default function NoteHistoryScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const couple = useCouple();
-  const { notes, refresh } = useScreenNotes(couple);
+  const { notes, refresh, markRead } = useScreenNotes(couple);
   const [filter, setFilter] = useState<Filter>('all');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -33,6 +33,17 @@ export default function NoteHistoryScreen() {
     await refresh();
     setRefreshing(false);
   };
+
+  useFocusEffect(React.useCallback(() => {
+    const timer = setInterval(() => { void refresh(); }, 5000);
+    return () => clearInterval(timer);
+  }, [refresh]));
+
+  useEffect(() => {
+    for (const note of notes) {
+      if (note.receiverId === user?.id && !note.readAt) void markRead(note.id);
+    }
+  }, [notes, markRead, user?.id]);
 
   return (
     <Screen

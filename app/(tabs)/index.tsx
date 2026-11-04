@@ -163,7 +163,7 @@ export default function TodayScreen() {
       {direction.error ? <Text style={styles.directionHint}>{direction.error}</Text> : direction.anySharing ? <Text style={styles.directionHint}>{direction.bothSharing ? 'İkinizin konumu açık.' : 'Konum paylaşımı açık; yön için ikiniz de açın.'}</Text> : null}
 
       {/* Partnerinden Not */}
-      <Card style={[styles.section, styles.compactCard, { borderColor: noteColor.color, borderWidth: 1.5 }]}>
+      <Card style={[styles.section, styles.compactCard, styles.noteCard, { borderColor: noteColor.color, borderWidth: 1.5 }]}>
         {couple.isPaired ? (
           <>
             <View style={styles.noteHeader}>
@@ -317,6 +317,7 @@ const styles = StyleSheet.create({
   durationMissing: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: spacing.xs },
   section: { marginBottom: spacing.lg },
   compactCard: { paddingVertical: spacing.xs },
+  noteCard: { paddingBottom: spacing.sm },
   noteHeader: { minHeight: 34, flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
   noteHeaderTitle: { flex: 1, color: colors.text, fontWeight: '600', fontSize: fontSize.md },
   noteHeaderActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
