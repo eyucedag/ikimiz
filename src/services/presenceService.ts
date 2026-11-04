@@ -42,7 +42,9 @@ export const presenceService = {
     if (error) throw new Error(error.message);
   },
   channel(coupleId: string, table: 'couple_live_locations' | 'couple_daily_steps', callback: () => void) {
-    return supabase.channel(`${table}-${coupleId}`)
+    // A channel name is immutable after subscribe(); give each screen instance its own topic.
+    const instanceId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    return supabase.channel(`${table}-${coupleId}-${instanceId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table, filter: `couple_id=eq.${coupleId}` }, callback)
       .subscribe();
   },

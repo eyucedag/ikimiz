@@ -153,7 +153,7 @@ export default function TodayScreen() {
       {direction.error ? <Text style={styles.directionHint}>{direction.error}</Text> : direction.anySharing ? <Text style={styles.directionHint}>{direction.bothSharing ? 'İkinizin konumu açık.' : 'Konum paylaşımı açık; yön için ikiniz de açın.'}</Text> : null}
 
       {/* Partnerinden Not */}
-      <Card style={[styles.section, styles.narrowCard, { borderColor: noteColor.color, borderWidth: 1.5 }]}>
+      <Card style={[styles.section, styles.compactCard, { borderColor: noteColor.color, borderWidth: 1.5 }]}>
         {couple.isPaired ? (
           <>
             <SectionHeader title="Partnerinden Not" actionLabel="Tüm Notlar" actionColor={noteColor.color} onAction={() => router.push('/screen-note/history')} />
@@ -207,7 +207,7 @@ export default function TodayScreen() {
       />
 
       {/* Yaklaşanlar */}
-      <Card style={[styles.section, styles.narrowCard, { borderColor: calendarColor.color, borderWidth: 1.5 }]}>
+      <Card style={[styles.section, styles.compactCard, { borderColor: calendarColor.color, borderWidth: 1.5 }]}>
         <SectionHeader title="Yaklaşanlar" />
         {upcoming.length === 0 ? (
           <EmptyState
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
   duration: { fontSize: fontSize.sm, color: '#1676E8', fontWeight: '700', marginTop: spacing.xs },
   durationMissing: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: spacing.xs },
   section: { marginBottom: spacing.lg },
-  narrowCard: { width: '96%', alignSelf: 'center' },
+  compactCard: { paddingVertical: spacing.md },
   note: { borderRadius: radius.card, padding: spacing.lg },
   noteEmoji: { fontSize: fontSize.xxl, marginBottom: spacing.xs },
   noteSticker: { width: 120, height: 120, alignSelf: 'center', marginBottom: spacing.sm },

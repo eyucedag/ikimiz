@@ -73,7 +73,7 @@ export function MoodSummaryCard({ today, partnerToday, partnerName, paired, load
 }
 
 const styles = StyleSheet.create({
-  card: { marginBottom: spacing.lg, width: '96%', alignSelf: 'center' },
+  card: { marginBottom: spacing.lg, paddingVertical: spacing.md },
   heading: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   headingIcon: { width: 38, height: 38, borderRadius: radius.card, backgroundColor: colors.accentLight, alignItems: 'center', justifyContent: 'center' },
   flex: { flex: 1 },
