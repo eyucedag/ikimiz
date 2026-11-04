@@ -1,4 +1,5 @@
 import { supabase } from '@/src/lib/supabase';
+import { notificationService } from '@/src/services/notificationService';
 
 export interface TravelPlace {
   id: string;
@@ -35,20 +36,22 @@ export const travelService = {
     if (error) throw new Error('Gezilen yerler yüklenemedi. Supabase kurulumunu kontrol edin.');
     return (data ?? []).map((row) => mapPlace(row as Record<string, unknown>));
   },
-  async add(input: Omit<TravelPlace, 'id' | 'createdAt'>): Promise<TravelPlace> {
+  async add(input: Omit<TravelPlace, 'id' | 'createdAt'> & { partnerId: string }): Promise<TravelPlace> {
     const { data, error } = await supabase.from('travel_places').insert({
       couple_id: input.coupleId, owner_id: input.ownerId, city: input.city, country: input.country,
       note: input.note, latitude: input.latitude, longitude: input.longitude, visited_on: input.visitedOn,
     }).select('*').single();
     if (error || !data) throw new Error(error?.message.includes('travel_places') ? 'Gezilen Yerler için Supabase SQL migration dosyasını çalıştırın.' : 'Yer eklenemedi. Lütfen bağlantınızı kontrol edip yeniden deneyin.');
+    await notificationService.notifyPartner({ partnerId: input.partnerId, coupleId: input.coupleId, title: 'Yeni ziyaret eklendi', body: `${input.city}, ${input.country} gezilen yerlere eklendi.` });
     return mapPlace(data as Record<string, unknown>);
   },
-  async update(id: string, input: Pick<TravelPlace, 'city' | 'country' | 'note' | 'latitude' | 'longitude' | 'visitedOn'>): Promise<TravelPlace> {
+  async update(id: string, input: Pick<TravelPlace, 'city' | 'country' | 'note' | 'latitude' | 'longitude' | 'visitedOn'> & { partnerId: string; coupleId: string }): Promise<TravelPlace> {
     const { data, error } = await supabase.from('travel_places').update({
       city: input.city, country: input.country, note: input.note, latitude: input.latitude,
       longitude: input.longitude, visited_on: input.visitedOn,
     }).eq('id', id).select('*').single();
     if (error || !data) throw new Error('Ziyaret düzenlenemedi. Lütfen yeniden deneyin.');
+    await notificationService.notifyPartner({ partnerId: input.partnerId, coupleId: input.coupleId, title: 'Ziyaret güncellendi', body: `${input.city}, ${input.country} ziyareti düzenlendi.` });
     return mapPlace(data as Record<string, unknown>);
   },
   async remove(id: string): Promise<void> {

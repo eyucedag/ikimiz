@@ -3,6 +3,7 @@ import { supabase } from '@/src/lib/supabase';
 import { ServiceResult } from '@/src/types';
 import { MoodDraft, MoodEntry, MoodValue } from '@/src/types/mood';
 import { getLocalMoodDate, getMoodHistoryStartDate } from '@/src/utils/mood';
+import { notificationService } from '@/src/services/notificationService';
 
 export interface MoodScope {
   ownerId: string;
@@ -103,6 +104,12 @@ export const moodService = {
       if (entry.ownerId !== input.ownerId || entry.coupleId !== input.coupleId || entry.date !== date) {
         return { error: 'Kaydedilen ruh hali doğrulanamadı. Lütfen sayfayı yenileyin.' };
       }
+      await notificationService.notifyPartner({
+        partnerId: input.partnerId,
+        coupleId: input.coupleId,
+        title: 'Ruh hali güncellendi',
+        body: 'Partneriniz bugünkü ruh halini paylaştı.',
+      });
       return { data: entry };
     } catch (error) {
       return { error: requestError(error, true) };

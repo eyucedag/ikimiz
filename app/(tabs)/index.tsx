@@ -14,6 +14,7 @@ import { useCouple } from '@/src/hooks/useCouple';
 import { useScreenNotes } from '@/src/hooks/useScreenNotes';
 import { useMoods } from '@/src/hooks/useMoods';
 import { supabase } from '@/src/lib/supabase';
+import { notificationService } from '@/src/services/notificationService';
 import { greeting, relativeTime, todayLabel } from '@/src/utils/date';
 import { useCoupleDirection } from '@/src/hooks/useCoupleDirection';
 import { useAutomaticNearbySteps } from '@/src/hooks/useAutomaticNearbySteps';
@@ -112,6 +113,9 @@ export default function TodayScreen() {
       }
       const { error: saveError } = await supabase.rpc('set_couple_photo_path', { p_path: photoPath });
       if (saveError) throw new Error('Ortak fotoğraf ayarı Supabase’e eklenmemiş olabilir. Önce ortak fotoğraf SQL kurulumunu çalıştırın.');
+      if (couple.partner?.id) await notificationService.notifyPartner({
+        partnerId: couple.partner.id, coupleId: couple.couple.id, title: 'Ortak fotoğraf güncellendi', body: 'Partneriniz ortak fotoğrafınızı değiştirdi.',
+      });
       await couple.refresh();
       Alert.alert('Fotoğraf güncellendi', 'Ortak fotoğrafınız ikinizin ana ekranında görünecek.');
     } catch (error) {
@@ -166,14 +170,11 @@ export default function TodayScreen() {
               <Text style={styles.noteHeaderTitle}>Partnerinden Not</Text>
               <View style={styles.noteHeaderActions}>
                 <View style={styles.allNotesAction}>
-                  <Text style={[styles.allNotesLabel, { color: noteColor.color }]}>Bütün Notlar</Text>
                   <Pressable onPress={() => router.push('/screen-note/history')} accessibilityRole="button" accessibilityLabel="Bütün notları gör" style={[styles.allNotesButton, { backgroundColor: noteColor.tint }]}>
                     <Feather name="list" size={15} color={noteColor.color} />
                   </Pressable>
+                  <Text style={[styles.allNotesLabel, { color: noteColor.color }]}>Bütün Notlar</Text>
                 </View>
-              <Pressable onPress={() => router.push('/screen-note/compose')} accessibilityRole="button" accessibilityLabel="Yeni Not Bırak" style={[styles.newNoteIcon, { backgroundColor: noteColor.tint }]}>
-                <Feather name="edit-3" size={15} color={noteColor.color} />
-              </Pressable>
               </View>
             </View>
             {latestFromPartner ? (
@@ -187,6 +188,7 @@ export default function TodayScreen() {
             ) : (
               <Text style={styles.muted}>{couple.partner?.displayName} henüz bir not bırakmadı.</Text>
             )}
+            <Button title="Not Yaz" icon="edit-3" variant="secondary" toneColor={noteColor.color} onPress={() => router.push('/screen-note/compose')} compact style={styles.noteComposeButton} />
           </>
         ) : (
           <>
@@ -318,10 +320,10 @@ const styles = StyleSheet.create({
   noteHeader: { minHeight: 34, flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
   noteHeaderTitle: { flex: 1, color: colors.text, fontWeight: '600', fontSize: fontSize.md },
   noteHeaderActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  allNotesAction: { alignItems: 'center', justifyContent: 'center' },
-  allNotesLabel: { fontSize: 9, fontWeight: '600', lineHeight: 11 },
+  allNotesAction: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  allNotesLabel: { fontSize: 10, fontWeight: '600', lineHeight: 14 },
   allNotesButton: { width: 24, height: 22, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
-  newNoteIcon: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  noteComposeButton: { marginTop: spacing.sm, width: '100%' },
   note: { borderRadius: radius.card, paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
   noteEmoji: { fontSize: fontSize.xxl, marginBottom: spacing.xs },
   noteText: { fontSize: fontSize.md, color: colors.text, lineHeight: 20 },

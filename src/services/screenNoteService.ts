@@ -1,5 +1,6 @@
 import { nowIso, supabase } from '@/src/lib/supabase';
 import { ScreenNote, ServiceResult } from '@/src/types';
+import { notificationService } from '@/src/services/notificationService';
 
 export const SCREEN_NOTE_MAX_LENGTH = 140;
 
@@ -89,9 +90,9 @@ export const screenNoteService = {
       const { data: image } = await client.storage.from('screen-note-stickers').createSignedUrl(imagePath, 60 * 60 * 24 * 7);
       note.imageUrl = image?.signedUrl ?? null;
     }
-    await client.from('notifications').insert({
-      owner_id: input.receiverId,
-      couple_id: input.coupleId,
+    await notificationService.notifyPartner({
+      partnerId: input.receiverId,
+      coupleId: input.coupleId,
       category: 'screen_note',
       title: 'Yeni ekran notu',
       body: `${input.senderName}: ${text}`,
@@ -114,6 +115,15 @@ export const screenNoteService = {
       .select('*')
       .single();
     if (error) return { error: error.message };
+    if (data.receiver_id && data.couple_id) {
+      await notificationService.notifyPartner({
+        partnerId: data.receiver_id,
+        coupleId: data.couple_id,
+        category: 'screen_note',
+        title: 'Ekran notu güncellendi',
+        body: `Not: ${text}`,
+      });
+    }
     return { data: mapNote(data) };
   },
 };

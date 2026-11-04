@@ -1,4 +1,5 @@
 import { supabase } from '@/src/lib/supabase';
+import { notificationService } from '@/src/services/notificationService';
 
 export interface KissRecord {
   id: string;
@@ -38,6 +39,7 @@ export const kissService = {
       .single();
     if (error) throw new Error('Öpücük gönderilemedi. Eşleşmenizi ve bağlantınızı kontrol edin.');
     if (!data) throw new Error('Öpücük gönderilemedi. Lütfen yeniden deneyin.');
+    await notificationService.notifyPartner({ partnerId: input.partnerId, coupleId: input.coupleId, title: 'Sana bir öpücük gönderdi', body: 'Partnerin sana bir öpücük gönderdi. 💋' });
     return mapKiss(data as Record<string, unknown>);
   },
 };

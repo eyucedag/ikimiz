@@ -72,10 +72,10 @@ export default function TravelMapScreen() {
         ...coordinates, visitedOn: /^\d{4}-\d{2}-\d{2}$/.test(visitedOn) ? visitedOn : todayLocal(),
       };
       if (editingPlace) {
-        const updated = await travelService.update(editingPlace.id, values);
+        const updated = await travelService.update(editingPlace.id, { ...values, partnerId: couple.partner?.id ?? '', coupleId: couple.couple.id });
         setPlaces((previous) => previous.map((place) => place.id === updated.id ? updated : place).sort((a, b) => b.visitedOn.localeCompare(a.visitedOn)));
       } else {
-        const place = await travelService.add({ coupleId: couple.couple.id, ownerId: user.id, ...values });
+        const place = await travelService.add({ coupleId: couple.couple.id, ownerId: user.id, partnerId: couple.partner?.id ?? '', ...values });
         setPlaces((previous) => [place, ...previous].sort((a, b) => b.visitedOn.localeCompare(a.visitedOn)));
       }
       resetForm();

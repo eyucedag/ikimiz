@@ -12,6 +12,27 @@ const mapNotification = (row: any): AppNotification => ({
 });
 
 export const notificationService = {
+  async notifyPartner(input: {
+    partnerId: string;
+    coupleId: string;
+    category?: AppNotification['category'];
+    title: string;
+    body: string;
+  }): Promise<void> {
+    try {
+      const { error } = await supabase.from('notifications').insert({
+        owner_id: input.partnerId,
+        couple_id: input.coupleId,
+        category: input.category ?? 'couple',
+        title: input.title,
+        body: input.body,
+      });
+      if (error) console.warn('Partner bildirimi kaydedilemedi:', error.message);
+    } catch (error) {
+      console.warn('Partner bildirimi kaydedilemedi:', error);
+    }
+  },
+
   async list(userId: string): Promise<AppNotification[]> {
     const { data, error } = await supabase
       .from('notifications')

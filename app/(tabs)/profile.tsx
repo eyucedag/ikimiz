@@ -11,6 +11,7 @@ import { useCouple } from '@/src/hooks/useCouple';
 import { formatDate } from '@/src/utils/date';
 import { showSoon } from '@/src/utils/soon';
 import { coupleService } from '@/src/services/coupleService';
+import { notificationService } from '@/src/services/notificationService';
 
 interface RowProps {
   icon: keyof typeof Feather.glyphMap;
@@ -62,7 +63,12 @@ export default function ProfileScreen() {
     const result = await updateProfile(fullName, displayName);
     setSaving(false);
     if (result.error) setError(result.error);
-    else setEditing(false);
+    else {
+      if (couple.partner?.id && couple.couple?.id && (fullName.trim() !== user?.fullName || displayName.trim() !== user?.displayName)) {
+        await notificationService.notifyPartner({ partnerId: couple.partner.id, coupleId: couple.couple.id, title: 'Profil güncellendi', body: 'Partneriniz profil bilgilerini değiştirdi.' });
+      }
+      setEditing(false);
+    }
   };
 
   const saveRelationshipStart = async () => {
@@ -72,7 +78,12 @@ export default function ProfileScreen() {
     const result = await coupleService.setRelationshipStartedAt(startedAt.toISOString());
     setSavingStart(false);
     if (result.error) setStartError('Başlangıç zamanı kaydedilemedi. Supabase kurulum SQL’ini çalıştırın.');
-    else await couple.refresh();
+    else {
+      if (couple.partner?.id && couple.couple?.id) await notificationService.notifyPartner({
+        partnerId: couple.partner.id, coupleId: couple.couple.id, title: 'İlişki tarihi güncellendi', body: 'Partneriniz ilişkinizin başlangıç tarihini değiştirdi.',
+      });
+      await couple.refresh();
+    }
   };
 
   const confirmSignOut = () =>
