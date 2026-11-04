@@ -142,7 +142,17 @@ export default function TravelMapScreen() {
               <Text style={styles.dateText}>{parseLocalDate(visitedOn).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
             </Pressable>
             {showDatePicker && Platform.OS === 'android' ? (
-              <DateTimePicker value={draftDate} mode="date" display="default" maximumDate={new Date()} onChange={onDateChange} />
+              <DateTimePicker
+                value={draftDate}
+                mode="date"
+                display="default"
+                design="material"
+                title="Ziyaret tarihi"
+                positiveButton={{ label: 'Tamam', textColor: '#0B8F87' }}
+                negativeButton={{ label: 'Vazgeç', textColor: '#6B6763' }}
+                maximumDate={new Date()}
+                onChange={onDateChange}
+              />
             ) : null}
             <Modal visible={showDatePicker && Platform.OS === 'ios'} transparent animationType="slide" onRequestClose={() => setShowDatePicker(false)}>
               <View style={styles.modalBackdrop}>
@@ -152,7 +162,7 @@ export default function TravelMapScreen() {
                     <Text style={styles.dateModalTitle}>Ziyaret tarihi</Text>
                     <Button title="Tamam" variant="ghost" compact toneColor="#0B8F87" onPress={() => { setVisitedOn(formatLocalDate(draftDate)); setShowDatePicker(false); }} />
                   </View>
-                  <DateTimePicker value={draftDate} mode="date" display="spinner" maximumDate={new Date()} onChange={onDateChange} />
+                  <DateTimePicker value={draftDate} mode="date" display="spinner" locale="tr-TR" themeVariant="light" textColor="#2D2D2D" accentColor="#0B8F87" maximumDate={new Date()} onChange={onDateChange} />
                 </View>
               </View>
             </Modal>
@@ -171,12 +181,10 @@ export default function TravelMapScreen() {
                 <Text style={styles.placeDate}>{place.visitedOn}</Text>
                 {place.note ? <Text style={styles.placeNote}>{place.note}</Text> : null}
               </View>
-              {place.ownerId === user?.id ? (
-                <View style={styles.placeActions}>
-                  <Button title="Düzenle" icon="edit-2" variant="ghost" compact onPress={() => startEditing(place)} toneColor="#0B8F87" />
-                  <Button title="Kaldır" variant="ghost" compact onPress={() => removePlace(place)} toneColor="#A64B58" />
-                </View>
-              ) : null}
+              <View style={styles.placeActions}>
+                <Button title="Düzenle" icon="edit-2" variant="ghost" compact onPress={() => startEditing(place)} toneColor="#0B8F87" />
+                {place.ownerId === user?.id ? <Button title="Kaldır" variant="ghost" compact onPress={() => removePlace(place)} toneColor="#A64B58" /> : null}
+              </View>
             </Card>
           ))}
         </>
