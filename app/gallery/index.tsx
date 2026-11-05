@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { Alert, Image, Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, Image, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -66,6 +66,15 @@ export default function GalleryScreen() {
   const [uploading, setUploading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState('');
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const show = Keyboard.addListener(showEvent, () => setKeyboardVisible(true));
+    const hide = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
 
   const refresh = useCallback(async (showLoading = true) => {
     if (!couple.couple?.id) return;
@@ -170,17 +179,17 @@ export default function GalleryScreen() {
       </Card>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <Modal visible={!!pendingPhoto} transparent animationType="fade" statusBarTranslucent onRequestClose={() => { if (!uploading) setPendingPhoto(null); }}>
-        <View style={styles.modalBackdrop}>
+        <KeyboardAvoidingView style={styles.modalBackdrop} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <Pressable style={styles.modalClose} onPress={() => { if (!uploading) setPendingPhoto(null); }} accessibilityRole="button" accessibilityLabel="Fotoğraf seçimini kapat"><Feather name="x" size={24} color={colors.white} /></Pressable>
           {pendingPhoto ? <>
-            <Image source={{ uri: pendingPhoto.asset.uri }} style={[styles.fullImage, { width: windowWidth - spacing.xl * 2, height: windowHeight * 0.52 }]} resizeMode="contain" />
+            <Image source={{ uri: pendingPhoto.asset.uri }} style={[styles.fullImage, { width: windowWidth - spacing.xl * 2, height: windowHeight * (keyboardVisible ? 0.24 : 0.52) }]} resizeMode="contain" />
             <View style={[styles.captionInputWrap, { width: windowWidth - spacing.xl * 2 }]}>
               <Input label="Fotoğraf alt yazısı" value={caption} onChangeText={setCaption} placeholder="…" compact numberOfLines={1} style={styles.captionInput} />
             </View>
             {error ? <Text style={styles.modalError}>{error}</Text> : null}
             <Button title="Fotoğrafı yükle" icon="upload" toneColor={tone.color} onPress={() => { void uploadPhoto(); }} loading={uploading} disabled={uploading} compact style={styles.downloadButton} />
           </> : null}
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
       {photos.length === 0 && !loading ? <Card style={[styles.emptyCard, { borderColor: tone.color }]}><EmptyState compact icon="image" title="Henüz fotoğraf yok" description="İlk sevdiğiniz anıyı ekleyin." toneColor={tone.color} toneTint={tone.tint} /></Card> : null}
       <View style={styles.grid}>{photos.map((photo) => <Card key={photo.id} onPress={() => openPhoto(photo)} accessibilityLabel={`${photo.caption || 'Fotoğraf'} görüntüle`} style={[styles.polaroid, { width: tileWidth, borderColor: tone.color }]}>
@@ -191,19 +200,19 @@ export default function GalleryScreen() {
         </View>
       </Card>)}</View>
       <Modal visible={!!selected} transparent animationType="fade" statusBarTranslucent onRequestClose={() => setSelected(null)}>
-        <View style={styles.modalBackdrop}>
+        <KeyboardAvoidingView style={styles.modalBackdrop} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <Pressable style={styles.modalClose} onPress={() => setSelected(null)} accessibilityRole="button" accessibilityLabel="Fotoğrafı kapat"><Feather name="x" size={24} color={colors.white} /></Pressable>
           {selected ? <>
-            <Image source={{ uri: selected.imageUrl }} style={[styles.fullImage, { width: windowWidth - spacing.xl * 2, height: windowHeight * 0.68 }]} resizeMode="contain" accessibilityLabel={selected.caption || 'Galeri fotoğrafı'} />
+            <Image source={{ uri: selected.imageUrl }} style={[styles.fullImage, { width: windowWidth - spacing.xl * 2, height: windowHeight * (keyboardVisible ? 0.2 : editingCaption ? 0.42 : 0.68) }]} resizeMode="contain" accessibilityLabel={selected.caption || 'Galeri fotoğrafı'} />
             {editingCaption ? <View style={[styles.captionInputWrap, { width: windowWidth - spacing.xl * 2 }]}><Input label="Fotoğraf yazısı" value={captionDraft} onChangeText={setCaptionDraft} placeholder="…" compact numberOfLines={1} style={styles.captionInput} /></View> : <Text style={styles.modalCaption}>{selected.caption || 'Birlikte güzel bir an'}</Text>}
             <Text style={styles.modalDate}>{formatDate(selected.takenAt)}</Text>
             {editingCaption ? <View style={styles.editActions}>
               <Button title="Vazgeç" variant="secondary" toneColor={tone.color} onPress={() => { setCaptionDraft(selected.caption ?? ''); setEditingCaption(false); }} compact />
               <Button title="Kaydet" icon="check" toneColor={tone.color} onPress={() => { void saveCaption(); }} loading={savingCaption} disabled={savingCaption} compact />
             </View> : <Pressable onPress={() => { setCaptionDraft(selected.caption ?? ''); setEditingCaption(true); }} accessibilityRole="button" style={styles.editCaption}><Feather name="edit-2" size={15} color={tone.color} /><Text style={[styles.editCaptionText, { color: tone.color }]}>Yazıyı düzenle</Text></Pressable>}
-            <Button title="Telefona indir" icon="download" toneColor={tone.color} onPress={() => { void downloadPhoto(selected); }} loading={downloading} compact style={styles.downloadButton} />
+            {!editingCaption ? <Button title="Telefona indir" icon="download" toneColor={tone.color} onPress={() => { void downloadPhoto(selected); }} loading={downloading} compact style={styles.downloadButton} /> : null}
           </> : null}
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </>}
   </Screen>;
@@ -230,7 +239,7 @@ const styles = StyleSheet.create({
   modalCaption: { color: colors.white, fontWeight: '700', fontSize: fontSize.md, marginTop: spacing.md, textAlign: 'center' },
   modalDate: { color: 'rgba(255,255,255,0.75)', fontSize: fontSize.xs, marginTop: spacing.xs },
   captionInputWrap: { marginTop: spacing.md },
-  captionInput: { width: '100%', height: 48, minHeight: 48, maxHeight: 48, paddingVertical: 0 },
+  captionInput: { width: '100%', height: 48, minHeight: 48, maxHeight: 48, paddingVertical: 0, color: colors.text, textAlignVertical: 'center' },
   modalError: { color: '#FFD3D3', fontSize: fontSize.xs, marginTop: spacing.sm, textAlign: 'center' },
   editActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
   editCaption: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.md, padding: spacing.xs },
