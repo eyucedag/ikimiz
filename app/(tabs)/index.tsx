@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Modal, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Linking, Modal, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -36,7 +36,7 @@ export default function TodayScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [photoVisible, setPhotoVisible] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [todaySong, setTodaySong] = useState<{ title: string; artist: string } | null>(null);
+  const [todaySong, setTodaySong] = useState<{ title: string; artist: string; url: string } | null>(null);
   const direction = useCoupleDirection(couple.couple?.id, user?.id, couple.partner?.id);
   useAutomaticNearbySteps(user?.id, couple.couple?.id, couple.partner?.id);
   const [now, setNow] = useState(Date.now());
@@ -50,7 +50,7 @@ export default function TodayScreen() {
     if (!coupleId) { setTodaySong(null); return; }
     try {
       const song = await songOfTheDayService.get(coupleId, songDate);
-      setTodaySong(song ? { title: song.title, artist: song.artist } : null);
+      setTodaySong(song ? { title: song.title, artist: song.artist, url: song.url } : null);
     } catch { /* Keep the home screen usable if the song cannot be fetched. */ }
   }, [couple.couple?.id, songDate]);
 
@@ -105,6 +105,12 @@ export default function TodayScreen() {
     } finally {
       setRefreshing(false);
     }
+  };
+
+  const listenToTodaySong = async () => {
+    if (!todaySong?.url) return;
+    try { await Linking.openURL(todaySong.url); }
+    catch { Alert.alert('Bağlantı açılamadı', 'Şarkı bağlantısını kontrol edip yeniden deneyin.'); }
   };
 
   const changeCouplePhoto = async () => {
@@ -192,11 +198,14 @@ export default function TodayScreen() {
       {direction.error ? <Text style={styles.directionHint}>{direction.error}</Text> : direction.anySharing ? <Text style={styles.directionHint}>{direction.bothSharing ? 'İkinizin konumu açık.' : 'Konum paylaşımı açık; yön için ikiniz de açın.'}</Text> : null}
 
       <Card style={[styles.section, styles.compactCard, { borderColor: songColor.color, borderWidth: 1.5 }]}>
-        <Pressable onPress={() => router.push('/song-of-the-day')} accessibilityRole="button" accessibilityLabel="Günün Şarkısı sayfasını aç" style={styles.upcomingCompact}>
-          <View style={[styles.upcomingIcon, { backgroundColor: songColor.tint }]}><Feather name="music" size={18} color={songColor.color} /></View>
-          <View style={styles.upcomingCopy}><Text style={styles.upcomingTitle}>Günün Şarkısı</Text><Text style={styles.upcomingDescription} numberOfLines={1}>{todaySong ? `${todaySong.title} · ${todaySong.artist}` : 'Bugün birbirinize bir şarkı seçin.'}</Text></View>
-          <Feather name="chevron-right" size={18} color={songColor.color} />
-        </Pressable>
+        <View>
+          <Pressable onPress={() => router.push('/song-of-the-day')} accessibilityRole="button" accessibilityLabel="Günün Şarkısı sayfasını aç" style={styles.upcomingCompact}>
+            <View style={[styles.upcomingIcon, { backgroundColor: songColor.tint }]}><Feather name="music" size={18} color={songColor.color} /></View>
+            <View style={styles.upcomingCopy}><Text style={styles.upcomingTitle}>Günün Şarkısı</Text><Text style={styles.upcomingDescription} numberOfLines={1}>{todaySong ? `${todaySong.title} · ${todaySong.artist}` : 'Bugün birbirinize bir şarkı seçin.'}</Text></View>
+            <Feather name="chevron-right" size={18} color={songColor.color} />
+          </Pressable>
+          {todaySong?.url ? <Button title="Şarkıyı dinle" icon="play" toneColor={songColor.color} onPress={() => { void listenToTodaySong(); }} compact style={styles.songListenButton} /> : null}
+        </View>
       </Card>
 
       {/* Partnerinden Not */}
@@ -356,6 +365,7 @@ const styles = StyleSheet.create({
   durationMissing: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: spacing.xs },
   section: { marginBottom: spacing.lg },
   compactCard: { paddingVertical: spacing.xs },
+  songListenButton: { marginTop: spacing.xs },
   noteCard: { paddingBottom: spacing.sm },
   noteHeader: { minHeight: 34, flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
   noteHeaderTitle: { flex: 1, color: colors.text, fontWeight: '600', fontSize: fontSize.md },
