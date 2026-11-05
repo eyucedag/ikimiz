@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "\u0130kimiz",
+    "name": "İkimiz",
     "slug": "ikimiz",
     "version": "1.0.0",
     "orientation": "default",
@@ -43,11 +43,23 @@
       ],
       [
         "expo-location",
-        { "locationWhenInUsePermission": "Partnerinizin yönünü göstermek için uygulama açıkken konum paylaşılır." }
+        {
+          "locationWhenInUsePermission": "Partnerinizin yönünü göstermek için uygulama açıkken konum paylaşılır."
+        }
       ],
       [
         "expo-sensors",
-        { "motionPermission": "İkimiz, birlikte olduğunuz sırada adım saymak için hareket verisine erişir." }
+        {
+          "motionPermission": "İkimiz, birlikte olduğunuz sırada adım saymak için hareket verisine erişir."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Sesli anı kaydetmek için mikrofon izni gerekir.",
+          "enableBackgroundRecording": false,
+          "enableBackgroundPlayback": false
+        }
       ]
     ],
     "owner": "eyucedag",
