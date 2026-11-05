@@ -53,7 +53,7 @@ export default function CategoryScreen() {
       </View>
 
       {features.length > 0 ? (
-        <Card style={[styles.card, { borderColor: category.color, borderWidth: 1.5 }]}>
+        <Card style={[styles.card, { borderColor: category.color, borderWidth: 1 }]}>
           <Text style={styles.cardTitle}>Neler gelecek?</Text>
           {features.map((f) => (
             <View key={f} style={styles.featureRow}>
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   description: { fontSize: fontSize.md, color: colors.textSecondary, textAlign: 'center', marginTop: spacing.md, lineHeight: 22 },
-  card: { marginBottom: spacing.xl },
+  card: { marginBottom: spacing.md },
   cardTitle: { fontSize: fontSize.md, fontWeight: '600', color: colors.text, marginBottom: spacing.md },
   featureRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs },
   featureText: { marginLeft: spacing.sm, fontSize: fontSize.sm, color: colors.text },

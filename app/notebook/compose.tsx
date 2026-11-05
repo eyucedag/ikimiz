@@ -104,7 +104,7 @@ export default function NotebookComposeScreen() {
 }
 
 const styles = StyleSheet.create({
-  editorCard: { borderWidth: 1.5, borderRadius: radius.card, backgroundColor: colors.card, padding: spacing.md, minHeight: 510 },
+  editorCard: { borderWidth: 1, borderRadius: radius.card, backgroundColor: colors.card, padding: spacing.md, minHeight: 510 },
   titleInput: { minHeight: 52, fontSize: fontSize.lg, fontWeight: '700', color: colors.text, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, paddingVertical: spacing.sm },
   toolbar: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, borderBottomWidth: 1, paddingVertical: spacing.sm },
   tool: { minWidth: 36, height: 34, borderRadius: radius.control, backgroundColor: colors.beige, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xs },

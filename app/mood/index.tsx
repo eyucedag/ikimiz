@@ -225,7 +225,7 @@ export default function MoodScreen() {
       ) : null}
 
       {initiallyLoading ? (
-        <Card style={[styles.section, { borderColor: categoryColor.color, borderWidth: 1.5 }]}>
+        <Card style={[styles.section, { borderColor: categoryColor.color, borderWidth: 1 }]}>
           <View style={styles.loading} accessibilityLiveRegion="polite">
             <ActivityIndicator color={colors.accent} />
             <Text style={styles.muted}>Ruh halleri yükleniyor…</Text>
@@ -233,7 +233,7 @@ export default function MoodScreen() {
         </Card>
       ) : (
         <>
-          <Card style={[styles.section, { borderColor: categoryColor.color, borderWidth: 1.5 }]}>
+          <Card style={[styles.section, { borderColor: categoryColor.color, borderWidth: 1 }]}>
             <Text style={styles.cardTitle} accessibilityRole="header">Bugünkü ruh haliniz</Text>
             <Text style={styles.date}>{todayLabel()}</Text>
             <Text style={styles.cardDescription}>Gün içinde değiştirebilirsiniz. Her gün tek bir kaydınız olur.</Text>
@@ -297,7 +297,7 @@ export default function MoodScreen() {
             <Text style={styles.saveHint}>{today ? 'Yalnızca kendi bugünkü kaydınızı düzenleyebilirsiniz.' : 'Paylaştığınızda partneriniz ruh halinizi ve notunuzu görebilir.'}</Text>
           </Card>
 
-          <Card style={[styles.section, { borderColor: categoryColor.color, borderWidth: 1.5 }]}>
+          <Card style={[styles.section, { borderColor: categoryColor.color, borderWidth: 1 }]}>
             <Text style={styles.cardTitle} accessibilityRole="header">{partnerName} bugün</Text>
             {partnerToday && partnerOption ? (
               <>
@@ -326,13 +326,13 @@ export default function MoodScreen() {
           <SectionHeader title="Son 30 Gün" />
           <Text style={styles.historyDescription}>Mevcut eşleşmenizde ikinizin paylaştığı ruh halleri.</Text>
           {historyByDay.length === 0 ? (
-            <Card style={{ borderColor: categoryColor.color, borderWidth: 1.5 }}>
+            <Card style={{ borderColor: categoryColor.color, borderWidth: 1 }}>
               <EmptyState compact icon="calendar" title="İlk paylaşımınızla başlasın" description="Günlük ruh halleriniz ve notlarınız burada birikir." />
             </Card>
           ) : historyByDay.map(({ date, entries }) => (
             <View key={date} style={styles.historyDay}>
               <Text style={styles.historyDate} accessibilityRole="header">{historyDayLabel(date, currentDate)}</Text>
-              <Card style={[styles.historyCard, { borderColor: categoryColor.color, borderWidth: 1.5 }]}>
+              <Card style={[styles.historyCard, { borderColor: categoryColor.color, borderWidth: 1 }]}>
                 {entries.map((entry, index) => (
                   <View key={entry.id} style={index > 0 ? styles.historyDivider : undefined}>
                     <HistoryEntry entry={entry} name={entry.ownerId === user?.id ? 'Siz' : partnerName} />
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   cardDescription: { fontSize: fontSize.xs, color: colors.textSecondary, lineHeight: 17, marginTop: spacing.xs },
   moodGrid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -spacing.xs, marginTop: spacing.sm, marginBottom: spacing.sm },
   moodCell: { padding: 3 },
-  moodOption: { minHeight: 78, borderRadius: radius.card, borderWidth: 1.5, borderColor: colors.border, padding: spacing.xs, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
+  moodOption: { minHeight: 78, borderRadius: radius.card, borderWidth: 1, borderColor: colors.border, padding: spacing.xs, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
   selectionMark: { height: 14, alignSelf: 'flex-end' },
   moodEmoji: { fontSize: 23, marginBottom: 2 },
   moodLabel: { fontSize: fontSize.xs, color: colors.text, textAlign: 'center', fontWeight: '500', lineHeight: 16 },
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
   waitingIcon: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentLight },
   waitingTitle: { fontSize: fontSize.sm, color: colors.text, fontWeight: '500', marginBottom: 2 },
   historyDescription: { fontSize: fontSize.xs, color: colors.textSecondary, lineHeight: 17, marginTop: -spacing.xs, marginBottom: spacing.sm },
-  historyDay: { marginBottom: spacing.sm },
+  historyDay: { marginBottom: spacing.md },
   historyDate: { fontSize: fontSize.sm, color: colors.textSecondary, fontWeight: '600', marginBottom: spacing.sm },
   historyCard: { paddingVertical: 0 },
   historyEntry: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md, paddingVertical: spacing.lg },

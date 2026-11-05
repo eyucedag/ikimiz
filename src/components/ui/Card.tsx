@@ -18,21 +18,21 @@ export function Card({ children, style, onPress, accessibilityLabel }: CardProps
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
-        style={({ pressed }) => [styles.card, { backgroundColor: surfaceColor }, pressed && styles.pressed, style]}
+        style={({ pressed }) => [styles.card, style, { backgroundColor: surfaceColor, borderColor: colors.border, borderWidth: 1, borderRadius: radius.card }, pressed && styles.pressed]}
       >
         {children}
       </Pressable>
     );
   }
-  return <View style={[styles.card, { backgroundColor: surfaceColor }, style]}>{children}</View>;
+  return <View style={[styles.card, style, { backgroundColor: surfaceColor, borderColor: colors.border, borderWidth: 1, borderRadius: radius.card }]}>{children}</View>;
 }
 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.card,
     borderRadius: radius.card,
-    padding: spacing.lg,
-    borderWidth: StyleSheet.hairlineWidth,
+    padding: spacing.md,
+    borderWidth: 1,
     borderColor: colors.border,
     ...shadow,
   },

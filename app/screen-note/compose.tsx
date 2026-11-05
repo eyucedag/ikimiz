@@ -107,7 +107,7 @@ export default function ComposeNoteScreen() {
 }
 
 const styles = StyleSheet.create({
-  preview: { borderRadius: radius.card, borderWidth: 1.5, padding: spacing.lg, minHeight: 170, marginBottom: spacing.xl },
+  preview: { borderRadius: radius.card, borderWidth: 1, padding: spacing.lg, minHeight: 170, marginBottom: spacing.md },
   previewInput: { flex: 1, fontSize: fontSize.lg, color: colors.text, lineHeight: 24, textAlignVertical: 'top', minHeight: 72 },
   counter: { alignSelf: 'flex-end', fontSize: fontSize.xs, color: colors.textTertiary },
   keyboardHint: { color: colors.textSecondary, fontSize: fontSize.sm, marginBottom: spacing.sm },

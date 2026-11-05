@@ -72,7 +72,7 @@ export default function StepsScreen() {
 }
 
 const styles = StyleSheet.create({
-  hero: { alignItems: 'center', paddingVertical: spacing.xl, borderWidth: 1.5 },
+  hero: { alignItems: 'center', paddingVertical: spacing.xl, borderWidth: 1 },
   icon: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' },
   total: { fontSize: 40, fontWeight: '800', marginTop: spacing.sm },
   statsRow: { width: '100%', flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm },
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   statDivider: { width: StyleSheet.hairlineWidth, height: 52, backgroundColor: colors.border },
   caption: { color: colors.text, fontSize: fontSize.sm, fontWeight: '600', textAlign: 'center' },
   detail: { color: colors.textSecondary, textAlign: 'center', fontSize: fontSize.sm, marginTop: spacing.md, lineHeight: 20 },
-  rows: { marginTop: spacing.md, paddingVertical: 0, borderWidth: 1.5 },
+  rows: { marginTop: spacing.md, paddingVertical: 0, borderWidth: 1 },
   personRow: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   person: { color: colors.text, fontSize: fontSize.md }, count: { fontSize: fontSize.md, fontWeight: '700' },
   error: { color: colors.error, marginTop: spacing.sm },

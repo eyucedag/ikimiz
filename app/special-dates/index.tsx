@@ -37,7 +37,7 @@ export default function SpecialDatesScreen() {
   const [draftDate, setDraftDate] = useState(toDate(today()));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const categoryColor = '#C03CA8';
+  const categoryColor = colors.accent;
 
   const refresh = useCallback(async () => {
     if (!couple.couple?.id) return;
@@ -78,7 +78,7 @@ export default function SpecialDatesScreen() {
           <Input label="Özel gün" compact placeholder="…" value={title} onChangeText={setTitle} />
           <Text style={styles.label}>Tür</Text>
           <View style={styles.kindRow}>
-            {kinds.map((entry) => <Pressable key={entry.value} onPress={() => setKind(entry.value)} style={[styles.kindChip, kind === entry.value && { borderColor: categoryColor, backgroundColor: '#FBE3F5' }]}>
+            {kinds.map((entry) => <Pressable key={entry.value} onPress={() => setKind(entry.value)} style={[styles.kindChip, kind === entry.value && { borderColor: categoryColor, backgroundColor: colors.accentLight }]}>
               <Text style={[styles.kindText, kind === entry.value && { color: categoryColor }]}>{entry.label}</Text>
             </Pressable>)}
           </View>
@@ -114,8 +114,8 @@ export default function SpecialDatesScreen() {
 }
 
 const styles = StyleSheet.create({
-  form: { padding: spacing.md, marginBottom: spacing.md, borderColor: '#C03CA8', borderWidth: 1.5 },
-  formTitle: { fontSize: fontSize.md, fontWeight: '700', color: '#C03CA8' },
+  form: { padding: spacing.md, marginBottom: spacing.md, borderColor: colors.accent, borderWidth: 1 },
+  formTitle: { fontSize: fontSize.md, fontWeight: '700', color: colors.accent },
   label: { fontSize: fontSize.xs, color: colors.textSecondary, fontWeight: '600', marginBottom: spacing.xs },
   kindRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.sm },
   kindChip: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
@@ -123,10 +123,10 @@ const styles = StyleSheet.create({
   dateButton: { minHeight: 40, borderWidth: 1, borderColor: colors.border, borderRadius: radius.control, paddingHorizontal: spacing.sm, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
   dateText: { color: colors.text, fontSize: fontSize.sm },
   error: { color: colors.error, fontSize: fontSize.xs, marginBottom: spacing.sm },
-  listTitle: { color: '#C03CA8', fontSize: fontSize.sm, fontWeight: '700', marginVertical: spacing.sm },
-  empty: { padding: spacing.sm, borderColor: '#C03CA8', borderWidth: 1.5 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm, marginBottom: spacing.sm, borderColor: '#C03CA8', borderWidth: 1.5 },
-  icon: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#FBE3F5', alignItems: 'center', justifyContent: 'center' },
+  listTitle: { color: colors.accent, fontSize: fontSize.sm, fontWeight: '700', marginVertical: spacing.sm },
+  empty: { padding: spacing.sm, borderColor: colors.accent, borderWidth: 1 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm, marginBottom: spacing.sm, borderColor: colors.accent, borderWidth: 1 },
+  icon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.accentLight, alignItems: 'center', justifyContent: 'center' },
   copy: { flex: 1 },
   itemTitle: { color: colors.text, fontSize: fontSize.sm, fontWeight: '600' },
   itemMeta: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 2 },

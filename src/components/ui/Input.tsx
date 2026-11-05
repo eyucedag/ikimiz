@@ -27,8 +27,8 @@ export const Input = forwardRef<React.ComponentRef<typeof TextInput>, InputProps
 Input.displayName = 'Input';
 
 const styles = StyleSheet.create({
-  wrapper: { marginBottom: spacing.lg },
-  wrapperCompact: { marginBottom: spacing.sm },
+  wrapper: { marginBottom: spacing.md },
+  wrapperCompact: { marginBottom: spacing.md },
   label: { fontSize: fontSize.sm, color: colors.textSecondary, marginBottom: spacing.xs, fontWeight: '500' },
   input: {
     minHeight: 48,
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   inputError: { borderColor: colors.error },
-  inputCompact: { minHeight: 42, paddingVertical: spacing.sm },
+  inputCompact: { minHeight: 48, paddingVertical: spacing.md },
   error: { color: colors.error, fontSize: fontSize.xs, marginTop: spacing.xs },
   hint: { color: colors.textTertiary, fontSize: fontSize.xs, marginTop: spacing.xs },
 });

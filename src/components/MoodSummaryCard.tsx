@@ -37,7 +37,7 @@ function PersonMood({ name, entry, mine }: { name: string; entry: MoodEntry | nu
 export function MoodSummaryCard({ today, partnerToday, partnerName, paired, loading, error, onPress }: MoodSummaryCardProps) {
   const categoryColor = getCategoryColor('ruh-halim');
   return (
-    <Card style={[styles.card, { borderColor: categoryColor.color, borderWidth: 1.5 }]}>
+    <Card style={[styles.card, { borderColor: categoryColor.color, borderWidth: 1 }]}>
       <View style={styles.heading}>
         <View style={[styles.headingIcon, { backgroundColor: categoryColor.tint }]}><Feather name="heart" size={19} color={categoryColor.color} /></View>
         <View style={styles.flex}>
@@ -74,7 +74,7 @@ export function MoodSummaryCard({ today, partnerToday, partnerName, paired, load
 }
 
 const styles = StyleSheet.create({
-  card: { marginBottom: spacing.lg, paddingVertical: spacing.sm },
+  card: { marginBottom: spacing.md, paddingVertical: spacing.sm },
   heading: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   headingIcon: { width: 30, height: 30, borderRadius: radius.control, backgroundColor: colors.accentLight, alignItems: 'center', justifyContent: 'center' },
   flex: { flex: 1 },

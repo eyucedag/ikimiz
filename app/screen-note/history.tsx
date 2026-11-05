@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   pill: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: radius.pill, backgroundColor: colors.beige },
   pillText: { fontSize: fontSize.sm, color: colors.textSecondary, fontWeight: '500' },
   pillTextActive: { color: colors.white },
-  note: { borderRadius: radius.card, borderWidth: 1.5, padding: spacing.md, marginBottom: spacing.sm, maxWidth: '100%' },
+  note: { borderRadius: radius.card, borderWidth: 1, padding: spacing.md, marginBottom: spacing.sm, maxWidth: '100%' },
   mine: { alignSelf: 'flex-end' },
   theirs: { alignSelf: 'flex-start' },
   noteText: { fontSize: fontSize.sm, color: colors.text, lineHeight: 20 },

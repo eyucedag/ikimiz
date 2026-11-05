@@ -1,6 +1,6 @@
 export const colors = {
   background: '#FAF8F5',
-  card: '#FFFFFF',
+  card: '#FFFEFC',
   accent: '#536F8D',
   accentLight: '#E7EDF3',
   beige: '#F1ECE5',
@@ -47,8 +47,8 @@ export const spacing = {
 };
 
 export const radius = {
-  card: 12,
-  control: 8,
+  card: 16,
+  control: 10,
   pill: 20,
 };
 

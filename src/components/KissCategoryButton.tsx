@@ -53,12 +53,12 @@ export function KissCategoryButton({ ownerId, partnerId, coupleId }: Props) {
 
 const styles = StyleSheet.create({
   container: { alignItems: 'center', marginTop: spacing.xl, marginBottom: spacing.lg, paddingVertical: spacing.lg },
-  button: { width: 104, height: 104, borderRadius: 52, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFF0F3', borderWidth: 3, borderColor: '#F12E51', shadowColor: '#D91F46', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 5 },
-  lips: { color: '#E5163D', fontSize: 60, lineHeight: 70 },
-  title: { marginTop: spacing.md, color: '#C51E3A', fontSize: fontSize.xl, fontWeight: '800' },
+  button: { width: 104, height: 104, borderRadius: 52, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentLight, borderWidth: 1, borderColor: colors.accent, shadowColor: colors.accent, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 4, elevation: 2 },
+  lips: { color: colors.accent, fontSize: 60, lineHeight: 70 },
+  title: { marginTop: spacing.md, color: colors.accent, fontSize: fontSize.xl, fontWeight: '800' },
   usage: { marginTop: spacing.xs, color: colors.textSecondary, fontSize: fontSize.sm, fontWeight: '600' },
   message: { marginTop: spacing.xs, color: colors.textSecondary, fontSize: fontSize.xs, textAlign: 'center' },
-  success: { marginTop: spacing.xs, color: '#B51F4C', fontSize: fontSize.xs, textAlign: 'center' },
+  success: { marginTop: spacing.xs, color: colors.accent, fontSize: fontSize.xs, textAlign: 'center' },
   error: { marginTop: spacing.xs, color: colors.error, fontSize: fontSize.xs, textAlign: 'center' },
   disabled: { opacity: 0.55 },
   pressed: { transform: [{ scale: 0.93 }] },

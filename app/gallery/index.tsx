@@ -220,13 +220,13 @@ export default function GalleryScreen() {
 
 const styles = StyleSheet.create({
   intro: { color: colors.textSecondary, fontSize: fontSize.sm, lineHeight: 20, marginBottom: spacing.md },
-  addCard: { borderWidth: 1.5, marginBottom: spacing.md },
+  addCard: { borderWidth: 1, marginBottom: spacing.md },
   addTitle: { fontSize: fontSize.md, fontWeight: '700', marginBottom: spacing.sm },
   uploadHint: { color: colors.textTertiary, fontSize: fontSize.xs, textAlign: 'center', marginTop: spacing.sm },
   error: { color: colors.error, fontSize: fontSize.sm, marginBottom: spacing.md },
-  emptyCard: { borderWidth: 1.5 },
+  emptyCard: { borderWidth: 1 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: spacing.sm },
-  polaroid: { padding: spacing.sm, borderWidth: 1.5, backgroundColor: '#FFFEFC' },
+  polaroid: { padding: spacing.sm, borderWidth: 1, backgroundColor: '#FFFEFC' },
   tileImage: { width: '100%', aspectRatio: 1, backgroundColor: colors.beige },
   captionRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minHeight: 44, paddingTop: spacing.sm },
   captionCopy: { flex: 1, minWidth: 0 },

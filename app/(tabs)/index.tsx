@@ -197,7 +197,7 @@ export default function TodayScreen() {
       </View>
       {direction.error ? <Text style={styles.directionHint}>{direction.error}</Text> : direction.anySharing ? <Text style={styles.directionHint}>{direction.bothSharing ? 'İkinizin konumu açık.' : 'Konum paylaşımı açık; yön için ikiniz de açın.'}</Text> : null}
 
-      <Card style={[styles.section, styles.compactCard, styles.songCard, { borderColor: songColor.color, borderWidth: 1.5 }]}>
+      <Card style={[styles.section, styles.compactCard, styles.songCard, { borderColor: songColor.color, borderWidth: 1 }]}>
         <View>
           <Pressable onPress={() => router.push('/song-of-the-day')} accessibilityRole="button" accessibilityLabel="Günün Şarkısı sayfasını aç" style={styles.upcomingCompact}>
             <View style={[styles.upcomingIcon, { backgroundColor: songColor.tint }]}><Feather name="music" size={18} color={songColor.color} /></View>
@@ -215,7 +215,7 @@ export default function TodayScreen() {
       </Card>
 
       {/* Partnerinden Not */}
-      <Card style={[styles.section, styles.compactCard, styles.noteCard, { borderColor: noteColor.color, borderWidth: 1.5 }]}>
+      <Card style={[styles.section, styles.compactCard, styles.noteCard, { borderColor: noteColor.color, borderWidth: 1 }]}>
         {couple.loading ? (
           <View style={styles.noteHeader}><Text style={styles.noteHeaderTitle}>Partnerinden Not</Text><ActivityIndicator color={noteColor.color} /></View>
         ) : couple.isPaired ? (
@@ -280,7 +280,7 @@ export default function TodayScreen() {
       />
 
       {/* Yaklaşanlar */}
-      <Card style={[styles.section, styles.compactCard, { borderColor: calendarColor.color, borderWidth: 1.5 }]}>
+      <Card style={[styles.section, styles.compactCard, { borderColor: calendarColor.color, borderWidth: 1 }]}>
         <SectionHeader title="Yaklaşanlar" compact />
         {upcoming.length === 0 ? (
           <Pressable onPress={() => router.push('/calendar')} accessibilityRole="button" accessibilityLabel="Takvimi aç" style={styles.upcomingCompact}>
@@ -338,11 +338,11 @@ export default function TodayScreen() {
             disabled={uploadingPhoto}
             onPress={() => { void changeCouplePhoto(); }}
             style={styles.photoChangeButton}
-            toneColor="#E5163D"
+            toneColor={colors.accent}
           />
         </View>
       </Modal>
-      {uploadingPhoto ? <View pointerEvents="none" style={styles.photoUploading}><ActivityIndicator color="#E5163D" /></View> : null}
+      {uploadingPhoto ? <View pointerEvents="none" style={styles.photoUploading}><ActivityIndicator color={colors.accent} /></View> : null}
     </Screen>
   );
 }
@@ -353,8 +353,8 @@ const styles = StyleSheet.create({
   identityText: { flex: 1, minWidth: 0 },
   directionButton: { flexShrink: 0, width: 48, height: 48, borderRadius: 24, marginLeft: spacing.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentLight },
   directionHint: { color: colors.textSecondary, fontSize: fontSize.xs, marginLeft: 68, marginTop: -spacing.lg, marginBottom: spacing.sm },
-  couplePhoto: { width: 54, height: 54, borderRadius: 27, borderWidth: 1.5, borderColor: colors.border },
-  photoPlaceholder: { width: 54, height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentLight, borderWidth: 1.5, borderColor: colors.border },
+  couplePhoto: { width: 54, height: 54, borderRadius: 27, borderWidth: 1, borderColor: colors.border },
+  photoPlaceholder: { width: 54, height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentLight, borderWidth: 1, borderColor: colors.border },
   photoModalBackdrop: { flex: 1, backgroundColor: 'rgba(18,15,18,0.94)', alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
   photoClose: { position: 'absolute', top: 52, right: spacing.lg, width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center', zIndex: 1 },
   photoModalImage: { maxWidth: '100%', borderRadius: radius.card },
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: fontSize.sm, color: colors.textSecondary, marginTop: spacing.xs },
   duration: { fontSize: fontSize.sm, color: '#1676E8', fontWeight: '700', marginTop: spacing.xs },
   durationMissing: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: spacing.xs },
-  section: { marginBottom: spacing.lg },
+  section: { marginBottom: spacing.md },
   compactCard: { paddingVertical: spacing.xs },
   songCard: { paddingBottom: spacing.sm },
   cardActionButton: { width: '100%', marginTop: spacing.sm },
@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
   tileInner: {
     backgroundColor: colors.card,
     borderRadius: radius.card,
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: colors.border,
     borderTopWidth: 3,
     borderTopColor: colors.accent,

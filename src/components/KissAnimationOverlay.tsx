@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { KissRecord } from '@/src/services/kissService';
+import { colors } from '@/src/constants/theme';
 
 export function KissAnimationOverlay({ event, onFinish }: { event: KissRecord | null; onFinish: () => void }) {
   const scale = useRef(new Animated.Value(0.15)).current;
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
   overlay: { ...StyleSheet.absoluteFill, zIndex: 1000, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255, 240, 246, 0.9)' },
   content: { alignItems: 'center', justifyContent: 'center' },
   lips: { fontSize: 122, textShadowColor: 'rgba(223, 25, 82, 0.25)', textShadowOffset: { width: 0, height: 8 }, textShadowRadius: 18 },
-  sparkleLeft: { position: 'absolute', left: -72, top: 2, color: '#FF3D77', fontSize: 30, transform: [{ rotate: '-20deg' }] },
-  sparkleRight: { position: 'absolute', right: -68, top: 20, color: '#FF3D77', fontSize: 23, transform: [{ rotate: '18deg' }] },
-  message: { marginTop: 14, color: '#B51F4C', fontSize: 20, fontWeight: '700' },
+  sparkleLeft: { position: 'absolute', left: -72, top: 2, color: colors.accent, fontSize: 30, transform: [{ rotate: '-20deg' }] },
+  sparkleRight: { position: 'absolute', right: -68, top: 20, color: colors.accent, fontSize: 23, transform: [{ rotate: '18deg' }] },
+  message: { marginTop: 14, color: colors.accent, fontSize: 20, fontWeight: '700' },
 });

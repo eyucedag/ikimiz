@@ -26,4 +26,4 @@ export default function TasksScreen() {
     </>}
   </Screen>;
 }
-const styles = StyleSheet.create({ card: { borderWidth: 1.5, marginBottom: spacing.md }, heading: { fontSize: fontSize.md, fontWeight: '700', marginBottom: spacing.sm }, row: { borderWidth: 1.5, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm, marginBottom: spacing.sm }, check: { padding: spacing.xs }, title: { flex: 1, color: colors.text, fontSize: fontSize.md }, done: { color: colors.textTertiary, textDecorationLine: 'line-through' }, error: { color: colors.error, marginBottom: spacing.sm } });
+const styles = StyleSheet.create({ card: { borderWidth: 1, marginBottom: spacing.md }, heading: { fontSize: fontSize.md, fontWeight: '700', marginBottom: spacing.sm }, row: { borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm, marginBottom: spacing.sm }, check: { padding: spacing.xs }, title: { flex: 1, color: colors.text, fontSize: fontSize.md }, done: { color: colors.textTertiary, textDecorationLine: 'line-through' }, error: { color: colors.error, marginBottom: spacing.sm } });

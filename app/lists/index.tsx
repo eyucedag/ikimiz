@@ -118,7 +118,7 @@ export default function ListsScreen() {
 }
 
 const styles = StyleSheet.create({
-  form: { padding: spacing.md, borderWidth: 1.5, marginBottom: spacing.md },
+  form: { padding: spacing.md, borderWidth: 1, marginBottom: spacing.md },
   formTitle: { fontSize: fontSize.md, fontWeight: '700', marginBottom: spacing.md },
   label: { color: colors.textSecondary, fontSize: fontSize.xs, fontWeight: '600', marginBottom: spacing.xs },
   kindRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.md },
@@ -129,9 +129,9 @@ const styles = StyleSheet.create({
   filterChip: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
   filterText: { color: colors.textSecondary, fontSize: fontSize.xs },
   filterTextActive: { color: colors.white, fontWeight: '600' },
-  emptyCard: { borderColor: '#D98219', borderWidth: 1.5 },
+  emptyCard: { borderColor: colors.accent, borderWidth: 1 },
   loading: { minHeight: 100, alignItems: 'center', justifyContent: 'center' },
-  listCard: { borderWidth: 1.5, padding: spacing.sm, marginBottom: spacing.sm, flexDirection: 'row', alignItems: 'center' },
+  listCard: { borderWidth: 1, padding: spacing.md, marginBottom: spacing.md, flexDirection: 'row', alignItems: 'center' },
   listPress: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 48 },
   listIcon: { width: 38, height: 38, borderRadius: radius.control, alignItems: 'center', justifyContent: 'center' },
   listCopy: { flex: 1, minWidth: 0 },

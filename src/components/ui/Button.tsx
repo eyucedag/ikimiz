@@ -51,8 +51,8 @@ export function Button({ title, onPress, variant = 'primary', icon, loading, dis
         <ActivityIndicator color={p.fg} />
       ) : (
         <View style={styles.row}>
-          {icon ? <Feather name={icon} size={compact ? 16 : 18} color={foregroundColor} style={styles.icon} /> : null}
-          <Text style={[styles.label, compact && styles.labelCompact, { color: foregroundColor }]}>{title}</Text>
+          {icon ? <Feather name={icon} size={18} color={foregroundColor} style={styles.icon} /> : null}
+          <Text style={[styles.label, { color: foregroundColor }]}>{title}</Text>
         </View>
       )}
     </Pressable>
@@ -68,11 +68,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  compact: { minHeight: 38, paddingHorizontal: spacing.md },
+  compact: { minHeight: 48, paddingHorizontal: spacing.lg },
   row: { flexDirection: 'row', alignItems: 'center' },
   icon: { marginRight: spacing.sm },
   label: { fontSize: fontSize.md, fontWeight: '600' },
-  labelCompact: { fontSize: fontSize.sm },
+  labelCompact: { fontSize: fontSize.md },
   pressed: { opacity: 0.8 },
   disabled: { opacity: 0.5 },
 });

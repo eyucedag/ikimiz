@@ -49,7 +49,7 @@ export default function PartnerScreen() {
 }
 
 const styles = StyleSheet.create({
-  card: { marginBottom: spacing.lg },
+  card: { marginBottom: spacing.md },
   partnerRow: { flexDirection: 'row', alignItems: 'center' },
   icon: { width: 44, height: 44, borderRadius: radius.control, backgroundColor: colors.accentLight, alignItems: 'center', justifyContent: 'center', marginRight: spacing.md },
   copy: { flex: 1 },

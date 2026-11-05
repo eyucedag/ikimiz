@@ -6,7 +6,7 @@ const STORAGE_KEY = 'ikimiz:app-background-color';
 const legacyBackgroundColors = ['#FAF8F5', '#FFD5EA', '#FFD9B0', '#FFEE9E', '#CFF28B', '#A6F0D8', '#B9D9FF', '#D8B8FF'];
 interface AppearanceValue { backgroundColor: string; surfaceColor: string; setBackgroundColor: (color: string) => void }
 const AppearanceContext = createContext<AppearanceValue>({
-  backgroundColor: colors.background, surfaceColor: colors.background, setBackgroundColor: () => undefined,
+  backgroundColor: colors.background, surfaceColor: colors.card, setBackgroundColor: () => undefined,
 });
 
 export function AppAppearanceProvider({ children }: { children: React.ReactNode }) {
@@ -33,7 +33,7 @@ export function AppAppearanceProvider({ children }: { children: React.ReactNode 
   }, []);
   const value = useMemo(() => ({
     backgroundColor,
-    surfaceColor: colors.background,
+    surfaceColor: colors.card,
     setBackgroundColor,
   }), [backgroundColor, setBackgroundColor]);
   return <AppearanceContext.Provider value={value}>{children}</AppearanceContext.Provider>;
