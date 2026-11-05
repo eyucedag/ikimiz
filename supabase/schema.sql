@@ -1066,6 +1066,7 @@ create table if not exists public.couple_gallery_photos (
   owner_id uuid not null references auth.users(id) on delete cascade,
   couple_id uuid not null references public.couples(id) on delete cascade,
   caption text,
+  taken_at timestamptz not null default now(),
   mime_type text not null check (mime_type in ('image/jpeg', 'image/png', 'image/webp', 'image/heic')),
   storage_path text not null unique,
   size_bytes bigint not null check (size_bytes > 0 and size_bytes <= 15728640)
@@ -1078,7 +1079,9 @@ drop policy if exists couple_gallery_photos_insert on public.couple_gallery_phot
 create policy couple_gallery_photos_insert on public.couple_gallery_photos for insert to authenticated with check (owner_id = auth.uid() and public.is_couple_member(couple_id));
 drop policy if exists couple_gallery_photos_delete on public.couple_gallery_photos;
 create policy couple_gallery_photos_delete on public.couple_gallery_photos for delete to authenticated using (owner_id = auth.uid() and public.is_couple_member(couple_id));
-grant select, insert, delete on public.couple_gallery_photos to authenticated;
+drop policy if exists couple_gallery_photos_update on public.couple_gallery_photos;
+create policy couple_gallery_photos_update on public.couple_gallery_photos for update to authenticated using (public.is_couple_member(couple_id)) with check (public.is_couple_member(couple_id));
+grant select, insert, update, delete on public.couple_gallery_photos to authenticated;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('couple-gallery', 'couple-gallery', false, 15728640, array['image/jpeg', 'image/png', 'image/webp', 'image/heic'])

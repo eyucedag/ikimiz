@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Alert, Image, Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -11,10 +11,18 @@ import { colors, fontSize, layout, radius, spacing } from '@/src/constants/theme
 import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
 import { GalleryPhoto, galleryService } from '@/src/services/galleryService';
-import { formatDateTime } from '@/src/utils/date';
+import { formatDate } from '@/src/utils/date';
 
 const MAX_PHOTO_SIZE = 15 * 1024 * 1024;
 const MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/heic']);
+
+function parseExifDate(value: unknown): Date | null {
+  if (typeof value !== 'string') return null;
+  const match = value.match(/^(\d{4}):(\d{2}):(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/);
+  if (!match) return null;
+  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), Number(match[4]), Number(match[5]), Number(match[6]));
+  return Number.isNaN(date.getTime()) ? null : date;
+}
 
 export default function GalleryScreen() {
   const { user } = useAuth();
@@ -24,6 +32,9 @@ export default function GalleryScreen() {
   const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
   const [caption, setCaption] = useState('');
   const [selected, setSelected] = useState<GalleryPhoto | null>(null);
+  const [captionDraft, setCaptionDraft] = useState('');
+  const [editingCaption, setEditingCaption] = useState(false);
+  const [savingCaption, setSavingCaption] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -47,7 +58,7 @@ export default function GalleryScreen() {
     if (!user || !couple.couple || !couple.partner) return;
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) { Alert.alert('Fotoğraf erişimi gerekli', 'Galeriye fotoğraf eklemek için fotoğraf arşivine erişim izni verin.'); return; }
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: false, quality: 0.9, exif: false });
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: false, quality: 0.9, exif: true });
     if (result.canceled || !result.assets[0]) return;
     const asset = result.assets[0];
     if (asset.fileSize && asset.fileSize > MAX_PHOTO_SIZE) { Alert.alert('Fotoğraf çok büyük', 'En fazla 15 MB boyutunda fotoğraf ekleyebilirsiniz.'); return; }
@@ -58,10 +69,36 @@ export default function GalleryScreen() {
       const content = await response.arrayBuffer();
       if (content.byteLength > MAX_PHOTO_SIZE) throw new Error('En fazla 15 MB boyutunda fotoğraf ekleyebilirsiniz.');
       const mimeType = asset.mimeType && MIME_TYPES.has(asset.mimeType) ? asset.mimeType : 'image/jpeg';
-      const photo = await galleryService.add({ ownerId: user.id, partnerId: couple.partner.id, coupleId: couple.couple.id, caption, mimeType, sizeBytes: content.byteLength, content });
+      const exifDate = asset.exif?.DateTimeOriginal ?? asset.exif?.DateTime;
+      let takenAt = parseExifDate(exifDate)?.toISOString();
+      if (!takenAt && asset.assetId) {
+        try {
+          const info = await MediaLibrary.getAssetInfoAsync(asset.assetId);
+          if (info.creationTime > 0) takenAt = new Date(info.creationTime).toISOString();
+        } catch { /* Fall back to upload date if the photo library has no date metadata. */ }
+      }
+      const photo = await galleryService.add({ ownerId: user.id, partnerId: couple.partner.id, coupleId: couple.couple.id, caption, takenAt: takenAt ?? new Date().toISOString(), mimeType, sizeBytes: content.byteLength, content });
       setPhotos((current) => [photo, ...current]); setCaption('');
     } catch (e) { setError(e instanceof Error ? e.message : 'Fotoğraf eklenemedi.'); }
     finally { setUploading(false); }
+  };
+
+  const openPhoto = (photo: GalleryPhoto) => {
+    setSelected(photo);
+    setCaptionDraft(photo.caption ?? '');
+    setEditingCaption(false);
+  };
+
+  const saveCaption = async () => {
+    if (!selected || !couple.partner) return;
+    setSavingCaption(true);
+    try {
+      const updated = await galleryService.updateCaption(selected, captionDraft, couple.partner.id);
+      setPhotos((current) => current.map((photo) => photo.id === updated.id ? updated : photo));
+      setSelected(updated);
+      setEditingCaption(false);
+    } catch (e) { Alert.alert('Yazı kaydedilemedi', e instanceof Error ? e.message : 'Tekrar deneyin.'); }
+    finally { setSavingCaption(false); }
   };
 
   const downloadPhoto = async (photo: GalleryPhoto) => {
@@ -102,10 +139,10 @@ export default function GalleryScreen() {
       </Card>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {photos.length === 0 && !loading ? <Card style={[styles.emptyCard, { borderColor: tone.color }]}><EmptyState compact icon="image" title="Henüz fotoğraf yok" description="İlk sevdiğiniz anıyı ekleyin." toneColor={tone.color} toneTint={tone.tint} /></Card> : null}
-      <View style={styles.grid}>{photos.map((photo) => <Card key={photo.id} onPress={() => setSelected(photo)} accessibilityLabel={`${photo.caption || 'Fotoğraf'} görüntüle`} style={[styles.polaroid, { width: tileWidth, borderColor: tone.color }]}>
+      <View style={styles.grid}>{photos.map((photo) => <Card key={photo.id} onPress={() => openPhoto(photo)} accessibilityLabel={`${photo.caption || 'Fotoğraf'} görüntüle`} style={[styles.polaroid, { width: tileWidth, borderColor: tone.color }]}>
         <Image source={{ uri: photo.imageUrl }} style={styles.tileImage} resizeMode="cover" />
         <View style={styles.captionRow}>
-          <View style={styles.captionCopy}><Text style={styles.caption} numberOfLines={2}>{photo.caption || 'Birlikte güzel bir an'}</Text><Text style={styles.date}>{formatDateTime(photo.createdAt)}</Text></View>
+          <View style={styles.captionCopy}><Text style={styles.caption} numberOfLines={2}>{photo.caption || 'Birlikte güzel bir an'}</Text><Text style={styles.date}>{formatDate(photo.takenAt)}</Text></View>
           {photo.ownerId === user?.id ? <Pressable onPress={(event) => { event.stopPropagation(); removePhoto(photo); }} hitSlop={8} accessibilityRole="button" accessibilityLabel="Fotoğrafı kaldır" style={styles.delete}><Feather name="trash-2" size={16} color={colors.error} /></Pressable> : null}
         </View>
       </Card>)}</View>
@@ -114,8 +151,12 @@ export default function GalleryScreen() {
           <Pressable style={styles.modalClose} onPress={() => setSelected(null)} accessibilityRole="button" accessibilityLabel="Fotoğrafı kapat"><Feather name="x" size={24} color={colors.white} /></Pressable>
           {selected ? <>
             <Image source={{ uri: selected.imageUrl }} style={[styles.fullImage, { width: windowWidth - spacing.xl * 2, height: windowHeight * 0.68 }]} resizeMode="contain" accessibilityLabel={selected.caption || 'Galeri fotoğrafı'} />
-            <Text style={styles.modalCaption}>{selected.caption || 'Birlikte güzel bir an'}</Text>
-            <Text style={styles.modalDate}>{formatDateTime(selected.createdAt)}</Text>
+            {editingCaption ? <Input label="Fotoğraf yazısı" value={captionDraft} onChangeText={setCaptionDraft} placeholder="…" compact style={styles.captionInput} /> : <Text style={styles.modalCaption}>{selected.caption || 'Birlikte güzel bir an'}</Text>}
+            <Text style={styles.modalDate}>{formatDate(selected.takenAt)}</Text>
+            {editingCaption ? <View style={styles.editActions}>
+              <Button title="Vazgeç" variant="secondary" toneColor={tone.color} onPress={() => { setCaptionDraft(selected.caption ?? ''); setEditingCaption(false); }} compact />
+              <Button title="Kaydet" icon="check" toneColor={tone.color} onPress={() => { void saveCaption(); }} loading={savingCaption} disabled={savingCaption} compact />
+            </View> : <Pressable onPress={() => { setCaptionDraft(selected.caption ?? ''); setEditingCaption(true); }} accessibilityRole="button" style={styles.editCaption}><Feather name="edit-2" size={15} color={tone.color} /><Text style={[styles.editCaptionText, { color: tone.color }]}>Yazıyı düzenle</Text></Pressable>}
             <Button title="Telefona indir" icon="download" toneColor={tone.color} onPress={() => { void downloadPhoto(selected); }} loading={downloading} compact style={styles.downloadButton} />
           </> : null}
         </View>
@@ -144,5 +185,9 @@ const styles = StyleSheet.create({
   fullImage: { maxWidth: '100%' },
   modalCaption: { color: colors.white, fontWeight: '700', fontSize: fontSize.md, marginTop: spacing.md, textAlign: 'center' },
   modalDate: { color: 'rgba(255,255,255,0.75)', fontSize: fontSize.xs, marginTop: spacing.xs },
+  captionInput: { width: '100%', marginTop: spacing.md },
+  editActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+  editCaption: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.md, padding: spacing.xs },
+  editCaptionText: { fontSize: fontSize.sm, fontWeight: '600' },
   downloadButton: { minWidth: 190, marginTop: spacing.lg },
 });
