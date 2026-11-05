@@ -35,6 +35,13 @@
       ],
       "@react-native-community/datetimepicker",
       [
+        "expo-media-library",
+        {
+          "photosPermission": "Galeriye fotoğraf eklemek için fotoğraf arşiviniz seçilir.",
+          "savePhotosPermission": "Galerideki fotoğrafları telefon arşivinize kaydetmek için izin gerekir."
+        }
+      ],
+      [
         "expo-location",
         { "locationWhenInUsePermission": "Partnerinizin yönünü göstermek için uygulama açıkken konum paylaşılır." }
       ],
