@@ -62,6 +62,8 @@ export default function SpecialDatesScreen() {
     } },
   ]);
 
+  const relationshipStart = couple.couple?.relationshipStartedAt ?? null;
+
   if (couple.loading) return <Screen title="Özel Günler"><CoupleLoading /></Screen>;
 
   return (
@@ -91,8 +93,12 @@ export default function SpecialDatesScreen() {
           <Button title={editing ? 'Değişiklikleri kaydet' : 'Özel günü ekle'} icon={editing ? 'save' : 'plus'} toneColor={categoryColor} compact loading={saving} onPress={() => { void save(); }} disabled={!title.trim()} />
           {editing ? <Button title="Vazgeç" variant="ghost" compact toneColor={categoryColor} onPress={() => { setEditing(null); setTitle(''); setDate(today()); setKind('other'); }} /> : null}
         </Card>
-        <Text style={styles.listTitle}>Kaydedilen özel günler · {items.length}</Text>
-        {items.length === 0 ? <Card style={styles.empty}><EmptyState compact icon="gift" title="Henüz özel gün eklenmedi" description="İkiniz için anlamlı tarihleri buraya kaydedin." /></Card> : items.map((item) => <Card key={item.id} style={styles.row}>
+        <Text style={styles.listTitle}>Kaydedilen özel günler · {items.length + (relationshipStart ? 1 : 0)}</Text>
+        {relationshipStart ? <Card style={styles.row}>
+          <View style={styles.icon}><Feather name="heart" size={18} color={categoryColor} /></View>
+          <View style={styles.copy}><Text style={styles.itemTitle}>İlişki yıl dönümümüz</Text><Text style={styles.itemMeta}>{dateLabel(relationshipStart)} · Her yıl</Text></View>
+        </Card> : null}
+        {items.length === 0 && !relationshipStart ? <Card style={styles.empty}><EmptyState compact icon="gift" title="Henüz özel gün eklenmedi" description="İkiniz için anlamlı tarihleri buraya kaydedin." /></Card> : items.map((item) => <Card key={item.id} style={styles.row}>
           <View style={styles.icon}><Feather name={item.kind === 'birthday' ? 'gift' : 'heart'} size={18} color={categoryColor} /></View>
           <View style={styles.copy}><Text style={styles.itemTitle}>{item.title}</Text><Text style={styles.itemMeta}>{dateLabel(item.date)} · {kinds.find((entry) => entry.value === item.kind)?.label}</Text></View>
           <Button title="Düzenle" icon="edit-2" compact variant="ghost" toneColor={categoryColor} onPress={() => edit(item)} />
