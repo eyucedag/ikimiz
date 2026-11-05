@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, Image, Linking, Pressable, StyleSheet, Text, 
 import { Feather } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
+import * as Clipboard from 'expo-clipboard';
 import { useFocusEffect } from 'expo-router';
 import { Button, Card, CoupleLoading, EmptyState, Input, Screen } from '@/src/components/ui';
 import { getCategoryColor } from '@/src/constants/categories';
@@ -116,6 +117,13 @@ export default function DocumentsScreen() {
     catch (e) { Alert.alert('Bağlantı açılamadı', e instanceof Error ? e.message : 'Bağlantıyı kontrol edip yeniden deneyin.'); }
   };
 
+  const copyLink = async (link: CoupleDocumentLink) => {
+    try {
+      await Clipboard.setStringAsync(link.url);
+      Alert.alert('Bağlantı kopyalandı', `${link.displayName} bağlantısı panoya kopyalandı.`);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Bağlantı kopyalanamadı.'); }
+  };
+
   const addLink = async () => {
     if (!user || !couple.couple || !couple.partner) return;
     setSavingLink(true); setError('');
@@ -166,11 +174,16 @@ export default function DocumentsScreen() {
       </Card> : null}
       {links.length ? <Text style={[styles.listTitle, { color: tone.color }]}>Bağlantılar · {links.length}</Text> : null}
       {links.map((link) => <Card key={`link-${link.id}`} style={[styles.fileCard, { borderColor: tone.color }]}>
-        <Pressable onPress={() => { void openLink(link); }} accessibilityRole="button" accessibilityLabel={`${link.displayName} bağlantısını aç`} style={styles.fileRow}>
-          <View style={[styles.preview, styles.docPreview, { backgroundColor: tone.tint }]}><Feather name="link" size={21} color={tone.color} /></View>
-          <View style={styles.fileCopy}><Text style={styles.fileName} numberOfLines={2}>{link.displayName}</Text><Text style={styles.meta} numberOfLines={1}>{link.url}</Text></View>
-          <Feather name="external-link" size={18} color={tone.color} />
-        </Pressable>
+        <View style={styles.fileRow}>
+          <Pressable onPress={() => { void openLink(link); }} accessibilityRole="button" accessibilityLabel={`${link.displayName} bağlantısını aç`} style={styles.linkMain}>
+            <View style={[styles.preview, styles.docPreview, { backgroundColor: tone.tint }]}><Feather name="link" size={21} color={tone.color} /></View>
+            <View style={styles.fileCopy}><Text style={styles.fileName} numberOfLines={2}>{link.displayName}</Text><Text style={styles.meta} numberOfLines={1}>{link.url}</Text></View>
+            <Feather name="external-link" size={18} color={tone.color} />
+          </Pressable>
+          <Pressable onPress={() => { void copyLink(link); }} hitSlop={8} accessibilityRole="button" accessibilityLabel={`${link.displayName} bağlantısını kopyala`} style={styles.copyButton}>
+            <Feather name="copy" size={18} color={tone.color} />
+          </Pressable>
+        </View>
         {link.ownerId === user?.id ? <Pressable onPress={() => removeLink(link)} hitSlop={10} accessibilityRole="button" accessibilityLabel={`${link.displayName} bağlantısını kaldır`} style={styles.delete}><Feather name="trash-2" size={15} color={colors.error} /></Pressable> : null}
       </Card>)}
       {documents.length ? <Text style={[styles.listTitle, { color: tone.color }]}>Dosyalar · {documents.length}</Text> : null}
@@ -208,6 +221,8 @@ const styles = StyleSheet.create({
   listTitle: { fontSize: fontSize.sm, fontWeight: '700', marginVertical: spacing.sm },
   fileCard: { borderWidth: 1.5, padding: spacing.md, marginBottom: spacing.sm },
   fileRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  linkMain: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  copyButton: { minWidth: 38, minHeight: 38, borderRadius: radius.control, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
   preview: { width: 52, height: 52, borderRadius: radius.control },
   docPreview: { alignItems: 'center', justifyContent: 'center' },
   docLabel: { fontSize: 8, fontWeight: '800', marginTop: 1 },
