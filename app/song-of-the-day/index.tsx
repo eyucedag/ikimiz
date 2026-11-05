@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Linking, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
@@ -9,6 +9,7 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
 import { supabase } from '@/src/lib/supabase';
 import { DailySong, songOfTheDayService } from '@/src/services/songOfTheDayService';
+import { songMetadataService } from '@/src/services/songMetadataService';
 
 const today = () => {
   const date = new Date();
@@ -28,7 +29,42 @@ export default function SongOfTheDayScreen() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [metadataStatus, setMetadataStatus] = useState('');
+  const lookupTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lookupRequest = useRef(0);
+  const titleEdited = useRef(false);
+  const artistEdited = useRef(false);
   const date = today();
+
+  useEffect(() => () => {
+    if (lookupTimer.current) clearTimeout(lookupTimer.current);
+    lookupRequest.current += 1;
+  }, []);
+
+  const changeTitle = (value: string) => { titleEdited.current = true; setTitle(value); };
+  const changeArtist = (value: string) => { artistEdited.current = true; setArtist(value); };
+  const changeUrl = (value: string) => {
+    setUrl(value);
+    titleEdited.current = false;
+    artistEdited.current = false;
+    setMetadataStatus('');
+    if (lookupTimer.current) clearTimeout(lookupTimer.current);
+    const requestId = ++lookupRequest.current;
+    if (!value.trim()) return;
+    lookupTimer.current = setTimeout(() => {
+      setMetadataStatus('Şarkı bilgileri aranıyor…');
+      void songMetadataService.lookup(value).then((metadata) => {
+        if (requestId !== lookupRequest.current) return;
+        if (!metadata) {
+          setMetadataStatus('Bilgiler otomatik bulunamadı; kendiniz yazabilirsiniz.');
+          return;
+        }
+        if (!titleEdited.current) setTitle(metadata.title);
+        if (!artistEdited.current) setArtist(metadata.artist);
+        setMetadataStatus('Şarkı ve sanatçı bilgileri dolduruldu.');
+      });
+    }, 600);
+  };
 
   const refresh = useCallback(async () => {
     if (!couple.couple?.id) return;
@@ -103,10 +139,11 @@ export default function SongOfTheDayScreen() {
 
         <Card style={[styles.form, { borderColor: categoryColor.color }]}>
           <Text style={[styles.formTitle, { color: categoryColor.color }]}>{song ? 'Şarkıyı değiştir' : 'Bugünün şarkısını seç'}</Text>
-          <Input label="Şarkı" compact placeholder="…" value={title} onChangeText={setTitle} />
-          <Input label="Sanatçı" compact placeholder="…" value={artist} onChangeText={setArtist} />
-          <Input label="Dinleme bağlantısı" compact placeholder="…" value={url} onChangeText={setUrl} autoCapitalize="none" keyboardType="url" autoCorrect={false} />
-          <Text style={styles.hint}>Şarkı bağlantısını Spotify, YouTube veya kullandığınız başka bir uygulamadan kopyalayın.</Text>
+          <Input label="Şarkı" compact placeholder="…" value={title} onChangeText={changeTitle} />
+          <Input label="Sanatçı" compact placeholder="…" value={artist} onChangeText={changeArtist} />
+          <Input label="Dinleme bağlantısı" compact placeholder="…" value={url} onChangeText={changeUrl} autoCapitalize="none" keyboardType="url" autoCorrect={false} />
+          <Text style={styles.hint}>Spotify, YouTube veya Apple Music bağlantısı yapıştırınca şarkı bilgileri otomatik doldurulur.</Text>
+          {metadataStatus ? <Text style={styles.metadataStatus}>{metadataStatus}</Text> : null}
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <Button title={song ? 'Günün şarkısını güncelle' : 'Günün şarkısını paylaş'} icon="music" toneColor={categoryColor.color} onPress={() => { void save(); }} loading={saving} disabled={!title.trim() || !artist.trim() || !url.trim()} compact />
         </Card>
@@ -130,5 +167,6 @@ const styles = StyleSheet.create({
   form: { borderWidth: 1.5, padding: spacing.md },
   formTitle: { fontSize: fontSize.md, fontWeight: '700', marginBottom: spacing.md },
   hint: { fontSize: fontSize.xs, lineHeight: 17, color: colors.textTertiary, marginTop: -spacing.xs, marginBottom: spacing.md },
+  metadataStatus: { fontSize: fontSize.xs, color: colors.textSecondary, marginTop: -spacing.sm, marginBottom: spacing.sm },
   error: { color: colors.error, fontSize: fontSize.xs, marginBottom: spacing.sm },
 });
