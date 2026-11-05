@@ -32,6 +32,19 @@ export const calendarService = {
     await notificationService.notifyPartner({ partnerId: input.partnerId, coupleId: input.coupleId, category: 'event', title: 'Takvime etkinlik eklendi', body: event.title });
     return event;
   },
+  async update(input: { id: string; partnerId: string; coupleId: string; title: string; startsAt: string; location?: string }): Promise<CoupleCalendarEvent> {
+    const title = input.title.trim();
+    if (!title) throw new Error('Etkinlik adını yazın.');
+    const { data, error } = await supabase.from('calendar_events').update({
+      title, starts_at: input.startsAt, location: input.location?.trim() || null,
+    }).eq('id', input.id).eq('couple_id', input.coupleId).select('*').single();
+    if (error || !data) throw new Error(error?.code === '42501'
+      ? 'Etkinliği düzenleme izni eksik. Supabase takvim düzenleme SQL’ini çalıştırın.'
+      : `Etkinlik güncellenemedi${error?.message ? `: ${error.message}` : '.'}`);
+    const event = mapEvent(data as Record<string, unknown>);
+    await notificationService.notifyPartner({ partnerId: input.partnerId, coupleId: input.coupleId, category: 'event', title: 'Takvim etkinliği güncellendi', body: event.title });
+    return event;
+  },
   async remove(id: string, ownerId: string): Promise<void> {
     const { data, error } = await supabase.from('calendar_events').delete()
       .eq('id', id).eq('owner_id', ownerId).select('id').maybeSingle();

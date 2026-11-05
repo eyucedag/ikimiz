@@ -31,6 +31,7 @@ export default function CalendarScreen() {
   const [location, setLocation] = useState('');
   const [time, setTime] = useState(new Date(2000, 0, 1, 18, 0));
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [events, setEvents] = useState<CoupleCalendarEvent[]>([]);
   const [importantDates, setImportantDates] = useState<ImportantDate[]>([]);
   const [travelPlaces, setTravelPlaces] = useState<TravelPlace[]>([]);
@@ -100,15 +101,38 @@ export default function CalendarScreen() {
     setSelectedDate(dateKey(next));
   };
 
-  const addEvent = async () => {
+  const beginEdit = (entry: Entry) => {
+    const event = events.find((item) => item.id === entry.id.replace('event-', ''));
+    if (!event) return;
+    const startsAt = new Date(event.startsAt);
+    setEditingEventId(event.id);
+    setSelectedDate(dateKey(startsAt));
+    setTitle(event.title);
+    setLocation(event.location ?? '');
+    setTime(startsAt);
+    setShowTimePicker(false);
+    setError('');
+  };
+
+  const cancelEdit = () => {
+    setEditingEventId(null); setTitle(''); setLocation(''); setShowTimePicker(false); setError('');
+  };
+
+  const saveEvent = async () => {
     if (!user || !couple.couple || !couple.partner || !title.trim()) return;
     setSaving(true); setError('');
     try {
       const [year, monthValue, day] = selectedDate.split('-').map(Number);
       const startsAt = new Date(year, monthValue - 1, day, time.getHours(), time.getMinutes()).toISOString();
-      const event = await calendarService.add({ ownerId: user.id, partnerId: couple.partner.id, coupleId: couple.couple.id, title, startsAt, location });
-      setEvents((previous) => [...previous, event]); setTitle(''); setLocation(''); void refreshUpcoming();
-    } catch (e) { setError(e instanceof Error ? e.message : 'Etkinlik eklenemedi.'); }
+      if (editingEventId) {
+        const updated = await calendarService.update({ id: editingEventId, partnerId: couple.partner.id, coupleId: couple.couple.id, title, startsAt, location });
+        setEvents((previous) => previous.map((event) => event.id === updated.id ? updated : event));
+      } else {
+        const added = await calendarService.add({ ownerId: user.id, partnerId: couple.partner.id, coupleId: couple.couple.id, title, startsAt, location });
+        setEvents((previous) => [...previous, added]);
+      }
+      setEditingEventId(null); setTitle(''); setLocation(''); setError(''); void refreshUpcoming();
+    } catch (e) { setError(e instanceof Error ? e.message : editingEventId ? 'Etkinlik güncellenemedi.' : 'Etkinlik eklenemedi.'); }
     finally { setSaving(false); }
   };
 
@@ -152,15 +176,15 @@ export default function CalendarScreen() {
       </Card>
 
       <Text style={styles.sectionTitle}>{dateName(selectedDate)}</Text>
-      {selectedEntries.length === 0 ? <Card style={styles.emptyCard}><EmptyState compact icon="calendar" title="Bu tarihte kayıt yok" description="Bu güne bir etkinlik ekleyebilirsiniz." /></Card> : selectedEntries.map((entry) => <Card key={entry.id} style={styles.entryCard}>
+      {selectedEntries.length === 0 ? <Card style={styles.emptyCard}><EmptyState compact icon="calendar" title="Bu tarihte kayıt yok" description="Bu güne bir etkinlik ekleyebilirsiniz." /></Card> : selectedEntries.map((entry) => <Card key={entry.id} style={styles.entryCard} onPress={entry.kind === 'event' ? () => beginEdit(entry) : undefined} accessibilityLabel={entry.kind === 'event' ? `${entry.title} etkinliğini düzenle` : undefined}>
         <View style={[styles.entryMark, { backgroundColor: entry.color }]} />
         <View style={styles.entryCopy}><Text style={styles.entryTitle}>{entry.title}</Text><Text style={styles.entryDetail}>{entry.detail}</Text></View>
-        {entry.kind === 'event' && entry.ownerId === user?.id ? <Pressable onPress={() => removeEvent(entry)} hitSlop={8} accessibilityLabel="Etkinliği kaldır"><Feather name="trash-2" size={16} color={colors.error} /></Pressable> : null}
+        {entry.kind === 'event' && entry.ownerId === user?.id ? <Pressable onPress={(event) => { event.stopPropagation(); removeEvent(entry); }} hitSlop={8} accessibilityLabel="Etkinliği kaldır"><Feather name="trash-2" size={16} color={colors.error} /></Pressable> : null}
       </Card>)}
 
       <Card style={styles.addCard}>
-        <Text style={styles.addTitle}>Seçili güne etkinlik ekle</Text>
-        <Input compact label="Etkinlik adı" placeholder="…" value={title} onChangeText={setTitle} returnKeyType="done" onSubmitEditing={() => { void addEvent(); }} />
+        <Text style={styles.addTitle}>{editingEventId ? 'Etkinliği düzenle' : 'Seçili güne etkinlik ekle'}</Text>
+        <Input compact label="Etkinlik adı" placeholder="…" value={title} onChangeText={setTitle} returnKeyType="done" onSubmitEditing={() => { void saveEvent(); }} />
         <Text style={styles.fieldLabel}>Saat</Text>
         <Pressable style={styles.timeButton} onPress={() => setShowTimePicker((visible) => !visible)} accessibilityRole="button" accessibilityLabel="Etkinlik saatini seç">
           <Feather name="clock" size={17} color={calendarColor.color} />
@@ -171,7 +195,8 @@ export default function CalendarScreen() {
         {showTimePicker && Platform.OS === 'ios' ? <Pressable onPress={() => setShowTimePicker(false)} style={[styles.timeDone, { backgroundColor: calendarColor.tint }]}><Text style={[styles.timeDoneText, { color: calendarColor.color }]}>Saati seç</Text></Pressable> : null}
         <Input compact label="Konum" placeholder="…" value={location} onChangeText={setLocation} />
         {error ? <Text style={styles.error}>{error}</Text> : null}
-        <Button title="Takvime ekle" icon="plus" toneColor={calendarColor.color} compact loading={saving} disabled={!title.trim()} onPress={() => { void addEvent(); }} />
+        <Button title={editingEventId ? 'Değişiklikleri kaydet' : 'Takvime ekle'} icon={editingEventId ? 'save' : 'plus'} toneColor={calendarColor.color} compact loading={saving} disabled={!title.trim()} onPress={() => { void saveEvent(); }} />
+        {editingEventId ? <Button title="Düzenlemeden vazgeç" variant="secondary" toneColor={calendarColor.color} compact onPress={cancelEdit} style={styles.cancelEditButton} /> : null}
       </Card>
     </>}
   </Screen>;
@@ -197,6 +222,7 @@ const styles = StyleSheet.create({
   entryTitle: { fontSize: fontSize.sm, fontWeight: '600', color: colors.text },
   entryDetail: { fontSize: fontSize.xs, color: colors.textSecondary, marginTop: 2 },
   addCard: { padding: spacing.md, borderColor: '#3F78D4', borderWidth: 1.5, marginTop: spacing.md },
+  cancelEditButton: { marginTop: spacing.sm },
   addTitle: { color: '#3F78D4', fontSize: fontSize.sm, fontWeight: '700', marginBottom: spacing.sm },
   fieldLabel: { fontSize: fontSize.sm, color: colors.textSecondary, marginBottom: spacing.xs, fontWeight: '500' },
   timeButton: { minHeight: 42, borderWidth: 1, borderColor: colors.border, borderRadius: 10, backgroundColor: colors.card, paddingHorizontal: spacing.md, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
