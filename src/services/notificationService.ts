@@ -12,6 +12,18 @@ const mapNotification = (row: any): AppNotification => ({
 });
 
 export const notificationService = {
+  async notifyKissPartner(input: { partnerId: string; coupleId: string }): Promise<void> {
+    try {
+      const { error } = await supabase.rpc('notify_kiss_partner_once_per_hour', {
+        p_partner_id: input.partnerId,
+        p_couple_id: input.coupleId,
+      });
+      if (error) console.warn('Öpücük bildirimi sınırlandırılamadı. Supabase SQL migration kurulumu gerekli:', error.message);
+    } catch (error) {
+      console.warn('Öpücük bildirimi sınırlandırılamadı:', error);
+    }
+  },
+
   async notifyPartner(input: {
     partnerId: string;
     coupleId: string;

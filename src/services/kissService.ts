@@ -39,7 +39,7 @@ export const kissService = {
       .single();
     if (error) throw new Error('Öpücük gönderilemedi. Eşleşmenizi ve bağlantınızı kontrol edin.');
     if (!data) throw new Error('Öpücük gönderilemedi. Lütfen yeniden deneyin.');
-    await notificationService.notifyPartner({ partnerId: input.partnerId, coupleId: input.coupleId, title: 'Sana bir öpücük gönderdi', body: 'Partnerin sana bir öpücük gönderdi. 💋' });
+    await notificationService.notifyKissPartner({ partnerId: input.partnerId, coupleId: input.coupleId });
     return mapKiss(data as Record<string, unknown>);
   },
 };
