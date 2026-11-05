@@ -27,6 +27,7 @@ export default function CategoryScreen() {
   if (slug === 'takvim') return <Redirect href="/calendar" />;
   if (slug === 'gunun-sarkisi') return <Redirect href="/song-of-the-day" />;
   if (slug === 'listeler') return <Redirect href="/lists" />;
+  if (slug === 'notlar') return <Redirect href="/notebook" />;
   if (slug === 'opucuk') return <Redirect href="/(tabs)" />;
 
   if (!category) {

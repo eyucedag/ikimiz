@@ -4,7 +4,7 @@ export const categories: Category[] = [
   { slug: 'takvim', title: 'Takvim', icon: 'calendar', color: '#3F78D4', tint: '#E5EEFF', description: 'Ortak planlarınızı ve etkinliklerinizi takvimde görün.' },
   { slug: 'ozel-gunler', title: 'Özel Günler', icon: 'gift', color: '#C03CA8', tint: '#FBE3F5', description: 'Yıl dönümü, doğum günü ve sizin için anlamlı tarihleri ekleyin.' },
   { slug: 'listeler', title: 'Listeler', icon: 'list', color: '#D98219', tint: '#FFF0DE', description: 'Market, film, seyahat gibi ortak listeleri birlikte yönetin.' },
-  { slug: 'notlar', title: 'Notlar', icon: 'file-text', color: '#AD8511', tint: '#FBF3D4', description: 'Klasörlerle düzenlenen kişisel ve ortak notlar.' },
+  { slug: 'notlar', title: 'Not Defteri', icon: 'file-text', color: '#AD8511', tint: '#FBF3D4', description: 'Resmi ve önemli bilgileri partnerinizle ortak kaydedin.' },
   { slug: 'gorevler', title: 'Görevler', icon: 'check-square', color: '#64A82F', tint: '#EAF5DF', description: 'Ev işleri ve planları paylaşın, tekrarlayan görevler oluşturun.' },
   { slug: 'ekrana-not', title: 'Ekrana Not', icon: 'edit-3', color: '#168D57', tint: '#DFF3E8', description: 'Partnerinizin ana ekranına kısa bir not bırakın.' },
   { slug: 'gunun-sarkisi', title: 'Günün Şarkısı', icon: 'music', color: '#8155B5', tint: '#F0EAF8', description: 'Her gün birbiriniz için bir şarkı seçin ve birlikte dinleyin.' },
@@ -30,6 +30,7 @@ const readyRoutes: Record<string, string> = {
   takvim: '/calendar',
   'gunun-sarkisi': '/song-of-the-day',
   listeler: '/lists',
+  notlar: '/notebook',
 };
 
 export const getCategoryRoute = (slug: string) => readyRoutes[slug] ?? `/categories/${slug}`;
