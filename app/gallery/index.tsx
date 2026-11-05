@@ -174,7 +174,9 @@ export default function GalleryScreen() {
           <Pressable style={styles.modalClose} onPress={() => { if (!uploading) setPendingPhoto(null); }} accessibilityRole="button" accessibilityLabel="Fotoğraf seçimini kapat"><Feather name="x" size={24} color={colors.white} /></Pressable>
           {pendingPhoto ? <>
             <Image source={{ uri: pendingPhoto.asset.uri }} style={[styles.fullImage, { width: windowWidth - spacing.xl * 2, height: windowHeight * 0.52 }]} resizeMode="contain" />
-            <Input label="Fotoğraf alt yazısı" value={caption} onChangeText={setCaption} placeholder="…" compact style={styles.captionInput} />
+            <View style={[styles.captionInputWrap, { width: windowWidth - spacing.xl * 2 }]}>
+              <Input label="Fotoğraf alt yazısı" value={caption} onChangeText={setCaption} placeholder="…" compact numberOfLines={1} style={styles.captionInput} />
+            </View>
             {error ? <Text style={styles.modalError}>{error}</Text> : null}
             <Button title="Fotoğrafı yükle" icon="upload" toneColor={tone.color} onPress={() => { void uploadPhoto(); }} loading={uploading} disabled={uploading} compact style={styles.downloadButton} />
           </> : null}
@@ -193,7 +195,7 @@ export default function GalleryScreen() {
           <Pressable style={styles.modalClose} onPress={() => setSelected(null)} accessibilityRole="button" accessibilityLabel="Fotoğrafı kapat"><Feather name="x" size={24} color={colors.white} /></Pressable>
           {selected ? <>
             <Image source={{ uri: selected.imageUrl }} style={[styles.fullImage, { width: windowWidth - spacing.xl * 2, height: windowHeight * 0.68 }]} resizeMode="contain" accessibilityLabel={selected.caption || 'Galeri fotoğrafı'} />
-            {editingCaption ? <Input label="Fotoğraf yazısı" value={captionDraft} onChangeText={setCaptionDraft} placeholder="…" compact style={styles.captionInput} /> : <Text style={styles.modalCaption}>{selected.caption || 'Birlikte güzel bir an'}</Text>}
+            {editingCaption ? <View style={[styles.captionInputWrap, { width: windowWidth - spacing.xl * 2 }]}><Input label="Fotoğraf yazısı" value={captionDraft} onChangeText={setCaptionDraft} placeholder="…" compact numberOfLines={1} style={styles.captionInput} /></View> : <Text style={styles.modalCaption}>{selected.caption || 'Birlikte güzel bir an'}</Text>}
             <Text style={styles.modalDate}>{formatDate(selected.takenAt)}</Text>
             {editingCaption ? <View style={styles.editActions}>
               <Button title="Vazgeç" variant="secondary" toneColor={tone.color} onPress={() => { setCaptionDraft(selected.caption ?? ''); setEditingCaption(false); }} compact />
@@ -227,7 +229,8 @@ const styles = StyleSheet.create({
   fullImage: { maxWidth: '100%' },
   modalCaption: { color: colors.white, fontWeight: '700', fontSize: fontSize.md, marginTop: spacing.md, textAlign: 'center' },
   modalDate: { color: 'rgba(255,255,255,0.75)', fontSize: fontSize.xs, marginTop: spacing.xs },
-  captionInput: { width: '100%', marginTop: spacing.md },
+  captionInputWrap: { marginTop: spacing.md },
+  captionInput: { width: '100%', height: 48, minHeight: 48, maxHeight: 48, paddingVertical: 0 },
   modalError: { color: '#FFD3D3', fontSize: fontSize.xs, marginTop: spacing.sm, textAlign: 'center' },
   editActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
   editCaption: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.md, padding: spacing.xs },
