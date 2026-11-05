@@ -210,7 +210,7 @@ export default function TodayScreen() {
             </View>
             <Feather name="chevron-right" size={18} color={songColor.color} />
           </Pressable>
-          {todaySong?.url ? <Button title="Şarkıyı dinle" icon="play" toneColor={songColor.color} onPress={() => { void listenToTodaySong(); }} compact style={styles.songListenButton} /> : null}
+          {todaySong?.url ? <Button title="Şarkıyı dinle" icon="play" toneColor={songColor.color} onPress={() => { void listenToTodaySong(); }} compact style={styles.cardActionButton} /> : null}
         </View>
       </Card>
 
@@ -242,7 +242,7 @@ export default function TodayScreen() {
             ) : (
               <Text style={styles.muted}>{couple.partner?.displayName} henüz bir not bırakmadı.</Text>
             )}
-            <Button title="Not Yaz" icon="edit-3" variant="secondary" toneColor={noteColor.color} onPress={() => router.push('/screen-note/compose')} compact style={styles.noteComposeButton} />
+            <Button title="Not Yaz" icon="edit-3" toneColor={noteColor.color} onPress={() => router.push('/screen-note/compose')} compact style={styles.cardActionButton} />
           </>
         ) : (
           <>
@@ -258,11 +258,11 @@ export default function TodayScreen() {
               </Text>
             </View>
             {couple.pendingInvitation ? (
-              <Button title="Davet Durumunu Gör" variant="secondary" onPress={() => router.push('/couple/invite')} style={styles.cardButton} />
+              <Button title="Davet Durumunu Gör" toneColor={noteColor.color} onPress={() => router.push('/couple/invite')} style={styles.cardActionButton} />
             ) : (
               <View style={styles.buttonRow}>
-                <Button title="Davet Et" icon="send" onPress={() => router.push('/couple/invite')} style={styles.flex} />
-                <Button title="Kodum Var" variant="secondary" onPress={() => router.push('/couple/accept')} style={styles.flex} />
+                <Button title="Davet Et" icon="send" toneColor={noteColor.color} onPress={() => router.push('/couple/invite')} style={styles.flex} />
+                <Button title="Kodum Var" variant="secondary" toneColor={noteColor.color} onPress={() => router.push('/couple/accept')} style={styles.flex} />
               </View>
             )}
           </>
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
   durationMissing: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: spacing.xs },
   section: { marginBottom: spacing.lg },
   compactCard: { paddingVertical: spacing.xs },
-  songListenButton: { width: '100%', marginTop: spacing.xs },
+  cardActionButton: { width: '100%', marginTop: spacing.sm },
   noteCard: { paddingBottom: spacing.sm },
   noteHeader: { minHeight: 34, flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
   noteHeaderTitle: { flex: 1, color: colors.text, fontWeight: '600', fontSize: fontSize.md },
@@ -379,7 +379,6 @@ const styles = StyleSheet.create({
   allNotesAction: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   allNotesLabel: { fontSize: 10, fontWeight: '600', lineHeight: 14 },
   allNotesButton: { width: 24, height: 22, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
-  noteComposeButton: { marginTop: spacing.sm, width: '100%' },
   note: { borderRadius: radius.card, paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
   noteEmoji: { fontSize: fontSize.xxl, marginBottom: spacing.xs },
   noteText: { fontSize: fontSize.md, color: colors.text, lineHeight: 20 },
@@ -397,7 +396,6 @@ const styles = StyleSheet.create({
   },
   connectText: { flex: 1, fontSize: fontSize.sm, color: colors.textSecondary, lineHeight: 19 },
   buttonRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg },
-  cardButton: { marginTop: spacing.sm },
   flex: { flex: 1 },
   upcomingRow: { paddingVertical: spacing.xs },
   upcomingCompact: { minHeight: 42, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
