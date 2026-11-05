@@ -17,13 +17,13 @@ export const colors = {
 
 export const appBackgroundColors = [
   { label: 'Krem', color: '#FAF8F5' },
-  { label: 'Pembe', color: '#FFD5EA' },
-  { label: 'Şeftali', color: '#FFD9B0' },
-  { label: 'Sarı', color: '#FFEE9E' },
-  { label: 'Yeşil', color: '#CFF28B' },
-  { label: 'Turkuaz', color: '#A6F0D8' },
-  { label: 'Mavi', color: '#B9D9FF' },
-  { label: 'Lila', color: '#D8B8FF' },
+  { label: 'Pembe', color: '#F9E9EF' },
+  { label: 'Şeftali', color: '#F9ECE3' },
+  { label: 'Sarı', color: '#FBF4DC' },
+  { label: 'Yeşil', color: '#EEF4E6' },
+  { label: 'Turkuaz', color: '#E7F3EF' },
+  { label: 'Mavi', color: '#E9EFF8' },
+  { label: 'Lila', color: '#F1EAF5' },
 ];
 
 export const fontSize = {
