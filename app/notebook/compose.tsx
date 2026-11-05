@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, TextInputInstance, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Button, CoupleLoading, EmptyState, Screen } from '@/src/components/ui';
-import { NotebookBody } from '@/src/components/NotebookBody';
 import { getCategoryColor } from '@/src/constants/categories';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -98,7 +97,6 @@ export default function NotebookComposeScreen() {
       <TextInput ref={inputRef} value={body} onChangeText={setBody} onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
         placeholder="Notunuzu buraya yazın…" placeholderTextColor={colors.textTertiary} multiline textAlignVertical="top"
         style={styles.bodyInput} accessibilityLabel="Not içeriği" />
-      {body ? <View style={[styles.preview, { borderColor: tone.tint }]}><Text style={styles.previewLabel}>Önizleme</Text><NotebookBody body={body} /></View> : null}
     </View>
     {error ? <Text style={styles.error}>{error}</Text> : null}
     <Button title={noteId ? 'Değişiklikleri kaydet' : 'Notu kaydet'} icon="save" toneColor={tone.color} onPress={() => { void save(); }} loading={saving} disabled={!title.trim() || !body.trim()} style={styles.saveButton} />
@@ -117,8 +115,6 @@ const styles = StyleSheet.create({
   toolDivider: { width: 1, height: 22 },
   toolbarHint: { flex: 1, color: colors.textTertiary, fontSize: 10, textAlign: 'right' },
   bodyInput: { minHeight: 330, fontSize: fontSize.md, color: colors.text, lineHeight: 24, paddingTop: spacing.md },
-  preview: { borderTopWidth: 1, paddingTop: spacing.sm, marginTop: spacing.sm },
-  previewLabel: { fontSize: fontSize.xs, fontWeight: '700', color: colors.textSecondary, marginBottom: spacing.xs },
   error: { color: colors.error, fontSize: fontSize.sm, marginTop: spacing.sm },
   saveButton: { marginTop: spacing.md },
 });

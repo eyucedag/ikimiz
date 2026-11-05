@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Card, CoupleLoading, EmptyState, IconButton, Screen } from '@/src/components/ui';
+import { Button, Card, CoupleLoading, EmptyState, Screen } from '@/src/components/ui';
 import { NotebookBody } from '@/src/components/NotebookBody';
 import { getCategoryColor } from '@/src/constants/categories';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
@@ -50,10 +50,11 @@ export default function NotebookScreen() {
 
   if (couple.loading) return <Screen title="Not Defteri"><CoupleLoading /></Screen>;
 
-  return <Screen title="Not Defteri" refreshing={refreshing || loading} onRefresh={() => { void onRefresh(); }}
-    headerRight={couple.isPaired ? <IconButton icon="plus" accessibilityLabel="Yeni ortak not" onPress={() => router.push('/notebook/compose')} /> : null}>
+  return <Screen title="Not Defteri" refreshing={refreshing || loading} onRefresh={() => { void onRefresh(); }}>
     {!couple.isPaired || !couple.couple ? <EmptyState icon="users" title="Önce eşleşin" description="Not Defteri’ni partnerinizle ortak kullanmak için önce eşleşin." /> : <>
       <Text style={[styles.intro, { color: tone.color }]}>Önemli bilgileri ve kayıtları birlikte saklayın.</Text>
+      <Button title="Yeni Not" icon="plus" toneColor={tone.color} onPress={() => router.push('/notebook/compose')} style={styles.newNoteButton} />
+      <Text style={[styles.sectionTitle, { color: tone.color }]}>Mevcut Notlar</Text>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {loading && notes.length === 0 ? null : notes.length === 0 ? <Card style={[styles.emptyCard, { borderColor: tone.color }]}>
         <EmptyState compact icon="file-text" title="Not Defteri boş" description="Resmi ve önemli bilgilerinizi burada ortak kaydedebilirsiniz." toneColor={tone.color} toneTint={tone.tint}
@@ -62,7 +63,7 @@ export default function NotebookScreen() {
         <Pressable onPress={() => router.push({ pathname: '/notebook/compose', params: { noteId: note.id } })} accessibilityRole="button" accessibilityLabel={`${note.title} notunu aç`}>
           <View style={styles.cardHeading}>
             <Text style={styles.title}>{note.title}</Text>
-            <Feather name="chevron-right" size={18} color={tone.color} />
+            <View style={styles.editAction}><Feather name="edit-2" size={14} color={tone.color} /><Text style={[styles.editLabel, { color: tone.color }]}>Düzenle</Text></View>
           </View>
           <View style={styles.body}><NotebookBody body={note.body} numberOfLines={3} /></View>
           <Text style={styles.meta}>{formatDateTime(note.updatedAt)}</Text>
@@ -77,10 +78,14 @@ export default function NotebookScreen() {
 
 const styles = StyleSheet.create({
   intro: { fontSize: fontSize.sm, marginBottom: spacing.md },
+  newNoteButton: { marginBottom: spacing.md },
+  sectionTitle: { fontSize: fontSize.md, fontWeight: '700', marginBottom: spacing.sm },
   error: { color: colors.error, fontSize: fontSize.sm, marginBottom: spacing.md },
   emptyCard: { borderWidth: 1.5 },
   noteCard: { borderWidth: 1.5, padding: spacing.md, marginBottom: spacing.sm },
   cardHeading: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  editAction: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  editLabel: { fontSize: fontSize.xs, fontWeight: '600' },
   title: { flex: 1, fontSize: fontSize.md, fontWeight: '700', color: colors.text },
   body: { marginTop: spacing.sm, maxHeight: 72, overflow: 'hidden' },
   meta: { color: colors.textTertiary, fontSize: fontSize.xs, marginTop: spacing.sm },
