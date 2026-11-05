@@ -201,7 +201,13 @@ export default function TodayScreen() {
         <View>
           <Pressable onPress={() => router.push('/song-of-the-day')} accessibilityRole="button" accessibilityLabel="Günün Şarkısı sayfasını aç" style={styles.upcomingCompact}>
             <View style={[styles.upcomingIcon, { backgroundColor: songColor.tint }]}><Feather name="music" size={18} color={songColor.color} /></View>
-            <View style={styles.upcomingCopy}><Text style={styles.upcomingTitle}>Günün Şarkısı</Text><Text style={styles.upcomingDescription} numberOfLines={1}>{todaySong ? `${todaySong.title} · ${todaySong.artist}` : 'Bugün birbirinize bir şarkı seçin.'}</Text></View>
+            <View style={styles.upcomingCopy}>
+              <Text style={styles.upcomingDescription}>Günün Şarkısı</Text>
+              {todaySong ? <>
+                <Text style={styles.songCardTitle} numberOfLines={1}>{todaySong.title}</Text>
+                <Text style={styles.upcomingDescription} numberOfLines={1}>{todaySong.artist}</Text>
+              </> : <Text style={styles.upcomingTitle} numberOfLines={1}>Bugün birbirinize bir şarkı seçin.</Text>}
+            </View>
             <Feather name="chevron-right" size={18} color={songColor.color} />
           </Pressable>
           {todaySong?.url ? <Button title="Şarkıyı dinle" icon="play" toneColor={songColor.color} onPress={() => { void listenToTodaySong(); }} compact style={styles.songListenButton} /> : null}
@@ -399,6 +405,7 @@ const styles = StyleSheet.create({
   upcomingCopy: { flex: 1 },
   upcomingDescription: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 1 },
   upcomingTitle: { fontSize: fontSize.md, color: colors.text, fontWeight: '500' },
+  songCardTitle: { fontSize: fontSize.lg, color: colors.text, fontWeight: '700', marginTop: 1 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -spacing.xs },
   tile: { padding: spacing.xs },
   tileInner: {
