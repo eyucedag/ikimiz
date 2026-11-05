@@ -23,6 +23,7 @@ import { useAutomaticNearbySteps } from '@/src/hooks/useAutomaticNearbySteps';
 export default function TodayScreen() {
   const noteColor = getCategoryColor('ekrana-not');
   const calendarColor = getCategoryColor('takvim');
+  const songColor = getCategoryColor('gunun-sarkisi');
   const router = useRouter();
   const { user } = useAuth();
   const couple = useCouple();
@@ -146,9 +147,7 @@ export default function TodayScreen() {
             {togetherDuration ? <Text style={styles.duration}>{togetherDuration}</Text> : couple.isPaired ? <Text style={styles.durationMissing}>Birlikte olduğunuz zamanı profilden ekleyin</Text> : null}
           </View>
         </View>
-        {couple.loading ? (
-          <View style={styles.noteHeader}><Text style={styles.noteHeaderTitle}>Partnerinden Not</Text><ActivityIndicator color={noteColor.color} /></View>
-        ) : couple.isPaired ? (
+        {couple.isPaired ? (
           <Pressable
             onPress={() => direction.sharing ? direction.stop() : void direction.start()}
             accessibilityRole="button"
@@ -166,9 +165,19 @@ export default function TodayScreen() {
       </View>
       {direction.error ? <Text style={styles.directionHint}>{direction.error}</Text> : direction.anySharing ? <Text style={styles.directionHint}>{direction.bothSharing ? 'İkinizin konumu açık.' : 'Konum paylaşımı açık; yön için ikiniz de açın.'}</Text> : null}
 
+      <Card style={[styles.section, styles.compactCard, { borderColor: songColor.color, borderWidth: 1.5 }]}>
+        <Pressable onPress={() => router.push('/song-of-the-day')} accessibilityRole="button" accessibilityLabel="Günün Şarkısı sayfasını aç" style={styles.upcomingCompact}>
+          <View style={[styles.upcomingIcon, { backgroundColor: songColor.tint }]}><Feather name="music" size={18} color={songColor.color} /></View>
+          <View style={styles.upcomingCopy}><Text style={styles.upcomingTitle}>Günün Şarkısı</Text><Text style={styles.upcomingDescription} numberOfLines={1}>Bugün birbirinize bir şarkı seçin.</Text></View>
+          <Feather name="chevron-right" size={18} color={songColor.color} />
+        </Pressable>
+      </Card>
+
       {/* Partnerinden Not */}
       <Card style={[styles.section, styles.compactCard, styles.noteCard, { borderColor: noteColor.color, borderWidth: 1.5 }]}>
-        {couple.isPaired ? (
+        {couple.loading ? (
+          <View style={styles.noteHeader}><Text style={styles.noteHeaderTitle}>Partnerinden Not</Text><ActivityIndicator color={noteColor.color} /></View>
+        ) : couple.isPaired ? (
           <>
             <View style={styles.noteHeader}>
               <Text style={styles.noteHeaderTitle}>Partnerinden Not</Text>

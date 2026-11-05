@@ -146,7 +146,7 @@ export default function CalendarScreen() {
 
       <Card style={styles.addCard}>
         <Text style={styles.addTitle}>Seçili güne etkinlik ekle</Text>
-        <Input compact placeholder="Örn. Akşam yemeği" value={title} onChangeText={setTitle} returnKeyType="done" onSubmitEditing={() => { void addEvent(); }} />
+        <Input compact label="Etkinlik adı" placeholder="…" value={title} onChangeText={setTitle} returnKeyType="done" onSubmitEditing={() => { void addEvent(); }} />
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <Button title="Takvime ekle" icon="plus" toneColor={calendarColor.color} compact loading={saving} disabled={!title.trim()} onPress={() => { void addEvent(); }} />
       </Card>

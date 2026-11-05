@@ -270,7 +270,7 @@ export default function MoodScreen() {
               editable={!moods.saving && draftIsCurrent}
               maxLength={MOOD_NOTE_MAX_LENGTH}
               multiline
-              placeholder="Bugün aklınızdan neler geçiyor?"
+              placeholder="…"
               placeholderTextColor={colors.textTertiary}
               textAlignVertical="top"
               accessibilityLabel="Bugünkü ruh haliniz için kısa not"

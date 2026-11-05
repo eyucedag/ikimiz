@@ -70,7 +70,7 @@ export default function ComposeNoteScreen() {
         <TextInput
           value={text}
           onChangeText={setText}
-          placeholder={`${couple.partner?.displayName ?? 'Partnerinize'} kısa bir not yazın…`}
+          placeholder="…"
           placeholderTextColor={colors.textTertiary}
           multiline
           maxLength={SCREEN_NOTE_MAX_LENGTH}

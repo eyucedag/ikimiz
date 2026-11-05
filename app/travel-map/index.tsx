@@ -138,8 +138,8 @@ export default function TravelMapScreen() {
           </Card>
           <Card style={styles.form}>
             <Text style={styles.formTitle}>{editingPlace ? 'Ziyareti düzenle' : 'Haritaya yer ekle'}</Text>
-            <Input compact label="Ülke" placeholder="Türkiye" value={country} onChangeText={setCountry} autoCorrect={false} />
-            <Input compact label="Şehir" placeholder="İstanbul" value={city} onChangeText={setCity} autoCorrect={false} />
+            <Input compact label="Ülke" placeholder="…" value={country} onChangeText={setCountry} autoCorrect={false} />
+            <Input compact label="Şehir" placeholder="…" value={city} onChangeText={setCity} autoCorrect={false} />
             <Text style={styles.inputLabel}>Ziyaret tarihi</Text>
             <Pressable accessibilityRole="button" onPress={() => { setDraftDate(parseLocalDate(visitedOn)); setShowDatePicker(true); }} style={({ pressed }) => [styles.dateButton, { backgroundColor: surfaceColor }, pressed && styles.dateButtonPressed]}>
               <Feather name="calendar" size={17} color="#0B8F87" />

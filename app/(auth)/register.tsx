@@ -38,12 +38,12 @@ export default function RegisterScreen() {
   return (
     <Screen title="Hesap Oluştur">
       <Text style={styles.lead}>Birkaç bilgiyle hesabınızı oluşturun, ardından partnerinizi davet edin.</Text>
-      <Input label="Ad Soyad" value={fullName} onChangeText={setFullName} placeholder="Adınız Soyadınız" autoComplete="name" />
+      <Input label="Ad Soyad" value={fullName} onChangeText={setFullName} placeholder="…" autoComplete="name" />
       <Input
         label="E-posta"
         value={email}
         onChangeText={setEmail}
-        placeholder="ornek@eposta.com"
+        placeholder="…"
         keyboardType="email-address"
         autoCapitalize="none"
         autoComplete="email"

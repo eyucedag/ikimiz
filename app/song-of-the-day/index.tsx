@@ -103,9 +103,9 @@ export default function SongOfTheDayScreen() {
 
         <Card style={[styles.form, { borderColor: categoryColor.color }]}>
           <Text style={[styles.formTitle, { color: categoryColor.color }]}>{song ? 'Şarkıyı değiştir' : 'Bugünün şarkısını seç'}</Text>
-          <Input label="Şarkı" compact placeholder="Şarkı adı" value={title} onChangeText={setTitle} />
-          <Input label="Sanatçı" compact placeholder="Sanatçı adı" value={artist} onChangeText={setArtist} />
-          <Input label="Dinleme bağlantısı" compact placeholder="Spotify veya YouTube bağlantısı" value={url} onChangeText={setUrl} autoCapitalize="none" keyboardType="url" autoCorrect={false} />
+          <Input label="Şarkı" compact placeholder="…" value={title} onChangeText={setTitle} />
+          <Input label="Sanatçı" compact placeholder="…" value={artist} onChangeText={setArtist} />
+          <Input label="Dinleme bağlantısı" compact placeholder="…" value={url} onChangeText={setUrl} autoCapitalize="none" keyboardType="url" autoCorrect={false} />
           <Text style={styles.hint}>Şarkı bağlantısını Spotify, YouTube veya kullandığınız başka bir uygulamadan kopyalayın.</Text>
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <Button title={song ? 'Günün şarkısını güncelle' : 'Günün şarkısını paylaş'} icon="music" toneColor={categoryColor.color} onPress={() => { void save(); }} loading={saving} disabled={!title.trim() || !artist.trim() || !url.trim()} compact />

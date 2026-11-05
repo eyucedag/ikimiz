@@ -63,7 +63,7 @@ export default function AcceptInvitationScreen() {
         label="Davet kodu"
         value={code}
         onChangeText={onChange}
-        placeholder="ÖRN. K7M2QX"
+        placeholder="…"
         autoCapitalize="characters"
         autoCorrect={false}
         maxLength={6}

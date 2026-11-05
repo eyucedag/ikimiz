@@ -75,7 +75,7 @@ export default function SpecialDatesScreen() {
       {!couple.isPaired ? <EmptyState icon="users" title="Önce eşleşin" description="Özel günlerinizi birlikte kaydetmek için partnerinizle eşleşin." /> : <>
         <Card style={styles.form}>
           <Text style={styles.formTitle}>{editing ? 'Özel günü düzenle' : 'Özel gün ekle'}</Text>
-          <Input label="Özel gün" compact placeholder="Yıl dönümümüz" value={title} onChangeText={setTitle} />
+          <Input label="Özel gün" compact placeholder="…" value={title} onChangeText={setTitle} />
           <Text style={styles.label}>Tür</Text>
           <View style={styles.kindRow}>
             {kinds.map((entry) => <Pressable key={entry.value} onPress={() => setKind(entry.value)} style={[styles.kindChip, kind === entry.value && { borderColor: categoryColor, backgroundColor: '#FBE3F5' }]}>

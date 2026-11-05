@@ -30,7 +30,7 @@ export default function LoginScreen() {
         label="E-posta"
         value={email}
         onChangeText={setEmail}
-        placeholder="ornek@eposta.com"
+        placeholder="…"
         keyboardType="email-address"
         autoCapitalize="none"
         autoComplete="email"
