@@ -32,8 +32,15 @@ export const calendarService = {
     await notificationService.notifyPartner({ partnerId: input.partnerId, coupleId: input.coupleId, category: 'event', title: 'Takvime etkinlik eklendi', body: event.title });
     return event;
   },
-  async remove(id: string): Promise<void> {
-    const { error } = await supabase.from('calendar_events').update({ is_deleted: true }).eq('id', id);
-    if (error) throw new Error('Etkinlik kaldırılamadı.');
+  async remove(id: string, ownerId: string): Promise<void> {
+    const { data, error } = await supabase.from('calendar_events').delete()
+      .eq('id', id).eq('owner_id', ownerId).select('id').maybeSingle();
+    if (error) {
+      const missingSetup = error.code === '42501' || error.code === 'PGRST301';
+      throw new Error(missingSetup
+        ? 'Etkinliği silme izni eksik. Supabase SQL Editor’da takvim silme izni SQL’ini çalıştırın.'
+        : `Etkinlik kaldırılamadı: ${error.message}`);
+    }
+    if (!data) throw new Error('Etkinlik bulunamadı veya yalnızca ekleyen kişi silebilir.');
   },
 };

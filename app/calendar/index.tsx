@@ -115,7 +115,12 @@ export default function CalendarScreen() {
   const removeEvent = (entry: Entry) => Alert.alert('Etkinliği kaldır', `${entry.title} kaldırılsın mı?`, [
     { text: 'Vazgeç', style: 'cancel' },
     { text: 'Kaldır', style: 'destructive', onPress: async () => {
-      try { await calendarService.remove(entry.id.replace('event-', '')); setEvents((previous) => previous.filter((event) => `event-${event.id}` !== entry.id)); }
+      try {
+        if (!user?.id) throw new Error('Oturum açmanız gerekiyor.');
+        await calendarService.remove(entry.id.replace('event-', ''), user.id);
+        setEvents((previous) => previous.filter((event) => `event-${event.id}` !== entry.id));
+        setError('');
+      }
       catch (e) { setError(e instanceof Error ? e.message : 'Etkinlik kaldırılamadı.'); }
     } },
   ]);
