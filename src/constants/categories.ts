@@ -13,6 +13,7 @@ export const categories: Category[] = [
   { slug: 'gunun-sarkisi', title: 'Günün Şarkısı', icon: 'music', color: '#8042D5', tint: '#F0E9FC', description: 'Her gün birbiriniz için bir şarkı seçin ve birlikte dinleyin.' },
   { slug: 'hediye-radari', title: 'Hediye Radarı', icon: 'gift', color: '#00858A', tint: '#E1F5F4', description: 'Hediye fikirlerini partnerinizden gizli biriktirin.' },
   { slug: 'bilinmesi-gerekenler', title: 'Bilinmesi Gerekenler', icon: 'heart', color: '#D12F54', tint: '#FCE6EB', description: 'Beden ölçüleri, alerjiler, sevdiği şeyler gibi önemli bilgiler.' },
+  { slug: 'birbirimizi-taniyalim', title: 'Birbirimizi Tanıyalım', icon: 'message-circle', color: '#9C27D8', tint: '#F4E7FC', description: 'Soruları sırayla yanıtlayın, cevaplarınızı birlikte keşfedin.' },
   { slug: 'opucuk', title: 'Öpücük', icon: 'heart', color: '#E21E3F', tint: '#FFE6EB', description: 'İstediğiniz zaman partnerinize animasyonlu öpücük gönderin.' },
   { slug: 'gezilen-yerler', title: 'Gezdiğimiz Yerler', icon: 'map-pin', color: '#009B85', tint: '#E2F6F1', description: 'Birlikte gittiğiniz şehirleri ve ülkeleri haritada biriktirin.' },
   { slug: 'birlikte-adimlar', title: 'Birlikte Atılan Adımlar', icon: 'activity', color: '#4E55D9', tint: '#EBECFF', description: 'Telefonunuzun adım sayarından günlük adımlarınızı paylaşın.' },
@@ -39,6 +40,7 @@ const readyRoutes: Record<string, string> = {
   gorevler: '/tasks',
   'hediye-radari': '/gifts',
   'bilinmesi-gerekenler': '/facts',
+  'birbirimizi-taniyalim': '/get-to-know',
 };
 
 export const getCategoryRoute = (slug: string) => readyRoutes[slug] ?? `/categories/${slug}`;
