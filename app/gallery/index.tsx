@@ -15,6 +15,32 @@ import { formatDate } from '@/src/utils/date';
 
 const MAX_PHOTO_SIZE = 15 * 1024 * 1024;
 const MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/heic']);
+type PendingPhoto = { asset: ImagePicker.ImagePickerAsset; takenAt: string };
+
+async function readPhotoBytes(uri: string): Promise<ArrayBuffer> {
+  try {
+    const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    const clean = base64.replace(/[^A-Za-z0-9+/=]/g, '');
+    const bytes = new Uint8Array(Math.floor(clean.length * 3 / 4) - (clean.endsWith('==') ? 2 : clean.endsWith('=') ? 1 : 0));
+    let offset = 0;
+    for (let i = 0; i < clean.length; i += 4) {
+      const a = alphabet.indexOf(clean[i]);
+      const b = alphabet.indexOf(clean[i + 1]);
+      const c = alphabet.indexOf(clean[i + 2]);
+      const d = alphabet.indexOf(clean[i + 3]);
+      if (a < 0 || b < 0) continue;
+      bytes[offset++] = (a << 2) | (b >> 4);
+      if (c >= 0 && clean[i + 2] !== '=') bytes[offset++] = ((b & 15) << 4) | (c >> 2);
+      if (d >= 0 && clean[i + 3] !== '=') bytes[offset++] = ((c & 3) << 6) | d;
+    }
+    return bytes.buffer;
+  } catch {
+    const response = await fetch(uri);
+    if (!response.ok) throw new Error('Seçilen fotoğraf telefondan okunamadı. Başka bir fotoğraf deneyin.');
+    return response.arrayBuffer();
+  }
+}
 
 function parseExifDate(value: unknown): Date | null {
   if (typeof value !== 'string') return null;
@@ -31,6 +57,7 @@ export default function GalleryScreen() {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
   const [caption, setCaption] = useState('');
+  const [pendingPhoto, setPendingPhoto] = useState<PendingPhoto | null>(null);
   const [selected, setSelected] = useState<GalleryPhoto | null>(null);
   const [captionDraft, setCaptionDraft] = useState('');
   const [editingCaption, setEditingCaption] = useState(false);
@@ -54,31 +81,38 @@ export default function GalleryScreen() {
     return () => clearInterval(timer);
   }, [refresh]));
 
-  const addPhoto = async () => {
+  const choosePhoto = async () => {
     if (!user || !couple.couple || !couple.partner) return;
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) { Alert.alert('Fotoğraf erişimi gerekli', 'Galeriye fotoğraf eklemek için fotoğraf arşivine erişim izni verin.'); return; }
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: false, quality: 0.9, exif: true });
-    if (result.canceled || !result.assets[0]) return;
-    const asset = result.assets[0];
-    if (asset.fileSize && asset.fileSize > MAX_PHOTO_SIZE) { Alert.alert('Fotoğraf çok büyük', 'En fazla 15 MB boyutunda fotoğraf ekleyebilirsiniz.'); return; }
-    setUploading(true); setError('');
     try {
-      const response = await fetch(asset.uri);
-      if (!response.ok) throw new Error('Seçilen fotoğraf okunamadı.');
-      const content = await response.arrayBuffer();
-      if (content.byteLength > MAX_PHOTO_SIZE) throw new Error('En fazla 15 MB boyutunda fotoğraf ekleyebilirsiniz.');
-      const mimeType = asset.mimeType && MIME_TYPES.has(asset.mimeType) ? asset.mimeType : 'image/jpeg';
+      // Android's system photo picker grants access to the chosen image without broad library permission.
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: false, quality: 0.9, exif: true });
+      if (result.canceled || !result.assets[0]) return;
+      const asset = result.assets[0];
+      if (asset.fileSize && asset.fileSize > MAX_PHOTO_SIZE) { Alert.alert('Fotoğraf çok büyük', 'En fazla 15 MB boyutunda fotoğraf ekleyebilirsiniz.'); return; }
       const exifDate = asset.exif?.DateTimeOriginal ?? asset.exif?.DateTime;
       let takenAt = parseExifDate(exifDate)?.toISOString();
       if (!takenAt && asset.assetId) {
         try {
           const info = await MediaLibrary.getAssetInfoAsync(asset.assetId);
           if (info.creationTime > 0) takenAt = new Date(info.creationTime).toISOString();
-        } catch { /* Fall back to upload date if the photo library has no date metadata. */ }
+        } catch { /* Fall back to current date when Android does not expose asset metadata. */ }
       }
-      const photo = await galleryService.add({ ownerId: user.id, partnerId: couple.partner.id, coupleId: couple.couple.id, caption, takenAt: takenAt ?? new Date().toISOString(), mimeType, sizeBytes: content.byteLength, content });
-      setPhotos((current) => [photo, ...current]); setCaption('');
+      setCaption('');
+      setPendingPhoto({ asset, takenAt: takenAt ?? new Date().toISOString() });
+      setError('');
+    } catch (e) { Alert.alert('Fotoğraf seçilemedi', e instanceof Error ? e.message : 'Tekrar deneyin.'); }
+  };
+
+  const uploadPhoto = async () => {
+    if (!user || !couple.couple || !couple.partner || !pendingPhoto) return;
+    setUploading(true); setError('');
+    try {
+      const { asset } = pendingPhoto;
+      const content = await readPhotoBytes(asset.uri);
+      if (content.byteLength > MAX_PHOTO_SIZE) throw new Error('En fazla 15 MB boyutunda fotoğraf ekleyebilirsiniz.');
+      const mimeType = asset.mimeType && MIME_TYPES.has(asset.mimeType) ? asset.mimeType : 'image/jpeg';
+      const photo = await galleryService.add({ ownerId: user.id, partnerId: couple.partner.id, coupleId: couple.couple.id, caption, takenAt: pendingPhoto.takenAt, mimeType, sizeBytes: content.byteLength, content });
+      setPhotos((current) => [photo, ...current]); setCaption(''); setPendingPhoto(null);
     } catch (e) { setError(e instanceof Error ? e.message : 'Fotoğraf eklenemedi.'); }
     finally { setUploading(false); }
   };
@@ -104,8 +138,6 @@ export default function GalleryScreen() {
   const downloadPhoto = async (photo: GalleryPhoto) => {
     setDownloading(true);
     try {
-      const permission = await MediaLibrary.requestPermissionsAsync(true, ['photo']);
-      if (!permission.granted) { Alert.alert('Fotoğraf kaydetme izni gerekli', 'Fotoğrafı telefona indirmek için fotoğraf arşivine kaydetme izni verin.'); return; }
       if (!FileSystem.cacheDirectory) throw new Error('Geçici indirme alanı açılamadı.');
       const extension = photo.mimeType === 'image/png' ? 'png' : photo.mimeType === 'image/webp' ? 'webp' : photo.mimeType === 'image/heic' ? 'heic' : 'jpg';
       const target = `${FileSystem.cacheDirectory}ikimiz-galeri-${photo.id}.${extension}`;
@@ -133,11 +165,21 @@ export default function GalleryScreen() {
       <Text style={styles.intro}>En sevdiğiniz fotoğrafları polaroid kartlarda birlikte biriktirin.</Text>
       <Card style={[styles.addCard, { borderColor: tone.color }]}>
         <Text style={[styles.addTitle, { color: tone.color }]}>Yeni fotoğraf</Text>
-        <Input label="Fotoğraf alt yazısı" value={caption} onChangeText={setCaption} placeholder="…" compact />
-        <Button title="Galeriden fotoğraf seç" icon="image" toneColor={tone.color} onPress={() => { void addPhoto(); }} loading={uploading} disabled={uploading} compact />
+        <Button title="Galeriden fotoğraf seç" icon="image" toneColor={tone.color} onPress={() => { void choosePhoto(); }} disabled={uploading} compact />
         <Text style={styles.uploadHint}>En fazla 15 MB · yalnızca ikiniz görebilirsiniz</Text>
       </Card>
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      <Modal visible={!!pendingPhoto} transparent animationType="fade" statusBarTranslucent onRequestClose={() => { if (!uploading) setPendingPhoto(null); }}>
+        <View style={styles.modalBackdrop}>
+          <Pressable style={styles.modalClose} onPress={() => { if (!uploading) setPendingPhoto(null); }} accessibilityRole="button" accessibilityLabel="Fotoğraf seçimini kapat"><Feather name="x" size={24} color={colors.white} /></Pressable>
+          {pendingPhoto ? <>
+            <Image source={{ uri: pendingPhoto.asset.uri }} style={[styles.fullImage, { width: windowWidth - spacing.xl * 2, height: windowHeight * 0.52 }]} resizeMode="contain" />
+            <Input label="Fotoğraf alt yazısı" value={caption} onChangeText={setCaption} placeholder="…" compact style={styles.captionInput} />
+            {error ? <Text style={styles.modalError}>{error}</Text> : null}
+            <Button title="Fotoğrafı yükle" icon="upload" toneColor={tone.color} onPress={() => { void uploadPhoto(); }} loading={uploading} disabled={uploading} compact style={styles.downloadButton} />
+          </> : null}
+        </View>
+      </Modal>
       {photos.length === 0 && !loading ? <Card style={[styles.emptyCard, { borderColor: tone.color }]}><EmptyState compact icon="image" title="Henüz fotoğraf yok" description="İlk sevdiğiniz anıyı ekleyin." toneColor={tone.color} toneTint={tone.tint} /></Card> : null}
       <View style={styles.grid}>{photos.map((photo) => <Card key={photo.id} onPress={() => openPhoto(photo)} accessibilityLabel={`${photo.caption || 'Fotoğraf'} görüntüle`} style={[styles.polaroid, { width: tileWidth, borderColor: tone.color }]}>
         <Image source={{ uri: photo.imageUrl }} style={styles.tileImage} resizeMode="cover" />
@@ -186,6 +228,7 @@ const styles = StyleSheet.create({
   modalCaption: { color: colors.white, fontWeight: '700', fontSize: fontSize.md, marginTop: spacing.md, textAlign: 'center' },
   modalDate: { color: 'rgba(255,255,255,0.75)', fontSize: fontSize.xs, marginTop: spacing.xs },
   captionInput: { width: '100%', marginTop: spacing.md },
+  modalError: { color: '#FFD3D3', fontSize: fontSize.xs, marginTop: spacing.sm, textAlign: 'center' },
   editActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
   editCaption: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.md, padding: spacing.xs },
   editCaptionText: { fontSize: fontSize.sm, fontWeight: '600' },
