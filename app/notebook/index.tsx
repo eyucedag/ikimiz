@@ -60,11 +60,15 @@ export default function NotebookScreen() {
         <EmptyState compact icon="file-text" title="Not Defteri boş" description="Resmi ve önemli bilgilerinizi burada ortak kaydedebilirsiniz." toneColor={tone.color} toneTint={tone.tint}
           actionLabel="İlk notu ekle" onAction={() => router.push('/notebook/compose')} />
       </Card> : notes.map((note) => <Card key={note.id} style={[styles.noteCard, { borderColor: tone.color }]}>
-        <Pressable onPress={() => router.push({ pathname: '/notebook/compose', params: { noteId: note.id } })} accessibilityRole="button" accessibilityLabel={`${note.title} notunu aç`}>
-          <View style={styles.cardHeading}>
+        <View style={styles.cardHeading}>
+          <Pressable onPress={() => router.push({ pathname: '/notebook/view', params: { noteId: note.id } })} accessibilityRole="button" accessibilityLabel={`${note.title} notunu oku`} style={styles.titlePress}>
             <Text style={styles.title}>{note.title}</Text>
-            <View style={styles.editAction}><Feather name="edit-2" size={14} color={tone.color} /><Text style={[styles.editLabel, { color: tone.color }]}>Düzenle</Text></View>
-          </View>
+          </Pressable>
+          <Pressable onPress={() => router.push({ pathname: '/notebook/compose', params: { noteId: note.id } })} accessibilityRole="button" accessibilityLabel={`${note.title} notunu düzenle`} style={styles.editAction}>
+            <Feather name="edit-2" size={14} color={tone.color} /><Text style={[styles.editLabel, { color: tone.color }]}>Düzenle</Text>
+          </Pressable>
+        </View>
+        <Pressable onPress={() => router.push({ pathname: '/notebook/view', params: { noteId: note.id } })} accessibilityRole="button" accessibilityLabel={`${note.title} notunun tamamını oku`}>
           <View style={styles.body}><NotebookBody body={note.body} numberOfLines={3} /></View>
           <Text style={styles.meta}>{formatDateTime(note.updatedAt)}</Text>
         </Pressable>
@@ -84,6 +88,7 @@ const styles = StyleSheet.create({
   emptyCard: { borderWidth: 1.5 },
   noteCard: { borderWidth: 1.5, padding: spacing.md, marginBottom: spacing.sm },
   cardHeading: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  titlePress: { flex: 1 },
   editAction: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   editLabel: { fontSize: fontSize.xs, fontWeight: '600' },
   title: { flex: 1, fontSize: fontSize.md, fontWeight: '700', color: colors.text },

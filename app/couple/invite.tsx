@@ -35,9 +35,9 @@ export default function InviteScreen() {
       <Screen title="Partner Davet Et">
         <EmptyState
           icon="check-circle"
-          title="Zaten eşleştiniz"
+          title="Partneriniz eklendi"
           description={`${couple.partner?.displayName ?? 'Partneriniz'} ile ortak alanınız aktif.`}
-          actionLabel="Eşleşme durumunu gör"
+          actionLabel="Partner ayarlarını aç"
           onAction={() => router.replace('/couple/status')}
         />
       </Screen>

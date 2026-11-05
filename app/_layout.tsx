@@ -47,6 +47,7 @@ function RootNavigator() {
         <Stack.Screen name="lists/index" />
         <Stack.Screen name="lists/[id]" />
         <Stack.Screen name="notebook/index" />
+        <Stack.Screen name="notebook/view" />
         <Stack.Screen name="notebook/compose" />
         <Stack.Screen name="documents/index" />
       </Stack>

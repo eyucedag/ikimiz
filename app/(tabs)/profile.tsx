@@ -49,6 +49,7 @@ export default function ProfileScreen() {
   const [timePicker, setTimePicker] = useState(false);
   const [savingStart, setSavingStart] = useState(false);
   const [startError, setStartError] = useState('');
+  const [endingCouple, setEndingCouple] = useState(false);
 
   useEffect(() => {
     setFullName(user?.fullName ?? '');
@@ -107,11 +108,19 @@ export default function ProfileScreen() {
       },
     ]);
 
-  const coupleSummary = couple.partner
-    ? `${couple.partner.displayName} ile eşleştiniz`
-    : couple.pendingInvitation
-      ? 'Davet onay bekliyor'
-      : 'Henüz eşleşme yok';
+  const confirmEndCouple = () => Alert.alert(
+    'Partner bağlantısını sonlandır',
+    'Ortak alana erişiminiz kapanır. Kişisel verileriniz korunur. Emin misiniz?',
+    [
+      { text: 'Vazgeç', style: 'cancel' },
+      { text: 'Sonlandır', style: 'destructive', onPress: async () => {
+        setEndingCouple(true);
+        const result = await couple.endCouple();
+        setEndingCouple(false);
+        if (result.error) Alert.alert('Sonlandırılamadı', result.error);
+      } },
+    ],
+  );
 
   return (
     <Screen inTabs>
@@ -141,9 +150,19 @@ export default function ProfileScreen() {
         )}
       </Card>
 
-      <Text style={styles.groupTitle}>Eşleşme</Text>
+      <Text style={styles.groupTitle}>Partner</Text>
       <Card style={styles.groupCard}>
-        <SettingsRow icon="link" title="Eşleşme durumu" value={coupleSummary} onPress={() => router.push('/couple/status')} />
+        {couple.isPaired ? <>
+          <View style={styles.row}>
+            <Feather name="user" size={18} color={colors.earth2} style={styles.rowIcon} />
+            <View style={styles.partnerInfo}>
+              <Text style={styles.rowTitle}>{couple.partner?.displayName ?? 'Partneriniz'}</Text>
+              {couple.partner?.email ? <Text style={styles.meta}>{couple.partner.email}</Text> : null}
+            </View>
+          </View>
+          <Divider inset={34} />
+          <Button title="Partner bağlantısını sonlandır" variant="danger" icon="x-circle" onPress={confirmEndCouple} loading={endingCouple} />
+        </> : <SettingsRow icon="user-plus" title={couple.pendingInvitation ? 'Davet kodunu yönet' : 'Partner ekle'} onPress={() => router.push('/couple/invite')} />}
       </Card>
 
       {couple.isPaired ? <>
@@ -236,6 +255,7 @@ const styles = StyleSheet.create({
   rowIcon: { width: 34 },
   rowTitle: { flex: 1, fontSize: fontSize.md, color: colors.text },
   rowValue: { fontSize: fontSize.sm, color: colors.textSecondary, marginRight: spacing.sm, flexShrink: 1 },
+  partnerInfo: { flex: 1 },
   pressed: { opacity: 0.6 },
   disabled: { opacity: 0.55 },
 });

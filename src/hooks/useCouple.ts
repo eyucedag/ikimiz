@@ -6,7 +6,7 @@ import { useAuth } from './useAuth';
 
 const EMPTY: CoupleState = { couple: null, partner: null, pendingInvitation: null };
 
-/** Eşleşme durumu; ekran her odaklandığında yenilenir. */
+/** Partner bağlantısı her ekran odağında yenilenir. */
 export function useCouple() {
   const { user } = useAuth();
   const [state, setState] = useState<CoupleState>(EMPTY);
