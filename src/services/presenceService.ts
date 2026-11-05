@@ -35,8 +35,10 @@ export const presenceService = {
   async clearLocation(userId: string): Promise<void> {
     await supabase.from('couple_live_locations').delete().eq('user_id', userId);
   },
-  async steps(coupleId: string, localDate: string): Promise<CoupleSteps[]> {
-    const { data, error } = await supabase.from('couple_daily_steps').select('*').eq('couple_id', coupleId).eq('local_date', localDate);
+  async steps(coupleId: string, localDate?: string): Promise<CoupleSteps[]> {
+    let query = supabase.from('couple_daily_steps').select('*').eq('couple_id', coupleId);
+    if (localDate) query = query.eq('local_date', localDate);
+    const { data, error } = await query;
     if (error) throw new Error(error.message);
     return (data ?? []).map((row: any) => ({ userId: row.user_id, coupleId: row.couple_id, localDate: row.local_date, steps: Number(row.steps) }));
   },

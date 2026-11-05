@@ -25,7 +25,7 @@ export default function StepsScreen() {
 
   const refresh = useCallback(async () => {
     if (!couple.couple?.id) return;
-    try { setRows(await presenceService.steps(couple.couple.id, today)); setError(''); }
+    try { setRows(await presenceService.steps(couple.couple.id)); setError(''); }
     catch { setError('Adım tablosu açılamadı. Uygulamayı güncelleyip Supabase SQL kurulumunu kontrol edin.'); }
   }, [couple.couple?.id, today]);
   useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
@@ -37,7 +37,9 @@ export default function StepsScreen() {
     return () => { void supabase.removeChannel(channel); };
   }, [couple.couple?.id, refresh]);
 
-  const total = useMemo(() => rows.reduce((sum, row) => sum + row.steps, 0), [rows]);
+  const todayRows = useMemo(() => rows.filter((row) => row.localDate === today), [rows, today]);
+  const todayTotal = useMemo(() => todayRows.reduce((sum, row) => sum + row.steps, 0), [todayRows]);
+  const allTimeTotal = useMemo(() => rows.reduce((sum, row) => sum + row.steps, 0), [rows]);
   if (couple.loading) return <Screen title="Birlikte Atılan Adımlar"><CoupleLoading /></Screen>;
   if (!couple.couple) return <Screen title="Birlikte Atılan Adımlar"><EmptyState icon="users" title="Önce eşleşin" description="Ortak adım sayacı partnerinizle eşleşince kullanılabilir." /></Screen>;
 
@@ -45,13 +47,22 @@ export default function StepsScreen() {
     <Screen title="Birlikte Atılan Adımlar">
       <Card style={[styles.hero, { borderColor: categoryColor.color }]}>
         <View style={[styles.icon, { backgroundColor: categoryColor.tint }]}><Feather name="activity" size={22} color={categoryColor.color} /></View>
-        <Text style={[styles.total, { color: categoryColor.color }]}>{total.toLocaleString('tr-TR')}</Text>
-        <Text style={styles.caption}>bugün birlikte atılan adım</Text>
+        <View style={styles.statsRow}>
+          <View style={styles.stat}>
+            <Text style={[styles.total, { color: categoryColor.color }]}>{todayTotal.toLocaleString('tr-TR')}</Text>
+            <Text style={styles.caption}>Bugün</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.stat}>
+            <Text style={[styles.total, { color: categoryColor.color }]}>{allTimeTotal.toLocaleString('tr-TR')}</Text>
+            <Text style={styles.caption}>Toplam birlikte</Text>
+          </View>
+        </View>
         <Text style={styles.detail}>Uygulama açıkken ve ikiniz 40 metre yakınken telefonların adım sensörü otomatik sayar. Konum ve hareket izinleri gerekir.</Text>
       </Card>
       <Card style={[styles.rows, { borderColor: categoryColor.color }]}>
         {[{ id: user?.id, name: 'Sen' }, { id: couple.partner?.id, name: couple.partner?.displayName ?? 'Partnerin' }].map((person) => {
-          const count = rows.find((row) => row.userId === person.id)?.steps ?? 0;
+          const count = todayRows.find((row) => row.userId === person.id)?.steps ?? 0;
           return <View key={person.id} style={styles.personRow}><Text style={styles.person}>{person.name}</Text><Text style={[styles.count, { color: categoryColor.color }]}>{count.toLocaleString('tr-TR')}</Text></View>;
         })}
       </Card>
@@ -64,7 +75,10 @@ const styles = StyleSheet.create({
   hero: { alignItems: 'center', paddingVertical: spacing.xl, borderWidth: 1.5 },
   icon: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' },
   total: { fontSize: 40, fontWeight: '800', marginTop: spacing.sm },
-  caption: { color: colors.text, fontSize: fontSize.md, fontWeight: '600' },
+  statsRow: { width: '100%', flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm },
+  stat: { flex: 1, alignItems: 'center' },
+  statDivider: { width: StyleSheet.hairlineWidth, height: 52, backgroundColor: colors.border },
+  caption: { color: colors.text, fontSize: fontSize.sm, fontWeight: '600', textAlign: 'center' },
   detail: { color: colors.textSecondary, textAlign: 'center', fontSize: fontSize.sm, marginTop: spacing.md, lineHeight: 20 },
   rows: { marginTop: spacing.md, paddingVertical: 0, borderWidth: 1.5 },
   personRow: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
