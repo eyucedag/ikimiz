@@ -220,7 +220,7 @@ export default function MoodScreen() {
       {moods.error && moods.error !== saveError ? (
         <View style={styles.errorBox}>
           <Text style={styles.errorText} accessibilityRole="alert">{moods.error}</Text>
-          <Button title="Tekrar Dene" variant="secondary" icon="refresh-cw" onPress={onRefresh} compact style={styles.retry} disabled={refreshing || moods.saving} />
+          <Button title="Tekrar Dene" variant="secondary" icon="refresh-cw" toneColor={categoryColor.color} onPress={onRefresh} compact style={styles.retry} disabled={refreshing || moods.saving} />
         </View>
       ) : null}
 

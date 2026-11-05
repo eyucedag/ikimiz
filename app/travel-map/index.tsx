@@ -162,7 +162,7 @@ export default function TravelMapScreen() {
               <View style={styles.modalBackdrop}>
                 <View style={[styles.dateModal, { backgroundColor: surfaceColor }]}>
                   <View style={styles.dateModalHeader}>
-                    <Button title="Vazgeç" variant="ghost" compact onPress={() => setShowDatePicker(false)} />
+                    <Button title="Vazgeç" variant="ghost" compact toneColor="#0B8F87" onPress={() => setShowDatePicker(false)} />
                     <Text style={styles.dateModalTitle}>Ziyaret tarihi</Text>
                     <Button title="Tamam" variant="ghost" compact toneColor="#0B8F87" onPress={() => { setVisitedOn(formatLocalDate(draftDate)); setShowDatePicker(false); }} />
                   </View>

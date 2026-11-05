@@ -205,7 +205,7 @@ export default function TodayScreen() {
               <Text style={styles.upcomingDescription}>Günün Şarkısı</Text>
               {todaySong ? <>
                 <Text style={styles.songCardTitle} numberOfLines={1}>{todaySong.title}</Text>
-                <Text style={styles.upcomingDescription} numberOfLines={1}>{todaySong.artist}</Text>
+                <Text style={styles.songCardArtist} numberOfLines={1}>{todaySong.artist}</Text>
               </> : <Text style={styles.upcomingTitle} numberOfLines={1}>Bugün birbirinize bir şarkı seçin.</Text>}
             </View>
             <Feather name="chevron-right" size={18} color={songColor.color} />
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
   durationMissing: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: spacing.xs },
   section: { marginBottom: spacing.lg },
   compactCard: { paddingVertical: spacing.xs },
-  songListenButton: { marginTop: spacing.xs },
+  songListenButton: { width: '100%', marginTop: spacing.xs },
   noteCard: { paddingBottom: spacing.sm },
   noteHeader: { minHeight: 34, flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
   noteHeaderTitle: { flex: 1, color: colors.text, fontWeight: '600', fontSize: fontSize.md },
@@ -406,6 +406,7 @@ const styles = StyleSheet.create({
   upcomingDescription: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 1 },
   upcomingTitle: { fontSize: fontSize.md, color: colors.text, fontWeight: '500' },
   songCardTitle: { fontSize: fontSize.lg, color: colors.text, fontWeight: '700', marginTop: 1 },
+  songCardArtist: { color: colors.textSecondary, fontSize: fontSize.md, fontWeight: '500', marginTop: 1 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -spacing.xs },
   tile: { padding: spacing.xs },
   tileInner: {

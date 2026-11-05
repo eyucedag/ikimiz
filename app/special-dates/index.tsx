@@ -89,7 +89,7 @@ export default function SpecialDatesScreen() {
           {pickerOpen && Platform.OS === 'android' ? <DateTimePicker value={draftDate} mode="date" display="default" onChange={(_, selected) => { if (selected) setDate(toKey(selected)); setPickerOpen(false); }} /> : null}
           <Modal transparent visible={pickerOpen && Platform.OS === 'ios'} animationType="slide" onRequestClose={() => setPickerOpen(false)}>
             <View style={styles.modalBackdrop}><View style={[styles.dateModal, { backgroundColor: appearance.surfaceColor }]}>
-              <View style={styles.modalHeader}><Button title="Vazgeç" compact variant="ghost" onPress={() => setPickerOpen(false)} /><Text style={styles.formTitle}>Tarih seç</Text><Button title="Tamam" compact variant="ghost" toneColor={categoryColor} onPress={() => { setDate(toKey(draftDate)); setPickerOpen(false); }} /></View>
+              <View style={styles.modalHeader}><Button title="Vazgeç" compact variant="ghost" toneColor={categoryColor} onPress={() => setPickerOpen(false)} /><Text style={styles.formTitle}>Tarih seç</Text><Button title="Tamam" compact variant="ghost" toneColor={categoryColor} onPress={() => { setDate(toKey(draftDate)); setPickerOpen(false); }} /></View>
               <DateTimePicker value={draftDate} mode="date" display="spinner" locale="tr-TR" themeVariant="light" textColor={colors.text} onChange={(_, selected) => { if (selected) setDraftDate(selected); }} />
             </View></View>
           </Modal>
