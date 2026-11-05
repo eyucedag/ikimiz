@@ -5,7 +5,7 @@ export const categories: Category[] = [
   { slug: 'ozel-gunler', title: 'Özel Günler', icon: 'gift', color: '#C03CA8', tint: '#FBE3F5', description: 'Yıl dönümü, doğum günü ve sizin için anlamlı tarihleri ekleyin.' },
   { slug: 'listeler', title: 'Listeler', icon: 'list', color: '#D98219', tint: '#FFF0DE', description: 'Market, film, seyahat gibi ortak listeleri birlikte yönetin.' },
   { slug: 'notlar', title: 'Not Defteri', icon: 'file-text', color: '#AD8511', tint: '#FBF3D4', description: 'Resmi ve önemli bilgileri partnerinizle ortak kaydedin.' },
-  { slug: 'onemli-belgeler', title: 'Önemli Belgeler', icon: 'folder', color: '#52769D', tint: '#E7EFF7', description: 'Önemli PDF, Word dosyalarını ve fotoğrafları güvenle ortak saklayın.' },
+  { slug: 'onemli-belgeler', title: 'Dokümanlar', icon: 'folder', color: '#52769D', tint: '#E7EFF7', description: 'Dosyaları ve önemli bağlantıları güvenle ortak saklayın.' },
   { slug: 'gorevler', title: 'Görevler', icon: 'check-square', color: '#64A82F', tint: '#EAF5DF', description: 'Ev işleri ve planları paylaşın, tekrarlayan görevler oluşturun.' },
   { slug: 'ekrana-not', title: 'Ekrana Not', icon: 'edit-3', color: '#168D57', tint: '#DFF3E8', description: 'Partnerinizin ana ekranına kısa bir not bırakın.' },
   { slug: 'gunun-sarkisi', title: 'Günün Şarkısı', icon: 'music', color: '#8155B5', tint: '#F0EAF8', description: 'Her gün birbiriniz için bir şarkı seçin ve birlikte dinleyin.' },

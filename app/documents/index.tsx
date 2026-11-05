@@ -9,7 +9,7 @@ import { getCategoryColor } from '@/src/constants/categories';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
-import { CoupleDocument, documentService } from '@/src/services/documentService';
+import { CoupleDocument, CoupleDocumentLink, documentService } from '@/src/services/documentService';
 import { formatDateTime } from '@/src/utils/date';
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
@@ -27,16 +27,23 @@ export default function DocumentsScreen() {
   const couple = useCouple();
   const tone = getCategoryColor('onemli-belgeler');
   const [documents, setDocuments] = useState<CoupleDocument[]>([]);
+  const [links, setLinks] = useState<CoupleDocumentLink[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [linkName, setLinkName] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
+  const [savingLink, setSavingLink] = useState(false);
 
   const refresh = useCallback(async (showLoading = true) => {
     if (!couple.couple?.id) return;
     if (showLoading) setLoading(true);
-    try { setDocuments(await documentService.list(couple.couple.id)); setError(''); }
+    try {
+      const [documentRows, linkRows] = await Promise.all([documentService.list(couple.couple.id), documentService.listLinks(couple.couple.id)]);
+      setDocuments(documentRows); setLinks(linkRows); setError('');
+    }
     catch (e) { setError(e instanceof Error ? e.message : 'Belgeler yüklenemedi.'); }
     finally { if (showLoading) setLoading(false); }
   }, [couple.couple?.id]);
@@ -104,7 +111,22 @@ export default function DocumentsScreen() {
     catch (e) { Alert.alert('Belge açılamadı', e instanceof Error ? e.message : 'Bağlantınızı kontrol edin.'); }
   };
 
-  const remove = (document: CoupleDocument) => Alert.alert('Belgeyi kaldır', `${document.fileName} ortak alandan kaldırılsın mı?`, [
+  const openLink = async (link: CoupleDocumentLink) => {
+    try { await Linking.openURL(link.url); }
+    catch (e) { Alert.alert('Bağlantı açılamadı', e instanceof Error ? e.message : 'Bağlantıyı kontrol edip yeniden deneyin.'); }
+  };
+
+  const addLink = async () => {
+    if (!user || !couple.couple || !couple.partner) return;
+    setSavingLink(true); setError('');
+    try {
+      const link = await documentService.addLink({ ownerId: user.id, partnerId: couple.partner.id, coupleId: couple.couple.id, displayName: linkName, url: linkUrl });
+      setLinks((current) => [link, ...current]); setLinkName(''); setLinkUrl('');
+    } catch (e) { setError(e instanceof Error ? e.message : 'Bağlantı eklenemedi.'); }
+    finally { setSavingLink(false); }
+  };
+
+  const remove = (document: CoupleDocument) => Alert.alert('Dokümanı kaldır', `${document.displayName} ortak alandan kaldırılsın mı?`, [
     { text: 'Vazgeç', style: 'cancel' },
     { text: 'Kaldır', style: 'destructive', onPress: async () => {
       try { await documentService.remove(document); setDocuments((current) => current.filter((item) => item.id !== document.id)); }
@@ -112,10 +134,18 @@ export default function DocumentsScreen() {
     } },
   ]);
 
+  const removeLink = (link: CoupleDocumentLink) => Alert.alert('Bağlantıyı kaldır', `${link.displayName} ortak alandan kaldırılsın mı?`, [
+    { text: 'Vazgeç', style: 'cancel' },
+    { text: 'Kaldır', style: 'destructive', onPress: async () => {
+      try { await documentService.removeLink(link); setLinks((current) => current.filter((item) => item.id !== link.id)); }
+      catch (e) { setError(e instanceof Error ? e.message : 'Bağlantı kaldırılamadı.'); }
+    } },
+  ]);
+
   const onRefresh = async () => { setRefreshing(true); try { await refresh(false); } finally { setRefreshing(false); } };
 
-  if (couple.loading) return <Screen title="Önemli Belgeler"><CoupleLoading /></Screen>;
-  return <Screen title="Önemli Belgeler" refreshing={refreshing || loading} onRefresh={() => { void onRefresh(); }}>
+  if (couple.loading) return <Screen title="Dokümanlar"><CoupleLoading /></Screen>;
+  return <Screen title="Dokümanlar" refreshing={refreshing || loading} onRefresh={() => { void onRefresh(); }}>
     {!couple.isPaired || !couple.couple ? <EmptyState icon="users" title="Önce eşleşin" description="Ortak belgeleri kullanmak için partnerinizle eşleşin." /> : <>
       <Text style={styles.intro}>Belgeleriniz yalnızca ikinizin erişebildiği ortak alanda saklanır. Tek dosya en fazla 25 MB olabilir.</Text>
       <Input label="Görünen ad" value={displayName} onChangeText={setDisplayName} placeholder="…" compact />
@@ -123,11 +153,28 @@ export default function DocumentsScreen() {
         <Button title="Word veya PDF ekle" icon="file-plus" toneColor={tone.color} onPress={() => { void chooseDocument(); }} loading={uploading} disabled={uploading || !displayName.trim()} compact style={styles.actionButton} />
         <Button title="Fotoğraf ekle" icon="image" variant="secondary" toneColor={tone.color} onPress={() => { void choosePhoto(); }} disabled={uploading || !displayName.trim()} compact style={styles.actionButton} />
       </View>
+      <Card style={[styles.linkForm, { borderColor: tone.color }]}>
+        <Text style={[styles.linkFormTitle, { color: tone.color }]}>Bağlantı ekle</Text>
+        <Input label="Görünen ad" value={linkName} onChangeText={setLinkName} placeholder="…" compact />
+        <Input label="Bağlantı" value={linkUrl} onChangeText={setLinkUrl} placeholder="…" autoCapitalize="none" keyboardType="url" autoCorrect={false} compact />
+        <Button title="Bağlantıyı kaydet" icon="link" toneColor={tone.color} onPress={() => { void addLink(); }} loading={savingLink} disabled={savingLink || !linkName.trim() || !linkUrl.trim()} compact />
+      </Card>
       {uploading ? <View style={styles.uploading}><ActivityIndicator color={tone.color} /><Text style={styles.meta}>Dosya yükleniyor…</Text></View> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      {documents.length === 0 && !loading ? <Card style={[styles.empty, { borderColor: tone.color }]}>
-        <EmptyState compact icon="folder" title="Henüz belge yok" description="Word veya PDF dosyası ya da fotoğraf ekleyin." toneColor={tone.color} toneTint={tone.tint} />
-      </Card> : documents.map((document) => {
+      {documents.length === 0 && links.length === 0 && !loading ? <Card style={[styles.empty, { borderColor: tone.color }]}>
+        <EmptyState compact icon="folder" title="Henüz doküman yok" description="Dosya, fotoğraf veya bağlantı ekleyin." toneColor={tone.color} toneTint={tone.tint} />
+      </Card> : null}
+      {links.length ? <Text style={[styles.listTitle, { color: tone.color }]}>Bağlantılar · {links.length}</Text> : null}
+      {links.map((link) => <Card key={`link-${link.id}`} style={[styles.fileCard, { borderColor: tone.color }]}>
+        <Pressable onPress={() => { void openLink(link); }} accessibilityRole="button" accessibilityLabel={`${link.displayName} bağlantısını aç`} style={styles.fileRow}>
+          <View style={[styles.preview, styles.docPreview, { backgroundColor: tone.tint }]}><Feather name="link" size={21} color={tone.color} /></View>
+          <View style={styles.fileCopy}><Text style={styles.fileName} numberOfLines={2}>{link.displayName}</Text><Text style={styles.meta} numberOfLines={1}>{link.url}</Text></View>
+          <Feather name="external-link" size={18} color={tone.color} />
+        </Pressable>
+        {link.ownerId === user?.id ? <Pressable onPress={() => removeLink(link)} hitSlop={10} accessibilityRole="button" accessibilityLabel={`${link.displayName} bağlantısını kaldır`} style={styles.delete}><Feather name="trash-2" size={15} color={colors.error} /></Pressable> : null}
+      </Card>)}
+      {documents.length ? <Text style={[styles.listTitle, { color: tone.color }]}>Dosyalar · {documents.length}</Text> : null}
+      {documents.map((document) => {
         const isImage = document.mimeType.startsWith('image/');
         const isPdf = document.mimeType === 'application/pdf';
         const docLabel = isPdf ? 'PDF' : 'DOC';
@@ -156,6 +203,9 @@ const styles = StyleSheet.create({
   uploading: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: spacing.sm, padding: spacing.sm },
   error: { color: colors.error, fontSize: fontSize.sm, marginBottom: spacing.sm },
   empty: { borderWidth: 1.5 },
+  linkForm: { borderWidth: 1.5, padding: spacing.md, marginBottom: spacing.md },
+  linkFormTitle: { fontSize: fontSize.sm, fontWeight: '700', marginBottom: spacing.sm },
+  listTitle: { fontSize: fontSize.sm, fontWeight: '700', marginVertical: spacing.sm },
   fileCard: { borderWidth: 1.5, padding: spacing.md, marginBottom: spacing.sm },
   fileRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   preview: { width: 52, height: 52, borderRadius: radius.control },
