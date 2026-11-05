@@ -16,6 +16,7 @@ import { useScreenNotes } from '@/src/hooks/useScreenNotes';
 import { useMoods } from '@/src/hooks/useMoods';
 import { supabase } from '@/src/lib/supabase';
 import { notificationService } from '@/src/services/notificationService';
+import { songOfTheDayService } from '@/src/services/songOfTheDayService';
 import { greeting, relativeTime, todayLabel } from '@/src/utils/date';
 import { useCoupleDirection } from '@/src/hooks/useCoupleDirection';
 import { useAutomaticNearbySteps } from '@/src/hooks/useAutomaticNearbySteps';
@@ -35,9 +36,34 @@ export default function TodayScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [photoVisible, setPhotoVisible] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [todaySong, setTodaySong] = useState<{ title: string; artist: string } | null>(null);
   const direction = useCoupleDirection(couple.couple?.id, user?.id, couple.partner?.id);
   useAutomaticNearbySteps(user?.id, couple.couple?.id, couple.partner?.id);
   const [now, setNow] = useState(Date.now());
+  const songDate = useMemo(() => {
+    const date = new Date();
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }, []);
+
+  const refreshTodaySong = useCallback(async () => {
+    const coupleId = couple.couple?.id;
+    if (!coupleId) { setTodaySong(null); return; }
+    try {
+      const song = await songOfTheDayService.get(coupleId, songDate);
+      setTodaySong(song ? { title: song.title, artist: song.artist } : null);
+    } catch { /* Keep the home screen usable if the song cannot be fetched. */ }
+  }, [couple.couple?.id, songDate]);
+
+  useFocusEffect(useCallback(() => { void refreshTodaySong(); }, [refreshTodaySong]));
+
+  useEffect(() => {
+    const coupleId = couple.couple?.id;
+    if (!coupleId) return;
+    const channel = supabase.channel(`home-daily-song-${coupleId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'daily_songs', filter: `couple_id=eq.${coupleId}` }, () => { void refreshTodaySong(); })
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [couple.couple?.id, refreshTodaySong]);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
@@ -75,7 +101,7 @@ export default function TodayScreen() {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      await Promise.all([couple.refresh(), refreshNotes(), moods.refresh(), refreshNotifications()]);
+      await Promise.all([couple.refresh(), refreshNotes(), moods.refresh(), refreshNotifications(), refreshTodaySong()]);
     } finally {
       setRefreshing(false);
     }
@@ -168,7 +194,7 @@ export default function TodayScreen() {
       <Card style={[styles.section, styles.compactCard, { borderColor: songColor.color, borderWidth: 1.5 }]}>
         <Pressable onPress={() => router.push('/song-of-the-day')} accessibilityRole="button" accessibilityLabel="Günün Şarkısı sayfasını aç" style={styles.upcomingCompact}>
           <View style={[styles.upcomingIcon, { backgroundColor: songColor.tint }]}><Feather name="music" size={18} color={songColor.color} /></View>
-          <View style={styles.upcomingCopy}><Text style={styles.upcomingTitle}>Günün Şarkısı</Text><Text style={styles.upcomingDescription} numberOfLines={1}>Bugün birbirinize bir şarkı seçin.</Text></View>
+          <View style={styles.upcomingCopy}><Text style={styles.upcomingTitle}>Günün Şarkısı</Text><Text style={styles.upcomingDescription} numberOfLines={1}>{todaySong ? `${todaySong.title} · ${todaySong.artist}` : 'Bugün birbirinize bir şarkı seçin.'}</Text></View>
           <Feather name="chevron-right" size={18} color={songColor.color} />
         </Pressable>
       </Card>
