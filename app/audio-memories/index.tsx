@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, Pressable, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system/legacy';
 import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus, useAudioRecorder, useAudioRecorderState } from 'expo-audio';
 import { useFocusEffect } from 'expo-router';
 import { Button, Card, CoupleLoading, EmptyState, IconButton, Input, Screen } from '@/src/components/ui';
@@ -18,6 +19,30 @@ const durationLabel = (seconds: number) => {
   const total = Math.max(0, Math.floor(seconds));
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
 };
+
+async function readAudioBytes(uri: string): Promise<ArrayBuffer> {
+  try {
+    const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    const clean = base64.replace(/[^A-Za-z0-9+/=]/g, '');
+    const bytes = new Uint8Array(Math.floor(clean.length * 3 / 4) - (clean.endsWith('==') ? 2 : clean.endsWith('=') ? 1 : 0));
+    let offset = 0;
+    for (let i = 0; i < clean.length; i += 4) {
+      const a = alphabet.indexOf(clean[i]); const b = alphabet.indexOf(clean[i + 1]);
+      const c = alphabet.indexOf(clean[i + 2]); const d = alphabet.indexOf(clean[i + 3]);
+      if (a < 0 || b < 0) continue;
+      bytes[offset++] = (a << 2) | (b >> 4);
+      if (c >= 0 && clean[i + 2] !== '=') bytes[offset++] = ((b & 15) << 4) | (c >> 2);
+      if (d >= 0 && clean[i + 3] !== '=') bytes[offset++] = ((c & 3) << 6) | d;
+    }
+    if (!bytes.byteLength) throw new Error('Kayıt dosyası boş.');
+    return bytes.buffer;
+  } catch {
+    const response = await fetch(uri);
+    if (!response.ok) throw new Error('Ses dosyası telefondan okunamadı. Yeniden kaydedin.');
+    return response.arrayBuffer();
+  }
+}
 
 export default function AudioMemoriesScreen() {
   const tone = getCategoryColor('sesli-anilar');
@@ -123,9 +148,7 @@ export default function AudioMemoriesScreen() {
     setSaving(true);
     setError('');
     try {
-      const response = await fetch(pendingUri);
-      if (!response.ok) throw new Error('Ses dosyası okunamadı. Yeniden kaydedin.');
-      const content = await response.arrayBuffer();
+      const content = await readAudioBytes(pendingUri);
       if (!content.byteLength || content.byteLength > MAX_FILE_BYTES) throw new Error('Kayıt boş ya da 25 MB sınırından büyük.');
       const saved = await audioMemoryService.add({
         ownerId: user.id, partnerId: couple.partner.id, coupleId: couple.couple.id,
