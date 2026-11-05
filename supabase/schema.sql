@@ -567,6 +567,12 @@ do $$ begin
   if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'daily_songs') then
     alter publication supabase_realtime add table public.daily_songs;
   end if;
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'lists') then
+    alter publication supabase_realtime add table public.lists;
+  end if;
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'list_items') then
+    alter publication supabase_realtime add table public.list_items;
+  end if;
 end $$;
 
 create index if not exists kisses_partner_created_idx

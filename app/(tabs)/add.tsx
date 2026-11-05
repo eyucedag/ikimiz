@@ -22,7 +22,7 @@ const actions: QuickAction[] = [
   { key: 'special-date', title: 'Özel Gün', description: 'Yıl dönümü, doğum günü veya anlamlı bir tarih ekle', icon: 'gift', category: 'ozel-gunler', route: '/special-dates' },
   { key: 'screen-note', title: 'Ekran Notu', description: "Partnerinizin ana ekranına kısa not", icon: 'edit-3', category: 'ekrana-not', route: '/screen-note/compose' },
   { key: 'event', title: 'Etkinlik', description: 'Ortak takvime bir etkinlik ekle', icon: 'calendar', category: 'takvim', route: '/calendar' },
-  { key: 'list', title: 'Liste', description: 'Market, film, seyahat listesi', icon: 'list', category: 'listeler', soonDetail: 'Paylaşılan listeler Aşama 2’de eklenecek.' },
+  { key: 'list', title: 'Liste', description: 'Market, film, seyahat listesi', icon: 'list', category: 'listeler', route: '/lists' },
   { key: 'note', title: 'Not', description: 'Kişisel veya ortak not', icon: 'file-text', category: 'notlar', soonDetail: 'Klasörlü notlar Aşama 2’de eklenecek.' },
   { key: 'task', title: 'Görev', description: 'Atanabilir ve tekrarlanabilir iş', icon: 'check-square', category: 'gorevler', soonDetail: 'Görevler ve atamalar Aşama 2’de eklenecek.' },
   { key: 'gift', title: 'Hediye Fikri', description: 'Partnerinizden gizli fikir', icon: 'gift', category: 'hediye-radari', soonDetail: 'Hediye Radarı Aşama 2’de eklenecek.' },
