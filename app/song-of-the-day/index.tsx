@@ -45,6 +45,10 @@ export default function SongOfTheDayScreen() {
   const changeArtist = (value: string) => { artistEdited.current = true; setArtist(value); };
   const changeUrl = (value: string) => {
     setUrl(value);
+    // Clear the previous track immediately so an unsupported or still-loading
+    // replacement link cannot be saved with the old title and artist.
+    setTitle('');
+    setArtist('');
     titleEdited.current = false;
     artistEdited.current = false;
     setMetadataStatus('');
