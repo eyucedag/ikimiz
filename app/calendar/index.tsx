@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from 'expo-router';
 import { Button, Card, CoupleLoading, EmptyState, Input, Screen } from '@/src/components/ui';
 import { getCategoryColor } from '@/src/constants/categories';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
+import { useAppState } from '@/src/hooks/useAppState';
 import { calendarService, CoupleCalendarEvent } from '@/src/services/calendarService';
 import { ImportantDate, importantDateService } from '@/src/services/importantDateService';
 import { TravelPlace, travelService } from '@/src/services/travelService';
@@ -21,10 +23,14 @@ const monthName = (value: Date) => value.toLocaleDateString('tr-TR', { month: 'l
 export default function CalendarScreen() {
   const { user } = useAuth();
   const couple = useCouple();
+  const { refreshUpcoming } = useAppState();
   const calendarColor = getCategoryColor('takvim');
   const [month, setMonth] = useState(startOfMonth(new Date()));
   const [selectedDate, setSelectedDate] = useState(dateKey(new Date()));
   const [title, setTitle] = useState('');
+  const [location, setLocation] = useState('');
+  const [time, setTime] = useState(new Date(2000, 0, 1, 18, 0));
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [events, setEvents] = useState<CoupleCalendarEvent[]>([]);
   const [importantDates, setImportantDates] = useState<ImportantDate[]>([]);
   const [travelPlaces, setTravelPlaces] = useState<TravelPlace[]>([]);
@@ -61,7 +67,10 @@ export default function CalendarScreen() {
     for (const event of events) {
       const startsAt = new Date(event.startsAt);
       const key = dateKey(startsAt);
-      if (startsAt.getFullYear() === year && startsAt.getMonth() === month.getMonth()) result.push({ id: `event-${event.id}`, date: key, title: event.title, detail: event.description ?? 'Takvim etkinliği', kind: 'event', color: eventColor, ownerId: event.ownerId });
+      if (startsAt.getFullYear() === year && startsAt.getMonth() === month.getMonth()) {
+        const details = [event.allDay ? 'Tüm gün' : startsAt.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }), event.location].filter(Boolean);
+        result.push({ id: `event-${event.id}`, date: key, title: event.title, detail: details.join(' · ') || 'Takvim etkinliği', kind: 'event', color: eventColor, ownerId: event.ownerId });
+      }
     }
     for (const item of importantDates) {
       const originalMonthDay = item.date.slice(5);
@@ -96,9 +105,9 @@ export default function CalendarScreen() {
     setSaving(true); setError('');
     try {
       const [year, monthValue, day] = selectedDate.split('-').map(Number);
-      const startsAt = new Date(year, monthValue - 1, day, 12).toISOString();
-      const event = await calendarService.add({ ownerId: user.id, partnerId: couple.partner.id, coupleId: couple.couple.id, title, startsAt });
-      setEvents((previous) => [...previous, event]); setTitle('');
+      const startsAt = new Date(year, monthValue - 1, day, time.getHours(), time.getMinutes()).toISOString();
+      const event = await calendarService.add({ ownerId: user.id, partnerId: couple.partner.id, coupleId: couple.couple.id, title, startsAt, location });
+      setEvents((previous) => [...previous, event]); setTitle(''); setLocation(''); void refreshUpcoming();
     } catch (e) { setError(e instanceof Error ? e.message : 'Etkinlik eklenemedi.'); }
     finally { setSaving(false); }
   };
@@ -147,6 +156,15 @@ export default function CalendarScreen() {
       <Card style={styles.addCard}>
         <Text style={styles.addTitle}>Seçili güne etkinlik ekle</Text>
         <Input compact label="Etkinlik adı" placeholder="…" value={title} onChangeText={setTitle} returnKeyType="done" onSubmitEditing={() => { void addEvent(); }} />
+        <Text style={styles.fieldLabel}>Saat</Text>
+        <Pressable style={styles.timeButton} onPress={() => setShowTimePicker((visible) => !visible)} accessibilityRole="button" accessibilityLabel="Etkinlik saatini seç">
+          <Feather name="clock" size={17} color={calendarColor.color} />
+          <Text style={styles.timeText}>{time.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</Text>
+          <Feather name="chevron-down" size={17} color={calendarColor.color} />
+        </Pressable>
+        {showTimePicker ? <DateTimePicker value={time} mode="time" display={Platform.OS === 'ios' ? 'spinner' : 'default'} onChange={(_, value) => { if (value) setTime(value); if (Platform.OS !== 'ios') setShowTimePicker(false); }} /> : null}
+        {showTimePicker && Platform.OS === 'ios' ? <Pressable onPress={() => setShowTimePicker(false)} style={[styles.timeDone, { backgroundColor: calendarColor.tint }]}><Text style={[styles.timeDoneText, { color: calendarColor.color }]}>Saati seç</Text></Pressable> : null}
+        <Input compact label="Konum" placeholder="…" value={location} onChangeText={setLocation} />
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <Button title="Takvime ekle" icon="plus" toneColor={calendarColor.color} compact loading={saving} disabled={!title.trim()} onPress={() => { void addEvent(); }} />
       </Card>
@@ -175,5 +193,10 @@ const styles = StyleSheet.create({
   entryDetail: { fontSize: fontSize.xs, color: colors.textSecondary, marginTop: 2 },
   addCard: { padding: spacing.md, borderColor: '#3F78D4', borderWidth: 1.5, marginTop: spacing.md },
   addTitle: { color: '#3F78D4', fontSize: fontSize.sm, fontWeight: '700', marginBottom: spacing.sm },
+  fieldLabel: { fontSize: fontSize.sm, color: colors.textSecondary, marginBottom: spacing.xs, fontWeight: '500' },
+  timeButton: { minHeight: 42, borderWidth: 1, borderColor: colors.border, borderRadius: 10, backgroundColor: colors.card, paddingHorizontal: spacing.md, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
+  timeText: { flex: 1, fontSize: fontSize.md, color: colors.text },
+  timeDone: { alignSelf: 'flex-end', borderRadius: 8, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, marginBottom: spacing.sm },
+  timeDoneText: { fontWeight: '700', fontSize: fontSize.sm },
   error: { color: colors.error, fontSize: fontSize.xs, marginBottom: spacing.xs },
 });

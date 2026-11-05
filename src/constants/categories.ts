@@ -33,6 +33,9 @@ const readyRoutes: Record<string, string> = {
   listeler: '/lists',
   notlar: '/notebook',
   'onemli-belgeler': '/documents',
+  gorevler: '/tasks',
+  'hediye-radari': '/gifts',
+  'bilinmesi-gerekenler': '/facts',
 };
 
 export const getCategoryRoute = (slug: string) => readyRoutes[slug] ?? `/categories/${slug}`;

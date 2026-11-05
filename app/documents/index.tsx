@@ -1,10 +1,10 @@
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect } from 'expo-router';
-import { Button, Card, CoupleLoading, EmptyState, Screen } from '@/src/components/ui';
+import { Button, Card, CoupleLoading, EmptyState, Input, Screen } from '@/src/components/ui';
 import { getCategoryColor } from '@/src/constants/categories';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -31,6 +31,7 @@ export default function DocumentsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [displayName, setDisplayName] = useState('');
 
   const refresh = useCallback(async (showLoading = true) => {
     if (!couple.couple?.id) return;
@@ -48,6 +49,7 @@ export default function DocumentsScreen() {
 
   const upload = async (file: { uri: string; name: string; mimeType?: string | null; size?: number | null }) => {
     if (!user || !couple.couple || !couple.partner) return;
+    if (!displayName.trim()) { Alert.alert('Görünen ad gerekli', 'Belge için ikinizin göreceği adı önce yazın.'); return; }
     const ext = extension(file.name);
     if (!allowedExtensions.has(ext)) {
       Alert.alert('Dosya türü desteklenmiyor', 'Word, PDF, JPG, PNG, WEBP, HEIC veya GIF dosyası seçin.');
@@ -66,9 +68,10 @@ export default function DocumentsScreen() {
       const mimeType = mimeByExtension[ext] ?? file.mimeType ?? 'application/octet-stream';
       const saved = await documentService.add({
         ownerId: user.id, partnerId: couple.partner.id, coupleId: couple.couple.id,
-        fileName: file.name, mimeType, sizeBytes: content.byteLength, content,
+        fileName: file.name, displayName: displayName.trim(), mimeType, sizeBytes: content.byteLength, content,
       });
       setDocuments((current) => [saved, ...current]);
+      setDisplayName('');
     } catch (e) { setError(e instanceof Error ? e.message : 'Dosya eklenemedi.'); }
     finally { setUploading(false); }
   };
@@ -115,9 +118,10 @@ export default function DocumentsScreen() {
   return <Screen title="Önemli Belgeler" refreshing={refreshing || loading} onRefresh={() => { void onRefresh(); }}>
     {!couple.isPaired || !couple.couple ? <EmptyState icon="users" title="Önce eşleşin" description="Ortak belgeleri kullanmak için partnerinizle eşleşin." /> : <>
       <Text style={styles.intro}>Belgeleriniz yalnızca ikinizin erişebildiği ortak alanda saklanır. Tek dosya en fazla 25 MB olabilir.</Text>
+      <Input label="Görünen ad" value={displayName} onChangeText={setDisplayName} placeholder="…" compact />
       <View style={styles.actions}>
-        <Button title="Word veya PDF ekle" icon="file-plus" toneColor={tone.color} onPress={() => { void chooseDocument(); }} loading={uploading} disabled={uploading} compact style={styles.actionButton} />
-        <Button title="Fotoğraf ekle" icon="image" variant="secondary" toneColor={tone.color} onPress={() => { void choosePhoto(); }} disabled={uploading} compact style={styles.actionButton} />
+        <Button title="Word veya PDF ekle" icon="file-plus" toneColor={tone.color} onPress={() => { void chooseDocument(); }} loading={uploading} disabled={uploading || !displayName.trim()} compact style={styles.actionButton} />
+        <Button title="Fotoğraf ekle" icon="image" variant="secondary" toneColor={tone.color} onPress={() => { void choosePhoto(); }} disabled={uploading || !displayName.trim()} compact style={styles.actionButton} />
       </View>
       {uploading ? <View style={styles.uploading}><ActivityIndicator color={tone.color} /><Text style={styles.meta}>Dosya yükleniyor…</Text></View> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -126,17 +130,17 @@ export default function DocumentsScreen() {
       </Card> : documents.map((document) => {
         const isImage = document.mimeType.startsWith('image/');
         const isPdf = document.mimeType === 'application/pdf';
-        const icon = isImage ? 'image' : isPdf ? 'file-text' : 'file';
+        const docLabel = isPdf ? 'PDF' : 'DOC';
         return <Card key={document.id} style={[styles.fileCard, { borderColor: tone.color }]}>
-          <Pressable onPress={() => { void open(document); }} accessibilityRole="button" accessibilityLabel={`${document.fileName} belgesini aç`} style={styles.fileRow}>
-            <View style={[styles.fileIcon, { backgroundColor: tone.tint }]}><Feather name={icon} size={19} color={tone.color} /></View>
+          <Pressable onPress={() => { void open(document); }} accessibilityRole="button" accessibilityLabel={`${document.displayName} belgesini aç`} style={styles.fileRow}>
+            {isImage && document.previewUrl ? <Image source={{ uri: document.previewUrl }} style={styles.preview} resizeMode="cover" /> : <View style={[styles.preview, styles.docPreview, { backgroundColor: tone.tint }]}><Feather name={isImage ? 'image' : 'file-text'} size={18} color={tone.color} />{!isImage ? <Text style={[styles.docLabel, { color: tone.color }]}>{docLabel}</Text> : null}</View>}
             <View style={styles.fileCopy}>
-              <Text style={styles.fileName} numberOfLines={2}>{document.fileName}</Text>
+              <Text style={styles.fileName} numberOfLines={2}>{document.displayName}</Text>
               <Text style={styles.meta}>{sizeLabel(document.sizeBytes)} · {formatDateTime(document.createdAt)}</Text>
             </View>
             <Feather name="download" size={18} color={tone.color} />
           </Pressable>
-          {document.ownerId === user?.id ? <Pressable onPress={() => remove(document)} hitSlop={10} accessibilityRole="button" accessibilityLabel={`${document.fileName} dosyasını kaldır`} style={styles.delete}>
+          {document.ownerId === user?.id ? <Pressable onPress={() => remove(document)} hitSlop={10} accessibilityRole="button" accessibilityLabel={`${document.displayName} dosyasını kaldır`} style={styles.delete}>
             <Feather name="trash-2" size={15} color={colors.error} />
           </Pressable> : null}
         </Card>;
@@ -154,7 +158,9 @@ const styles = StyleSheet.create({
   empty: { borderWidth: 1.5 },
   fileCard: { borderWidth: 1.5, padding: spacing.md, marginBottom: spacing.sm },
   fileRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  fileIcon: { width: 40, height: 40, borderRadius: radius.control, alignItems: 'center', justifyContent: 'center' },
+  preview: { width: 52, height: 52, borderRadius: radius.control },
+  docPreview: { alignItems: 'center', justifyContent: 'center' },
+  docLabel: { fontSize: 8, fontWeight: '800', marginTop: 1 },
   fileCopy: { flex: 1 },
   fileName: { color: colors.text, fontSize: fontSize.sm, fontWeight: '700' },
   meta: { color: colors.textTertiary, fontSize: fontSize.xs, marginTop: 3 },

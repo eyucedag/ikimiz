@@ -5,14 +5,16 @@ export interface CoupleDocument {
   id: string;
   ownerId: string;
   fileName: string;
+  displayName: string;
   mimeType: string;
   storagePath: string;
   sizeBytes: number;
   createdAt: string;
+  previewUrl?: string;
 }
 
 const mapDocument = (row: Record<string, unknown>): CoupleDocument => ({
-  id: String(row.id), ownerId: String(row.owner_id), fileName: String(row.file_name),
+  id: String(row.id), ownerId: String(row.owner_id), fileName: String(row.file_name), displayName: String(row.display_name ?? row.file_name),
   mimeType: String(row.mime_type), storagePath: String(row.storage_path),
   sizeBytes: Number(row.size_bytes ?? 0), createdAt: String(row.created_at),
 });
@@ -24,10 +26,15 @@ export const documentService = {
     if (error) throw new Error(error.code === '42P01' || error.code === 'PGRST205'
       ? 'Önemli Belgeler kurulumu eksik. Supabase SQL Editor’da 20261105_shared_documents.sql kodunu çalıştırın.'
       : 'Belgeler yüklenemedi. Bağlantınızı kontrol edin.');
-    return ((data ?? []) as Record<string, unknown>[]).map(mapDocument);
+    const documents = ((data ?? []) as Record<string, unknown>[]).map(mapDocument);
+    return Promise.all(documents.map(async (document) => {
+      if (!document.mimeType.startsWith('image/')) return document;
+      const { data: signed } = await supabase.storage.from('couple-documents').createSignedUrl(document.storagePath, 60 * 5);
+      return { ...document, previewUrl: signed?.signedUrl };
+    }));
   },
 
-  async add(input: { ownerId: string; partnerId: string; coupleId: string; fileName: string; mimeType: string; sizeBytes: number; content: ArrayBuffer }): Promise<CoupleDocument> {
+  async add(input: { ownerId: string; partnerId: string; coupleId: string; fileName: string; displayName: string; mimeType: string; sizeBytes: number; content: ArrayBuffer }): Promise<CoupleDocument> {
     const safeName = input.fileName.replace(/[^\p{L}\p{N}._-]+/gu, '_').slice(-120) || 'belge';
     const storagePath = `${input.coupleId}/${input.ownerId}/${Date.now()}-${safeName}`;
     const { error: uploadError } = await supabase.storage.from('couple-documents').upload(storagePath, input.content, {
@@ -37,7 +44,7 @@ export const documentService = {
       ? 'Belge deposu henüz kurulmamış. Supabase SQL Editor’da 20261105_shared_documents.sql kodunu çalıştırın.'
       : `Dosya yüklenemedi: ${uploadError.message}`);
     const { data, error } = await supabase.from('couple_documents').insert({
-      owner_id: input.ownerId, couple_id: input.coupleId, file_name: input.fileName,
+      owner_id: input.ownerId, couple_id: input.coupleId, file_name: input.fileName, display_name: input.displayName.trim(),
       mime_type: input.mimeType, storage_path: storagePath, size_bytes: input.sizeBytes,
     }).select('*').single();
     if (error || !data) {
@@ -47,7 +54,7 @@ export const documentService = {
         : 'Dosya yüklendi ama kaydı oluşturulamadı. Yeniden deneyin.');
     }
     const document = mapDocument(data as Record<string, unknown>);
-    await notificationService.notifyPartner({ partnerId: input.partnerId, coupleId: input.coupleId, title: 'Ortak belge eklendi', body: document.fileName });
+    await notificationService.notifyPartner({ partnerId: input.partnerId, coupleId: input.coupleId, title: 'Ortak belge eklendi', body: document.displayName });
     return document;
   },
 

@@ -1001,6 +1001,7 @@ create table if not exists public.couple_documents (
   owner_id uuid not null references auth.users(id) on delete cascade,
   couple_id uuid not null references public.couples(id) on delete cascade,
   file_name text not null,
+  display_name text not null,
   mime_type text not null,
   storage_path text not null unique,
   size_bytes bigint not null check (size_bytes > 0 and size_bytes <= 26214400)

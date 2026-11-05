@@ -12,6 +12,7 @@ interface AppStateValue {
   unreadCount: number;
   /** Takvim/Görev/Hatırlatma modülleri Aşama 2'de bu listeyi dolduracak. */
   upcoming: UpcomingItem[];
+  refreshUpcoming: () => Promise<void>;
   refreshNotifications: () => Promise<void>;
   markAllRead: () => Promise<void>;
   markRead: (id: string) => Promise<void>;
@@ -25,6 +26,7 @@ const AppStateContext = createContext<AppStateValue | null>(null);
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [upcoming, setUpcoming] = useState<UpcomingItem[]>([]);
   const [incomingKiss, setIncomingKiss] = useState<KissRecord | null>(null);
   const dismissKiss = useCallback(() => setIncomingKiss(null), []);
 
@@ -91,15 +93,51 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user]);
 
+  const refreshUpcoming = useCallback(async () => {
+    if (!user) { setUpcoming([]); return; }
+    try {
+      const { data: memberships, error: membershipError } = await supabase.from('couple_members')
+        .select('couple_id').eq('user_id', user.id).eq('is_deleted', false);
+      if (membershipError) throw membershipError;
+      const coupleIds = [...new Set((memberships ?? []).map((row) => String(row.couple_id)).filter(Boolean))];
+      if (!coupleIds.length) { setUpcoming([]); return; }
+      const now = new Date();
+      const { data, error } = await supabase.from('calendar_events')
+        .select('id,title,location,starts_at,all_day')
+        .in('couple_id', coupleIds).eq('visibility', 'shared').eq('is_deleted', false)
+        .gte('starts_at', now.toISOString()).order('starts_at').limit(5);
+      if (error) throw error;
+      setUpcoming((data ?? []).map((row) => {
+        const start = new Date(String(row.starts_at));
+        const day = start.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+        const time = row.all_day ? '' : start.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        const location = typeof row.location === 'string' && row.location.trim() ? row.location.trim() : '';
+        return { id: String(row.id), title: String(row.title), date: String(row.starts_at), subtitle: [day, time, location].filter(Boolean).join(' · ') };
+      }));
+    } catch {
+      // Takvim yüklemesi başarısız olsa da ana ekran kullanılabilir kalır.
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     refreshNotifications();
   }, [refreshNotifications]);
+
+  useEffect(() => {
+    void refreshUpcoming();
+    const timer = setInterval(() => { void refreshUpcoming(); }, 60_000);
+    const channel = supabase.channel(`upcoming-events-${user?.id ?? 'guest'}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events' }, () => { void refreshUpcoming(); })
+      .subscribe();
+    return () => { clearInterval(timer); void supabase.removeChannel(channel); };
+  }, [refreshUpcoming, user?.id]);
 
   const value = useMemo<AppStateValue>(
     () => ({
       notifications,
       unreadCount: notifications.filter((n) => !n.readAt).length,
-      upcoming: [],
+      upcoming,
+      refreshUpcoming,
       refreshNotifications,
       markAllRead: async () => {
         if (!user) return;
@@ -113,7 +151,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       incomingKiss,
       dismissKiss,
     }),
-    [notifications, refreshNotifications, user, incomingKiss, dismissKiss],
+    [notifications, refreshNotifications, upcoming, refreshUpcoming, user, incomingKiss, dismissKiss],
   );
 
   return (

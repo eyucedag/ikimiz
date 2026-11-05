@@ -3,10 +3,10 @@ import { ActivityIndicator, Alert, Image, Linking, Modal, Pressable, StyleSheet,
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Badge, Button, Card, EmptyState, Screen, SectionHeader } from '@/src/components/ui';
+import { Button, Card, EmptyState, Screen, SectionHeader } from '@/src/components/ui';
 import { MoodSummaryCard } from '@/src/components/MoodSummaryCard';
 import { KissCategoryButton } from '@/src/components/KissCategoryButton';
-import { categories, getCategoryColor, getCategoryRoute, isCategoryReady } from '@/src/constants/categories';
+import { categories, getCategoryColor, getCategoryRoute } from '@/src/constants/categories';
 import { colors, fontSize, layout, radius, spacing } from '@/src/constants/theme';
 import { useAppState } from '@/src/hooks/useAppState';
 import { useAppAppearance } from '@/src/hooks/useAppAppearance';
@@ -197,7 +197,7 @@ export default function TodayScreen() {
       </View>
       {direction.error ? <Text style={styles.directionHint}>{direction.error}</Text> : direction.anySharing ? <Text style={styles.directionHint}>{direction.bothSharing ? 'İkinizin konumu açık.' : 'Konum paylaşımı açık; yön için ikiniz de açın.'}</Text> : null}
 
-      <Card style={[styles.section, styles.compactCard, { borderColor: songColor.color, borderWidth: 1.5 }]}>
+      <Card style={[styles.section, styles.compactCard, styles.songCard, { borderColor: songColor.color, borderWidth: 1.5 }]}>
         <View>
           <Pressable onPress={() => router.push('/song-of-the-day')} accessibilityRole="button" accessibilityLabel="Günün Şarkısı sayfasını aç" style={styles.upcomingCompact}>
             <View style={[styles.upcomingIcon, { backgroundColor: songColor.tint }]}><Feather name="music" size={18} color={songColor.color} /></View>
@@ -316,9 +316,6 @@ export default function TodayScreen() {
               <Text style={styles.tileTitle} numberOfLines={2}>
                 {c.title}
               </Text>
-              {isCategoryReady(c.slug)
-                ? <Badge label="Hazır" color={c.color} backgroundColor={c.tint} />
-                : <Badge label="Yakında" tone="neutral" />}
             </View>
           </Pressable>
         ))}
@@ -371,6 +368,7 @@ const styles = StyleSheet.create({
   durationMissing: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: spacing.xs },
   section: { marginBottom: spacing.lg },
   compactCard: { paddingVertical: spacing.xs },
+  songCard: { paddingBottom: spacing.sm },
   cardActionButton: { width: '100%', marginTop: spacing.sm },
   noteCard: { paddingBottom: spacing.sm },
   noteHeader: { minHeight: 34, flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
@@ -415,7 +413,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 3,
     borderTopColor: colors.accent,
     padding: spacing.md,
-    minHeight: 120,
+    minHeight: 104,
     justifyContent: 'space-between',
   },
   tileIcon: {
