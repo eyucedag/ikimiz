@@ -22,7 +22,7 @@ export const documentService = {
     const { data, error } = await supabase.from('couple_documents').select('*')
       .eq('couple_id', coupleId).order('created_at', { ascending: false });
     if (error) throw new Error(error.code === '42P01' || error.code === 'PGRST205'
-      ? 'Önemli Belgeler kurulumu eksik. Supabase SQL Editor’da 20261108_shared_documents.sql kodunu çalıştırın.'
+      ? 'Önemli Belgeler kurulumu eksik. Supabase SQL Editor’da 20261105_shared_documents.sql kodunu çalıştırın.'
       : 'Belgeler yüklenemedi. Bağlantınızı kontrol edin.');
     return ((data ?? []) as Record<string, unknown>[]).map(mapDocument);
   },
@@ -34,7 +34,7 @@ export const documentService = {
       contentType: input.mimeType, cacheControl: '3600', upsert: false,
     });
     if (uploadError) throw new Error(uploadError.message.toLowerCase().includes('bucket') || uploadError.message.toLowerCase().includes('row-level security')
-      ? 'Belge deposu henüz kurulmamış. Supabase SQL Editor’da 20261108_shared_documents.sql kodunu çalıştırın.'
+      ? 'Belge deposu henüz kurulmamış. Supabase SQL Editor’da 20261105_shared_documents.sql kodunu çalıştırın.'
       : `Dosya yüklenemedi: ${uploadError.message}`);
     const { data, error } = await supabase.from('couple_documents').insert({
       owner_id: input.ownerId, couple_id: input.coupleId, file_name: input.fileName,
@@ -43,7 +43,7 @@ export const documentService = {
     if (error || !data) {
       await supabase.storage.from('couple-documents').remove([storagePath]);
       throw new Error(error?.code === '42P01' || error?.code === 'PGRST205'
-        ? 'Önemli Belgeler kurulumu eksik. Supabase SQL Editor’da 20261108_shared_documents.sql kodunu çalıştırın.'
+        ? 'Önemli Belgeler kurulumu eksik. Supabase SQL Editor’da 20261105_shared_documents.sql kodunu çalıştırın.'
         : 'Dosya yüklendi ama kaydı oluşturulamadı. Yeniden deneyin.');
     }
     const document = mapDocument(data as Record<string, unknown>);
