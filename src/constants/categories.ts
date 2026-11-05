@@ -7,6 +7,7 @@ export const categories: Category[] = [
   { slug: 'notlar', title: 'Notlar', icon: 'file-text', color: '#AD8511', tint: '#FBF3D4', description: 'Klasörlerle düzenlenen kişisel ve ortak notlar.' },
   { slug: 'gorevler', title: 'Görevler', icon: 'check-square', color: '#64A82F', tint: '#EAF5DF', description: 'Ev işleri ve planları paylaşın, tekrarlayan görevler oluşturun.' },
   { slug: 'ekrana-not', title: 'Ekrana Not', icon: 'edit-3', color: '#168D57', tint: '#DFF3E8', description: 'Partnerinizin ana ekranına kısa bir not bırakın.' },
+  { slug: 'gunun-sarkisi', title: 'Günün Şarkısı', icon: 'music', color: '#8155B5', tint: '#F0EAF8', description: 'Her gün birbiriniz için bir şarkı seçin ve birlikte dinleyin.' },
   { slug: 'hediye-radari', title: 'Hediye Radarı', icon: 'gift', color: '#009E98', tint: '#DDF5F2', description: 'Hediye fikirlerini partnerinizden gizli biriktirin.' },
   { slug: 'bilinmesi-gerekenler', title: 'Bilinmesi Gerekenler', icon: 'heart', color: '#3979CB', tint: '#E4EEFC', description: 'Beden ölçüleri, alerjiler, sevdiği şeyler gibi önemli bilgiler.' },
   { slug: 'opucuk', title: 'Öpücük', icon: 'heart', color: '#E5163D', tint: '#FFF0F3', description: 'İstediğiniz zaman partnerinize animasyonlu öpücük gönderin.' },
@@ -27,6 +28,7 @@ const readyRoutes: Record<string, string> = {
   'ozel-gunler': '/special-dates',
   'birlikte-adimlar': '/categories/steps',
   takvim: '/calendar',
+  'gunun-sarkisi': '/song-of-the-day',
 };
 
 export const getCategoryRoute = (slug: string) => readyRoutes[slug] ?? `/categories/${slug}`;

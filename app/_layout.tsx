@@ -43,6 +43,7 @@ function RootNavigator() {
         <Stack.Screen name="categories/[slug]" />
         <Stack.Screen name="calendar/index" />
         <Stack.Screen name="special-dates/index" />
+        <Stack.Screen name="song-of-the-day/index" />
       </Stack>
       {loading ? (
         <View style={[styles.loading, { backgroundColor }]}>

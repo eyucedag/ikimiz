@@ -257,6 +257,22 @@ create table if not exists public.important_dates (
 );
 
 -- =====================================================================
+-- 8a) daily_songs — çiftin günün şarkısı
+-- =====================================================================
+create table if not exists public.daily_songs (
+  id          uuid primary key default gen_random_uuid(),
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now(),
+  owner_id    uuid not null references auth.users(id) on delete cascade,
+  couple_id   uuid not null references public.couples(id) on delete cascade,
+  song_date   date not null,
+  title       text not null,
+  artist      text not null,
+  url         text not null check (url ~* '^https?://'),
+  unique (couple_id, song_date)
+);
+
+-- =====================================================================
 -- 9) lists — paylaşılan listeler (Aşama 2)
 -- RLS: İçerik politikası.
 -- =====================================================================
@@ -548,6 +564,9 @@ do $$ begin
   if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'important_dates') then
     alter publication supabase_realtime add table public.important_dates;
   end if;
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'daily_songs') then
+    alter publication supabase_realtime add table public.daily_songs;
+  end if;
 end $$;
 
 create index if not exists kisses_partner_created_idx
@@ -682,6 +701,17 @@ create policy notifications_insert on public.notifications for insert with check
 );
 drop policy if exists notifications_update on public.notifications;
 create policy notifications_update on public.notifications for update using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+
+alter table public.daily_songs enable row level security;
+drop policy if exists daily_songs_select on public.daily_songs;
+create policy daily_songs_select on public.daily_songs for select to authenticated using (public.is_couple_member(couple_id));
+drop policy if exists daily_songs_insert on public.daily_songs;
+create policy daily_songs_insert on public.daily_songs for insert to authenticated with check (owner_id = auth.uid() and public.is_couple_member(couple_id));
+drop policy if exists daily_songs_update on public.daily_songs;
+create policy daily_songs_update on public.daily_songs for update to authenticated using (public.is_couple_member(couple_id)) with check (public.is_couple_member(couple_id));
+drop policy if exists daily_songs_delete on public.daily_songs;
+create policy daily_songs_delete on public.daily_songs for delete to authenticated using (owner_id = auth.uid() and public.is_couple_member(couple_id));
+grant select, insert, update, delete on public.daily_songs to authenticated;
 
 -- ---------------------------------------------------------------------
 -- RLS politikaları — Aşama 2 içerik tabloları (ortak "içerik politikası")
