@@ -47,7 +47,7 @@ export default function NotebookNoteViewScreen() {
 }
 
 const styles = StyleSheet.create({
-  noteCard: { borderWidth: 1, padding: spacing.lg },
+  noteCard: { borderWidth: 1, padding: spacing.md },
   title: { color: colors.text, fontSize: fontSize.xl, lineHeight: 30, fontWeight: '700' },
   updated: { color: colors.textTertiary, fontSize: fontSize.xs, marginTop: spacing.xs },
   rule: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: spacing.md },

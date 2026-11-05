@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   headingText: { flex: 1 },
   headingTitle: { fontSize: fontSize.lg, fontWeight: '700', color: colors.text },
   date: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 2, textTransform: 'capitalize' },
-  songCard: { alignItems: 'center', borderWidth: 1, padding: spacing.lg, marginBottom: spacing.md },
+  songCard: { alignItems: 'center', borderWidth: 1, padding: spacing.md, marginBottom: spacing.md },
   albumArt: { width: 76, height: 76, borderRadius: radius.card, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.md },
   songTitle: { color: colors.text, fontSize: fontSize.xl, fontWeight: '700', textAlign: 'center' },
   artist: { color: colors.textSecondary, fontSize: fontSize.md, marginTop: spacing.xs },

@@ -77,7 +77,7 @@ export default function MoodScreen() {
   latestScopeRef.current = scope;
   const today = moods.today?.ownerId === user?.id && moods.today?.coupleId === coupleId && moods.today?.date === currentDate ? moods.today : null;
   const partnerToday = moods.partnerToday?.ownerId === partnerId && moods.partnerToday?.coupleId === coupleId && moods.partnerToday?.date === currentDate ? moods.partnerToday : null;
-  const optionColumns = Math.min(width, layout.maxContentWidth) >= 520 ? 5 : 2;
+  const optionColumns = Math.min(width, layout.maxContentWidth) >= 520 ? 5 : 3;
   const draftIsCurrent = draftScope === scope;
 
   useEffect(() => {
@@ -364,9 +364,9 @@ const styles = StyleSheet.create({
   cardDescription: { fontSize: fontSize.xs, color: colors.textSecondary, lineHeight: 17, marginTop: spacing.xs },
   moodGrid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -spacing.xs, marginTop: spacing.sm, marginBottom: spacing.sm },
   moodCell: { padding: 3 },
-  moodOption: { minHeight: 78, borderRadius: radius.card, borderWidth: 1, borderColor: colors.border, padding: spacing.xs, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
-  selectionMark: { height: 14, alignSelf: 'flex-end' },
-  moodEmoji: { fontSize: 23, marginBottom: 2 },
+  moodOption: { minHeight: 64, borderRadius: radius.control, borderWidth: 1, borderColor: colors.border, padding: spacing.xs, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
+  selectionMark: { height: 12, alignSelf: 'flex-end' },
+  moodEmoji: { fontSize: 20, marginBottom: 1 },
   moodLabel: { fontSize: fontSize.xs, color: colors.text, textAlign: 'center', fontWeight: '500', lineHeight: 16 },
   moodLabelSelected: { fontWeight: '700' },
   pressed: { opacity: 0.75 },
@@ -397,9 +397,9 @@ const styles = StyleSheet.create({
   historyDay: { marginBottom: spacing.md },
   historyDate: { fontSize: fontSize.sm, color: colors.textSecondary, fontWeight: '600', marginBottom: spacing.sm },
   historyCard: { paddingVertical: 0 },
-  historyEntry: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md, paddingVertical: spacing.lg },
-  historyEmojiCircle: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  historyEmoji: { fontSize: 24 },
+  historyEntry: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, paddingVertical: spacing.sm },
+  historyEmojiCircle: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  historyEmoji: { fontSize: 20 },
   historyName: { fontSize: fontSize.sm, color: colors.textSecondary, marginBottom: 2 },
   historyMood: { fontSize: fontSize.md, color: colors.text, fontWeight: '600' },
   historyNote: { fontSize: fontSize.sm, color: colors.text, lineHeight: 21, marginTop: spacing.sm },
