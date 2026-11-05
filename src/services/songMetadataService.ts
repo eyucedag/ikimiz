@@ -8,15 +8,16 @@ interface OEmbedResponse {
   author_name?: unknown;
 }
 
-const providerFor = (url: URL): 'spotify' | 'youtube' | 'apple' | null => {
+const providerFor = (url: URL): 'spotify' | 'youtube' | 'apple' | 'soundcloud' | null => {
   const host = url.hostname.toLowerCase().replace(/^www\./, '');
   if (host === 'open.spotify.com' || host === 'spotify.link') return 'spotify';
   if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtu.be' || host === 'music.youtube.com') return 'youtube';
   if (host === 'music.apple.com') return 'apple';
+  if (host === 'soundcloud.com' || host === 'on.soundcloud.com' || host === 'm.soundcloud.com') return 'soundcloud';
   return null;
 };
 
-export function parseSongMetadata(provider: 'spotify' | 'youtube' | 'apple', payload: OEmbedResponse): SongMetadata | null {
+export function parseSongMetadata(provider: 'spotify' | 'youtube' | 'apple' | 'soundcloud', payload: OEmbedResponse): SongMetadata | null {
   const title = typeof payload.title === 'string' ? payload.title.trim() : '';
   const author = typeof payload.author_name === 'string' ? payload.author_name.trim() : '';
   if (!title) return null;
@@ -26,6 +27,19 @@ export function parseSongMetadata(provider: 'spotify' | 'youtube' | 'apple', pay
     if (byMatch) return { title: byMatch[1].trim(), artist: byMatch[2].trim() };
     const dashMatch = title.match(/^(.+?)\s+[–—-]\s+(.+)$/);
     if (dashMatch) return { title: dashMatch[2].trim(), artist: dashMatch[1].trim() };
+  }
+
+  if (provider === 'soundcloud') {
+    const artistTitle = title.match(/^(.+?)\s+[–—-]\s+(.+)$/);
+    if (artistTitle) {
+      const first = artistTitle[1].trim();
+      const second = artistTitle[2].trim();
+      if (author && first.toLocaleLowerCase() === author.toLocaleLowerCase()) return { title: second, artist: author };
+      if (author && second.toLocaleLowerCase() === author.toLocaleLowerCase()) return { title: first, artist: author };
+      if (!author) return { title: second, artist: first };
+    }
+    const byMatch = title.match(/^(.+?)\s+by\s+(.+)$/i);
+    if (byMatch) return { title: byMatch[1].trim(), artist: author || byMatch[2].trim() };
   }
 
   return author ? { title, artist: author } : null;
@@ -42,7 +56,9 @@ export const songMetadataService = {
       ? `https://open.spotify.com/oembed?url=${encodeURIComponent(url.toString())}`
       : provider === 'apple'
         ? `https://embed.music.apple.com/oembed?url=${encodeURIComponent(url.toString())}`
-        : `https://www.youtube.com/oembed?url=${encodeURIComponent(url.toString())}&format=json`;
+        : provider === 'soundcloud'
+          ? `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url.toString())}`
+          : `https://www.youtube.com/oembed?url=${encodeURIComponent(url.toString())}&format=json`;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
     try {

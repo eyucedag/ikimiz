@@ -12,6 +12,15 @@ test('YouTube titles with artist separators identify the artist and song', () =>
     .toEqual({ title: 'Seni Kendime Sakladım', artist: 'Duman' });
 });
 
+test('SoundCloud uses the uploader as the artist and separates artist-prefixed track titles', () => {
+  expect(parseSongMetadata('soundcloud', { title: 'Seni Kendime Sakladım', author_name: 'Duman' }))
+    .toEqual({ title: 'Seni Kendime Sakladım', artist: 'Duman' });
+  expect(parseSongMetadata('soundcloud', { title: 'Duman - Seni Kendime Sakladım', author_name: 'Duman' }))
+    .toEqual({ title: 'Seni Kendime Sakladım', artist: 'Duman' });
+  expect(parseSongMetadata('soundcloud', { title: 'Track Name — Artist Name', author_name: 'Artist Name' }))
+    .toEqual({ title: 'Track Name', artist: 'Artist Name' });
+});
+
 test('missing artist metadata leaves the fields for manual entry', () => {
   expect(parseSongMetadata('apple', { title: 'Song' })).toBeNull();
 });

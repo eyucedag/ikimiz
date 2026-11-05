@@ -146,7 +146,7 @@ export default function SongOfTheDayScreen() {
           <Input label="Şarkı" compact placeholder="…" value={title} onChangeText={changeTitle} />
           <Input label="Sanatçı" compact placeholder="…" value={artist} onChangeText={changeArtist} />
           <Input label="Dinleme bağlantısı" compact placeholder="…" value={url} onChangeText={changeUrl} autoCapitalize="none" keyboardType="url" autoCorrect={false} />
-          <Text style={styles.hint}>Spotify, YouTube veya Apple Music bağlantısı yapıştırınca şarkı bilgileri otomatik doldurulur.</Text>
+          <Text style={styles.hint}>Spotify, YouTube, Apple Music veya SoundCloud bağlantısı yapıştırınca şarkı bilgileri otomatik doldurulur.</Text>
           {metadataStatus ? <Text style={styles.metadataStatus}>{metadataStatus}</Text> : null}
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <Button title={song ? 'Günün şarkısını güncelle' : 'Günün şarkısını paylaş'} icon="music" toneColor={categoryColor.color} onPress={() => { void save(); }} loading={saving} disabled={!title.trim() || !artist.trim() || !url.trim()} compact />
