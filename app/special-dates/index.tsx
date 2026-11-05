@@ -9,6 +9,7 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
 import { ImportantDate, ImportantDateKind, importantDateService } from '@/src/services/importantDateService';
 import { useAppAppearance } from '@/src/hooks/useAppAppearance';
+import { getCategoryColor } from '@/src/constants/categories';
 
 const kinds: { value: ImportantDateKind; label: string }[] = [
   { value: 'anniversary', label: 'Yıl dönümü' },
@@ -37,7 +38,8 @@ export default function SpecialDatesScreen() {
   const [draftDate, setDraftDate] = useState(toDate(today()));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const categoryColor = colors.accent;
+  const categoryTone = getCategoryColor('ozel-gunler');
+  const categoryColor = categoryTone.color;
 
   const refresh = useCallback(async () => {
     if (!couple.couple?.id) return;
@@ -68,17 +70,17 @@ export default function SpecialDatesScreen() {
 
   const relationshipStart = couple.couple?.relationshipStartedAt ?? null;
 
-  if (couple.loading) return <Screen title="Özel Günler"><CoupleLoading /></Screen>;
+  if (couple.loading) return <Screen title="Özel Günler" toneColor={categoryColor}><CoupleLoading /></Screen>;
 
   return (
-    <Screen title="Özel Günler" refreshing={false} onRefresh={refresh}>
-      {!couple.isPaired ? <EmptyState icon="users" title="Önce eşleşin" description="Özel günlerinizi birlikte kaydetmek için partnerinizle eşleşin." /> : <>
-        <Card style={styles.form}>
+    <Screen title="Özel Günler" toneColor={categoryColor} refreshing={false} onRefresh={refresh}>
+      {!couple.isPaired ? <EmptyState icon="users" toneColor={categoryColor} toneTint={categoryTone.tint} title="Önce eşleşin" description="Özel günlerinizi birlikte kaydetmek için partnerinizle eşleşin." /> : <>
+        <Card style={[styles.form, { borderColor: categoryColor }]}>
           <Text style={styles.formTitle}>{editing ? 'Özel günü düzenle' : 'Özel gün ekle'}</Text>
           <Input label="Özel gün" compact placeholder="…" value={title} onChangeText={setTitle} />
           <Text style={styles.label}>Tür</Text>
           <View style={styles.kindRow}>
-            {kinds.map((entry) => <Pressable key={entry.value} onPress={() => setKind(entry.value)} style={[styles.kindChip, kind === entry.value && { borderColor: categoryColor, backgroundColor: colors.accentLight }]}>
+            {kinds.map((entry) => <Pressable key={entry.value} onPress={() => setKind(entry.value)} style={[styles.kindChip, kind === entry.value && { borderColor: categoryColor, backgroundColor: categoryTone.tint }]}>
               <Text style={[styles.kindText, kind === entry.value && { color: categoryColor }]}>{entry.label}</Text>
             </Pressable>)}
           </View>
@@ -97,13 +99,13 @@ export default function SpecialDatesScreen() {
           <Button title={editing ? 'Değişiklikleri kaydet' : 'Özel günü ekle'} icon={editing ? 'save' : 'plus'} toneColor={categoryColor} compact loading={saving} onPress={() => { void save(); }} disabled={!title.trim()} />
           {editing ? <Button title="Vazgeç" variant="ghost" compact toneColor={categoryColor} onPress={() => { setEditing(null); setTitle(''); setDate(today()); setKind('other'); }} /> : null}
         </Card>
-        <Text style={styles.listTitle}>Kaydedilen özel günler · {items.length + (relationshipStart ? 1 : 0)}</Text>
-        {relationshipStart ? <Card style={styles.row}>
-          <View style={styles.icon}><Feather name="heart" size={18} color={categoryColor} /></View>
+        <Text style={[styles.listTitle, { color: categoryColor }]}>Kaydedilen özel günler · {items.length + (relationshipStart ? 1 : 0)}</Text>
+        {relationshipStart ? <Card style={[styles.row, { borderColor: categoryColor }]}>
+          <View style={[styles.icon, { backgroundColor: categoryTone.tint }]}><Feather name="heart" size={18} color={categoryColor} /></View>
           <View style={styles.copy}><Text style={styles.itemTitle}>İlişki yıl dönümümüz</Text><Text style={styles.itemMeta}>{dateLabel(relationshipStart)} · Her yıl</Text></View>
         </Card> : null}
-        {items.length === 0 && !relationshipStart ? <Card style={styles.empty}><EmptyState compact icon="gift" title="Henüz özel gün eklenmedi" description="İkiniz için anlamlı tarihleri buraya kaydedin." /></Card> : items.map((item) => <Card key={item.id} style={styles.row}>
-          <View style={styles.icon}><Feather name={item.kind === 'birthday' ? 'gift' : 'heart'} size={18} color={categoryColor} /></View>
+        {items.length === 0 && !relationshipStart ? <Card style={[styles.empty, { borderColor: categoryColor }]}><EmptyState compact icon="gift" toneColor={categoryColor} toneTint={categoryTone.tint} title="Henüz özel gün eklenmedi" description="İkiniz için anlamlı tarihleri buraya kaydedin." /></Card> : items.map((item) => <Card key={item.id} style={[styles.row, { borderColor: categoryColor }]}>
+          <View style={[styles.icon, { backgroundColor: categoryTone.tint }]}><Feather name={item.kind === 'birthday' ? 'gift' : 'heart'} size={18} color={categoryColor} /></View>
           <View style={styles.copy}><Text style={styles.itemTitle}>{item.title}</Text><Text style={styles.itemMeta}>{dateLabel(item.date)} · {kinds.find((entry) => entry.value === item.kind)?.label}</Text></View>
           <Button title="Düzenle" icon="edit-2" compact variant="ghost" toneColor={categoryColor} onPress={() => edit(item)} />
           {item.ownerId === user?.id ? <Pressable onPress={() => remove(item)} hitSlop={8} accessibilityRole="button" accessibilityLabel="Özel günü kaldır"><Feather name="trash-2" size={16} color={colors.error} /></Pressable> : null}
@@ -114,8 +116,8 @@ export default function SpecialDatesScreen() {
 }
 
 const styles = StyleSheet.create({
-  form: { padding: spacing.md, marginBottom: spacing.md, borderColor: colors.accent, borderWidth: 1 },
-  formTitle: { fontSize: fontSize.md, fontWeight: '700', color: colors.accent },
+  form: { padding: spacing.md, marginBottom: spacing.md, borderWidth: 1 },
+  formTitle: { fontSize: fontSize.md, fontWeight: '700', color: colors.text },
   label: { fontSize: fontSize.xs, color: colors.textSecondary, fontWeight: '600', marginBottom: spacing.xs },
   kindRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.sm },
   kindChip: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
@@ -123,10 +125,10 @@ const styles = StyleSheet.create({
   dateButton: { minHeight: 40, borderWidth: 1, borderColor: colors.border, borderRadius: radius.control, paddingHorizontal: spacing.sm, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
   dateText: { color: colors.text, fontSize: fontSize.sm },
   error: { color: colors.error, fontSize: fontSize.xs, marginBottom: spacing.sm },
-  listTitle: { color: colors.accent, fontSize: fontSize.sm, fontWeight: '700', marginVertical: spacing.sm },
-  empty: { padding: spacing.sm, borderColor: colors.accent, borderWidth: 1 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm, marginBottom: spacing.sm, borderColor: colors.accent, borderWidth: 1 },
-  icon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.accentLight, alignItems: 'center', justifyContent: 'center' },
+  listTitle: { fontSize: fontSize.sm, fontWeight: '700', marginVertical: spacing.sm },
+  empty: { padding: spacing.sm, borderWidth: 1 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm, marginBottom: spacing.sm, borderWidth: 1 },
+  icon: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   copy: { flex: 1 },
   itemTitle: { color: colors.text, fontSize: fontSize.sm, fontWeight: '600' },
   itemMeta: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 2 },

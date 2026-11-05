@@ -43,7 +43,7 @@ export default function CategoryScreen() {
   const noteColor = getCategoryColor('ekrana-not');
 
   return (
-    <Screen title={category.title}>
+      <Screen title={category.title} toneColor={category.color}>
       <View style={styles.hero}>
         <View style={[styles.heroIcon, { backgroundColor: category.tint }]}>
           <Feather name={category.icon as keyof typeof Feather.glyphMap} size={32} color={category.color} />

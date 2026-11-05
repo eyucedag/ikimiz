@@ -31,10 +31,10 @@ export default function NotebookNoteViewScreen() {
 
   useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
 
-  if (couple.loading || loading) return <Screen title="Not Defteri"><CoupleLoading /></Screen>;
-  if (!note) return <Screen title="Not Defteri"><EmptyState icon="file-text" title="Not bulunamadı" description={error || 'Bu not kaldırılmış olabilir.'} /></Screen>;
+  if (couple.loading || loading) return <Screen title="Not Defteri" toneColor={tone.color}><CoupleLoading /></Screen>;
+  if (!note) return <Screen title="Not Defteri" toneColor={tone.color}><EmptyState icon="file-text" toneColor={tone.color} toneTint={tone.tint} title="Not bulunamadı" description={error || 'Bu not kaldırılmış olabilir.'} /></Screen>;
 
-  return <Screen title="Not Defteri" headerRight={<IconButton icon="edit-2" accessibilityLabel="Notu düzenle" onPress={() => router.push({ pathname: '/notebook/compose', params: { noteId: note.id } })} />}>
+  return <Screen title="Not Defteri" toneColor={tone.color} headerRight={<IconButton icon="edit-2" accessibilityLabel="Notu düzenle" onPress={() => router.push({ pathname: '/notebook/compose', params: { noteId: note.id } })} />}>
     {error ? <Text style={styles.error}>{error}</Text> : null}
     <Card style={[styles.noteCard, { borderColor: tone.color }]}>
       <Text style={styles.title}>{note.title}</Text>

@@ -122,10 +122,10 @@ export default function SongOfTheDayScreen() {
     catch { Alert.alert('Bağlantı açılamadı', 'Şarkı bağlantısını kontrol edip yeniden deneyin.'); }
   };
 
-  if (couple.loading) return <Screen title="Günün Şarkısı"><CoupleLoading /></Screen>;
+  if (couple.loading) return <Screen title="Günün Şarkısı" toneColor={categoryColor.color}><CoupleLoading /></Screen>;
 
   return (
-    <Screen title="Günün Şarkısı" onRefresh={refresh} refreshing={loading}>
+    <Screen title="Günün Şarkısı" toneColor={categoryColor.color} onRefresh={refresh} refreshing={loading}>
       {!couple.isPaired ? <EmptyState icon="users" title="Önce eşleşin" description="Günün şarkısını partnerinizle paylaşmak için önce eşleşin." toneColor={categoryColor.color} toneTint={categoryColor.tint} /> : <>
         <View style={styles.heading}>
           <View style={[styles.icon, { backgroundColor: categoryColor.tint }]}><Feather name="music" size={21} color={categoryColor.color} /></View>

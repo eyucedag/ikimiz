@@ -74,11 +74,11 @@ export default function ListsScreen() {
 
   const visibleLists = filter === 'all' ? lists : lists.filter((list) => list.kind === filter);
 
-  if (couple.loading) return <Screen title="Listeler"><CoupleLoading /></Screen>;
+  if (couple.loading) return <Screen title="Listeler" toneColor={listColor.color}><CoupleLoading /></Screen>;
 
   return (
-    <Screen title="Listeler" headerRight={<IconButton icon="refresh-cw" accessibilityLabel="Listeleri yenile" onPress={() => { void refresh(); }} />} refreshing={loading} onRefresh={() => { void refresh(); }}>
-      {!couple.isPaired || !couple.couple ? <EmptyState icon="users" title="Önce eşleşin" description="Ortak listeleri kullanmak için partnerinizle eşleşin." /> : <>
+    <Screen title="Listeler" toneColor={listColor.color} headerRight={<IconButton icon="refresh-cw" accessibilityLabel="Listeleri yenile" onPress={() => { void refresh(); }} />} refreshing={loading} onRefresh={() => { void refresh(); }}>
+      {!couple.isPaired || !couple.couple ? <EmptyState icon="users" toneColor={listColor.color} toneTint={listColor.tint} title="Önce eşleşin" description="Ortak listeleri kullanmak için partnerinizle eşleşin." /> : <>
         <Card style={[styles.form, { borderColor: listColor.color }]}>
           <Text style={[styles.formTitle, { color: listColor.color }]}>Yeni liste</Text>
           <Input label="Liste adı" compact placeholder="…" value={title} onChangeText={setTitle} onSubmitEditing={() => { void create(); }} returnKeyType="done" />
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   filterChip: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
   filterText: { color: colors.textSecondary, fontSize: fontSize.xs },
   filterTextActive: { color: colors.white, fontWeight: '600' },
-  emptyCard: { borderColor: colors.accent, borderWidth: 1 },
+  emptyCard: { borderWidth: 1 },
   loading: { minHeight: 100, alignItems: 'center', justifyContent: 'center' },
   listCard: { borderWidth: 1, padding: spacing.md, marginBottom: spacing.md, flexDirection: 'row', alignItems: 'center' },
   listPress: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 48 },

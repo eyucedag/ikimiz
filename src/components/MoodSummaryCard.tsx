@@ -17,13 +17,13 @@ interface MoodSummaryCardProps {
   onPress: () => void;
 }
 
-function PersonMood({ name, entry, mine }: { name: string; entry: MoodEntry | null; mine?: boolean }) {
+function PersonMood({ name, entry, mine, toneColor }: { name: string; entry: MoodEntry | null; mine?: boolean; toneColor: string }) {
   const option = entry ? getMoodOption(entry.mood) : null;
 
   return (
     <View style={styles.person} accessible accessibilityLabel={`${name}: ${option?.label ?? (mine ? 'Henüz seçmediniz' : 'Henüz paylaşmadı')}`}>
       <View style={[styles.emojiCircle, option && { backgroundColor: `${option.color}18` }]}>
-        {option ? <Text style={styles.emoji}>{option.emoji}</Text> : <Feather name="sun" size={18} color={colors.textSecondary} />}
+        {option ? <Text style={styles.emoji}>{option.emoji}</Text> : <Feather name="sun" size={18} color={toneColor} />}
       </View>
       <View style={styles.personCopy}>
         <Text style={styles.name} numberOfLines={1}>{name}</Text>
@@ -47,14 +47,14 @@ export function MoodSummaryCard({ today, partnerToday, partnerName, paired, load
 
       {loading && !today && !partnerToday ? (
         <View style={styles.loading} accessibilityLiveRegion="polite">
-          <ActivityIndicator color={colors.accent} />
+          <ActivityIndicator color={categoryColor.color} />
           <Text style={styles.muted}>Ruh halleri yükleniyor…</Text>
         </View>
       ) : paired ? (
         <View style={styles.people}>
-          <PersonMood name="Siz" entry={today} mine />
+          <PersonMood name="Siz" entry={today} mine toneColor={categoryColor.color} />
           <View style={styles.divider} />
-          <PersonMood name={partnerName || 'Partneriniz'} entry={partnerToday} />
+          <PersonMood name={partnerName || 'Partneriniz'} entry={partnerToday} toneColor={categoryColor.color} />
         </View>
       ) : (
           <Text style={styles.unpaired} numberOfLines={2}>Partnerinizle eşleşin; günlük ruh halinizi paylaşın.</Text>

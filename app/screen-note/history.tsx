@@ -45,11 +45,12 @@ export default function NoteHistoryScreen() {
     }
   }, [notes, markRead, user?.id]);
 
-  if (couple.loading) return <Screen title="Not Geçmişi"><CoupleLoading /></Screen>;
+  if (couple.loading) return <Screen title="Not Geçmişi" toneColor={categoryColor.color}><CoupleLoading /></Screen>;
 
   return (
     <Screen
       title="Not Geçmişi"
+      toneColor={categoryColor.color}
       refreshing={refreshing}
       onRefresh={onRefresh}
       headerRight={couple.isPaired ? <IconButton icon="plus" accessibilityLabel="Yeni not" onPress={() => router.push('/screen-note/compose')} /> : undefined}
@@ -71,6 +72,8 @@ export default function NoteHistoryScreen() {
       {visible.length === 0 ? (
         <EmptyState
           icon="edit-3"
+          toneColor={categoryColor.color}
+          toneTint={categoryColor.tint}
           title="Burada henüz not yok"
           description={couple.isPaired ? 'Gönderdiğiniz ve aldığınız ekran notları burada saklanır.' : 'Not alışverişi için önce partnerinizle eşleşin.'}
           actionLabel={couple.isPaired ? 'Yeni Not Bırak' : 'Partner Davet Et'}

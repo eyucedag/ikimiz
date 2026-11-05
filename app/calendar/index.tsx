@@ -14,6 +14,8 @@ import { ImportantDate, importantDateService } from '@/src/services/importantDat
 import { TravelPlace, travelService } from '@/src/services/travelService';
 import { supabase } from '@/src/lib/supabase';
 
+const calendarTone = getCategoryColor('takvim');
+
 type Entry = { id: string; date: string; title: string; detail: string; kind: 'event' | 'special' | 'travel' | 'relationship'; color: string; ownerId?: string };
 const startOfMonth = (value: Date) => new Date(value.getFullYear(), value.getMonth(), 1);
 const dateKey = (value: Date) => `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
@@ -24,7 +26,7 @@ export default function CalendarScreen() {
   const { user } = useAuth();
   const couple = useCouple();
   const { refreshUpcoming } = useAppState();
-  const calendarColor = getCategoryColor('takvim');
+  const calendarColor = calendarTone;
   const [month, setMonth] = useState(startOfMonth(new Date()));
   const [selectedDate, setSelectedDate] = useState(dateKey(new Date()));
   const [title, setTitle] = useState('');
@@ -149,10 +151,10 @@ export default function CalendarScreen() {
     } },
   ]);
 
-  if (couple.loading) return <Screen title="Takvim"><CoupleLoading /></Screen>;
+  if (couple.loading) return <Screen title="Takvim" toneColor={calendarColor.color}><CoupleLoading /></Screen>;
 
-  return <Screen title="Takvim" onRefresh={refresh}>
-    {!couple.isPaired ? <EmptyState icon="users" title="Önce eşleşin" description="Ortak takviminizi kullanmak için partnerinizle eşleşin." /> : <>
+  return <Screen title="Takvim" toneColor={calendarColor.color} onRefresh={refresh}>
+    {!couple.isPaired ? <EmptyState icon="users" toneColor={calendarColor.color} toneTint={calendarColor.tint} title="Önce eşleşin" description="Ortak takviminizi kullanmak için partnerinizle eşleşin." /> : <>
       <Card style={styles.calendarCard}>
         <View style={styles.monthHeader}>
           <Pressable onPress={() => moveMonth(-1)} hitSlop={8} accessibilityLabel="Önceki ay"><Feather name="chevron-left" size={21} color={calendarColor.color} /></Pressable>
@@ -176,7 +178,7 @@ export default function CalendarScreen() {
       </Card>
 
       <Text style={styles.sectionTitle}>{dateName(selectedDate)}</Text>
-      {selectedEntries.length === 0 ? <Card style={styles.emptyCard}><EmptyState compact icon="calendar" title="Bu tarihte kayıt yok" description="Bu güne bir etkinlik ekleyebilirsiniz." /></Card> : selectedEntries.map((entry) => <Card key={entry.id} style={styles.entryCard} onPress={entry.kind === 'event' ? () => beginEdit(entry) : undefined} accessibilityLabel={entry.kind === 'event' ? `${entry.title} etkinliğini düzenle` : undefined}>
+      {selectedEntries.length === 0 ? <Card style={styles.emptyCard}><EmptyState compact icon="calendar" toneColor={calendarColor.color} toneTint={calendarColor.tint} title="Bu tarihte kayıt yok" description="Bu güne bir etkinlik ekleyebilirsiniz." /></Card> : selectedEntries.map((entry) => <Card key={entry.id} style={styles.entryCard} onPress={entry.kind === 'event' ? () => beginEdit(entry) : undefined} accessibilityLabel={entry.kind === 'event' ? `${entry.title} etkinliğini düzenle` : undefined}>
         <View style={[styles.entryMark, { backgroundColor: entry.color }]} />
         <View style={styles.entryCopy}><Text style={styles.entryTitle}>{entry.title}</Text><Text style={styles.entryDetail}>{entry.detail}</Text></View>
         {entry.kind === 'event' && entry.ownerId === user?.id ? <Pressable onPress={(event) => { event.stopPropagation(); removeEvent(entry); }} hitSlop={8} accessibilityLabel="Etkinliği kaldır"><Feather name="trash-2" size={16} color={colors.error} /></Pressable> : null}
@@ -203,9 +205,9 @@ export default function CalendarScreen() {
 }
 
 const styles = StyleSheet.create({
-  calendarCard: { padding: spacing.md, borderColor: colors.accent, borderWidth: 1, marginBottom: spacing.md },
+  calendarCard: { padding: spacing.md, borderColor: calendarTone.color, borderWidth: 1, marginBottom: spacing.md },
   monthHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
-  monthTitle: { fontSize: fontSize.md, fontWeight: '700', color: colors.accent, textTransform: 'capitalize' },
+  monthTitle: { fontSize: fontSize.md, fontWeight: '700', color: calendarTone.color, textTransform: 'capitalize' },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
   weekday: { width: '14.2857%', textAlign: 'center', color: colors.textSecondary, fontSize: 9, fontWeight: '600', paddingVertical: spacing.xs },
   dayCell: { width: '14.2857%', minHeight: 41, alignItems: 'center', justifyContent: 'flex-start', paddingTop: 1 },
@@ -214,16 +216,16 @@ const styles = StyleSheet.create({
   selectedDayText: { color: colors.white, fontWeight: '700' },
   dots: { flexDirection: 'row', height: 6, gap: 2, marginTop: 1 },
   dot: { width: 4, height: 4, borderRadius: 2 },
-  sectionTitle: { fontSize: fontSize.md, fontWeight: '700', color: colors.accent, marginVertical: spacing.xs },
+  sectionTitle: { fontSize: fontSize.md, fontWeight: '700', color: calendarTone.color, marginVertical: spacing.xs },
   emptyCard: { padding: spacing.md, marginBottom: spacing.md },
   entryCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, marginBottom: spacing.md },
   entryMark: { width: 4, height: 34, borderRadius: 2 },
   entryCopy: { flex: 1 },
   entryTitle: { fontSize: fontSize.sm, fontWeight: '600', color: colors.text },
   entryDetail: { fontSize: fontSize.xs, color: colors.textSecondary, marginTop: 2 },
-  addCard: { padding: spacing.md, borderColor: colors.accent, borderWidth: 1, marginTop: spacing.md },
+  addCard: { padding: spacing.md, borderColor: calendarTone.color, borderWidth: 1, marginTop: spacing.md },
   cancelEditButton: { marginTop: spacing.sm },
-  addTitle: { color: colors.accent, fontSize: fontSize.sm, fontWeight: '700', marginBottom: spacing.sm },
+  addTitle: { color: calendarTone.color, fontSize: fontSize.sm, fontWeight: '700', marginBottom: spacing.sm },
   fieldLabel: { fontSize: fontSize.sm, color: colors.textSecondary, marginBottom: spacing.xs, fontWeight: '500' },
   timeButton: { minHeight: 42, borderWidth: 1, borderColor: colors.border, borderRadius: 10, backgroundColor: colors.card, paddingHorizontal: spacing.md, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
   timeText: { flex: 1, fontSize: fontSize.md, color: colors.text },

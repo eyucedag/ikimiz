@@ -47,13 +47,15 @@ export default function ComposeNoteScreen() {
     ]);
   };
 
-  if (couple.loading) return <Screen title={noteId ? 'Notu Düzenle' : 'Ekrana Not'}><CoupleLoading /></Screen>;
+  if (couple.loading) return <Screen title={noteId ? 'Notu Düzenle' : 'Ekrana Not'} toneColor={categoryColor.color}><CoupleLoading /></Screen>;
 
   if (!couple.isPaired) {
     return (
-      <Screen title="Ekrana Not">
+      <Screen title="Ekrana Not" toneColor={categoryColor.color}>
         <EmptyState
           icon="edit-3"
+          toneColor={categoryColor.color}
+          toneTint={categoryColor.tint}
           title="Önce partnerinizle eşleşin"
           description="Ekrana Not, eşleştiğiniz partnerinizin ana ekranında görünen kısa notlardır."
           actionLabel="Partner Davet Et"
@@ -64,7 +66,7 @@ export default function ComposeNoteScreen() {
   }
 
   return (
-    <Screen title={noteId ? 'Notu Düzenle' : 'Ekrana Not'}>
+    <Screen title={noteId ? 'Notu Düzenle' : 'Ekrana Not'} toneColor={categoryColor.color}>
       {/* Canlı önizleme */}
       <View style={[styles.preview, { backgroundColor, borderColor: categoryColor.color }]}>
         <TextInput

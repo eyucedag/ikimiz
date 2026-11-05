@@ -174,9 +174,9 @@ export default function MoodScreen() {
 
   if (couple.loading) {
     return (
-      <Screen title="Ruh Halim">
+      <Screen title="Ruh Halim" toneColor={categoryColor.color}>
         <View style={styles.loading} accessibilityLiveRegion="polite">
-          <ActivityIndicator color={colors.accent} />
+          <ActivityIndicator color={categoryColor.color} />
           <Text style={styles.muted}>Eşleşmeniz kontrol ediliyor…</Text>
         </View>
       </Screen>
@@ -185,10 +185,12 @@ export default function MoodScreen() {
 
   if (!couple.isPaired) {
     return (
-      <Screen title="Ruh Halim" refreshing={refreshing} onRefresh={onRefresh}>
+      <Screen title="Ruh Halim" toneColor={categoryColor.color} refreshing={refreshing} onRefresh={onRefresh}>
         <SharedNotice />
         <EmptyState
           icon="heart"
+          toneColor={categoryColor.color}
+          toneTint={categoryColor.tint}
           title="Birbirinizin gününe yakın olun"
           description="Partnerinizle eşleştiğinizde günlük ruh halinizi ve kısa notunuzu paylaşabilir, son 30 günü birlikte görebilirsiniz."
           actionLabel="Partner Davet Et"
@@ -206,6 +208,7 @@ export default function MoodScreen() {
   return (
     <Screen
       title="Ruh Halim"
+      toneColor={categoryColor.color}
       refreshing={refreshing}
       onRefresh={onRefresh}
       headerRight={<IconButton icon="refresh-cw" accessibilityLabel="Ruh hallerini yenile" onPress={onRefresh} />}
@@ -227,7 +230,7 @@ export default function MoodScreen() {
       {initiallyLoading ? (
         <Card style={[styles.section, { borderColor: categoryColor.color, borderWidth: 1 }]}>
           <View style={styles.loading} accessibilityLiveRegion="polite">
-            <ActivityIndicator color={colors.accent} />
+            <ActivityIndicator color={categoryColor.color} />
             <Text style={styles.muted}>Ruh halleri yükleniyor…</Text>
           </View>
         </Card>
@@ -327,7 +330,7 @@ export default function MoodScreen() {
           <Text style={styles.historyDescription}>Mevcut eşleşmenizde ikinizin paylaştığı ruh halleri.</Text>
           {historyByDay.length === 0 ? (
             <Card style={{ borderColor: categoryColor.color, borderWidth: 1 }}>
-              <EmptyState compact icon="calendar" title="İlk paylaşımınızla başlasın" description="Günlük ruh halleriniz ve notlarınız burada birikir." />
+              <EmptyState compact icon="calendar" toneColor={categoryColor.color} toneTint={categoryColor.tint} title="İlk paylaşımınızla başlasın" description="Günlük ruh halleriniz ve notlarınız burada birikir." />
             </Card>
           ) : historyByDay.map(({ date, entries }) => (
             <View key={date} style={styles.historyDay}>
@@ -353,7 +356,7 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 10, color: colors.textSecondary, fontWeight: '600', letterSpacing: 1, marginBottom: spacing.xs },
   headline: { fontSize: fontSize.xl, color: colors.text, fontWeight: '700', lineHeight: 27 },
   description: { fontSize: fontSize.sm, color: colors.textSecondary, lineHeight: 19, marginTop: spacing.xs },
-  sharedNotice: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm, borderRadius: radius.card, backgroundColor: colors.accentLight, marginBottom: spacing.sm },
+  sharedNotice: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm, borderRadius: radius.card, marginBottom: spacing.sm },
   sharedText: { flex: 1, fontSize: fontSize.xs, color: colors.text, lineHeight: 17 },
   section: { marginBottom: spacing.md, padding: spacing.md },
   cardTitle: { fontSize: fontSize.md, fontWeight: '600', color: colors.text },
@@ -374,7 +377,7 @@ const styles = StyleSheet.create({
   noteInput: { minHeight: 68, borderWidth: 1, borderColor: colors.border, borderRadius: radius.control, padding: spacing.sm, color: colors.text, backgroundColor: colors.background, fontSize: fontSize.sm, lineHeight: 20 },
   counter: { textAlign: 'right', fontSize: 10, color: colors.textSecondary, marginTop: 2, marginBottom: spacing.sm },
   saveHint: { fontSize: 10, color: colors.textSecondary, textAlign: 'center', lineHeight: 15, marginTop: spacing.xs },
-  successBox: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, padding: spacing.md, borderRadius: radius.control, backgroundColor: colors.accentLight, marginBottom: spacing.md },
+  successBox: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, padding: spacing.md, borderRadius: radius.control, marginBottom: spacing.md },
   successText: { flex: 1, color: colors.text, fontSize: fontSize.sm, lineHeight: 19 },
   errorBox: { padding: spacing.md, borderWidth: 1, borderColor: colors.error, borderRadius: radius.card, backgroundColor: colors.card, marginBottom: spacing.lg },
   errorText: { color: colors.error, fontSize: fontSize.sm, lineHeight: 20 },
@@ -388,7 +391,7 @@ const styles = StyleSheet.create({
   partnerLabel: { fontSize: fontSize.md, fontWeight: '600', color: colors.text, marginBottom: 2 },
   partnerNote: { fontSize: fontSize.sm, color: colors.text, lineHeight: 20, padding: spacing.sm, borderRadius: radius.control, backgroundColor: colors.background },
   partnerEmpty: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
-  waitingIcon: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentLight },
+  waitingIcon: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
   waitingTitle: { fontSize: fontSize.sm, color: colors.text, fontWeight: '500', marginBottom: 2 },
   historyDescription: { fontSize: fontSize.xs, color: colors.textSecondary, lineHeight: 17, marginTop: -spacing.xs, marginBottom: spacing.sm },
   historyDay: { marginBottom: spacing.md },

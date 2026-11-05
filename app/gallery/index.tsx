@@ -165,11 +165,11 @@ export default function GalleryScreen() {
     } },
   ]);
 
-  if (couple.loading) return <Screen title="Galeri"><CoupleLoading /></Screen>;
+  if (couple.loading) return <Screen title="Galeri" toneColor={tone.color}><CoupleLoading /></Screen>;
   const gridWidth = Math.min(windowWidth, layout.maxContentWidth) - spacing.lg * 2;
   const tileWidth = (gridWidth - spacing.sm) / 2;
 
-  return <Screen title="Galeri" refreshing={loading} onRefresh={() => { void refresh(); }}>
+  return <Screen title="Galeri" toneColor={tone.color} refreshing={loading} onRefresh={() => { void refresh(); }}>
     {!couple.couple ? <EmptyState icon="users" title="Önce eşleşin" description="Ortak fotoğraf galerisi partnerinizle eşleşince kullanılabilir." toneColor={tone.color} toneTint={tone.tint} /> : <>
       <Text style={styles.intro}>En sevdiğiniz fotoğrafları polaroid kartlarda birlikte biriktirin.</Text>
       <Card style={[styles.addCard, { borderColor: tone.color }]}>

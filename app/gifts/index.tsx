@@ -16,9 +16,9 @@ export default function GiftsScreen() {
   useFocusEffect(useCallback(() => { void refresh(); const timer = setInterval(() => { void refresh(); }, 8000); return () => clearInterval(timer); }, [refresh]));
   const add = async () => { if (!user || !couple.couple || !title.trim()) return; setSaving(true); try { await giftService.add(user.id, couple.couple.id, title, url, price); setTitle(''); setUrl(''); setPrice(''); await refresh(); } catch (e) { setError(e instanceof Error ? e.message : 'Hediye fikri eklenemedi.'); } finally { setSaving(false); } };
   const remove = (gift: GiftIdea) => Alert.alert('Fikri kaldır', `“${gift.title}” kaldırılsın mı?`, [{ text: 'Vazgeç', style: 'cancel' }, { text: 'Kaldır', style: 'destructive', onPress: async () => { try { await giftService.remove(gift.id); await refresh(); } catch (e) { setError(e instanceof Error ? e.message : 'Fikir kaldırılamadı.'); } } }]);
-  if (couple.loading) return <Screen title="Hediye Radarı"><CoupleLoading /></Screen>;
-  return <Screen title="Hediye Radarı">
-    {!couple.couple ? <EmptyState icon="users" title="Önce eşleşin" description="Hediye fikirlerini güvenle saklamak için partnerinizle eşleşin." /> : <>
+  if (couple.loading) return <Screen title="Hediye Radarı" toneColor={tone.color}><CoupleLoading /></Screen>;
+  return <Screen title="Hediye Radarı" toneColor={tone.color}>
+    {!couple.couple ? <EmptyState icon="users" toneColor={tone.color} toneTint={tone.tint} title="Önce eşleşin" description="Hediye fikirlerini güvenle saklamak için partnerinizle eşleşin." /> : <>
       <Text style={styles.intro}>Buraya eklediklerin yalnızca senin hesabında görünür; partnerin hediye fikirlerini göremez.</Text>
       <Card style={[styles.card, { borderColor: tone.color }]}><Text style={[styles.heading, { color: tone.color }]}>Yeni hediye fikri</Text><Input value={title} onChangeText={setTitle} placeholder="…" compact /><Input value={url} onChangeText={setUrl} placeholder="Bağlantı (isteğe bağlı)" autoCapitalize="none" keyboardType="url" compact /><Input value={price} onChangeText={setPrice} placeholder="Fiyat (isteğe bağlı)" keyboardType="decimal-pad" compact /><Button title="Fikri kaydet" icon="plus" toneColor={tone.color} onPress={() => { void add(); }} loading={saving} disabled={!title.trim()} compact /></Card>
       {error ? <Text style={styles.error}>{error}</Text> : null}

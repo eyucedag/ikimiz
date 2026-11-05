@@ -18,7 +18,7 @@ interface EmptyStateProps {
 export function EmptyState({ icon, title, description, actionLabel, onAction, compact, toneColor, toneTint }: EmptyStateProps) {
   return (
     <View style={[styles.container, compact && styles.compact]}>
-      <View style={[styles.iconWrap, toneTint ? { backgroundColor: toneTint } : undefined]}>
+      <View style={[styles.iconWrap, { backgroundColor: toneTint ?? colors.accentLight }]}>
         <Feather name={icon} size={compact ? 22 : 28} color={toneColor ?? colors.accent} />
       </View>
       <Text style={styles.title}>{title}</Text>

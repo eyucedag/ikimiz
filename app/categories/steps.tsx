@@ -40,11 +40,11 @@ export default function StepsScreen() {
   const todayRows = useMemo(() => rows.filter((row) => row.localDate === today), [rows, today]);
   const todayTotal = useMemo(() => todayRows.reduce((sum, row) => sum + row.steps, 0), [todayRows]);
   const allTimeTotal = useMemo(() => rows.reduce((sum, row) => sum + row.steps, 0), [rows]);
-  if (couple.loading) return <Screen title="Birlikte Atılan Adımlar"><CoupleLoading /></Screen>;
-  if (!couple.couple) return <Screen title="Birlikte Atılan Adımlar"><EmptyState icon="users" title="Önce eşleşin" description="Ortak adım sayacı partnerinizle eşleşince kullanılabilir." /></Screen>;
+  if (couple.loading) return <Screen title="Birlikte Atılan Adımlar" toneColor={categoryColor.color}><CoupleLoading /></Screen>;
+  if (!couple.couple) return <Screen title="Birlikte Atılan Adımlar" toneColor={categoryColor.color}><EmptyState icon="users" toneColor={categoryColor.color} toneTint={categoryColor.tint} title="Önce eşleşin" description="Ortak adım sayacı partnerinizle eşleşince kullanılabilir." /></Screen>;
 
   return (
-    <Screen title="Birlikte Atılan Adımlar">
+    <Screen title="Birlikte Atılan Adımlar" toneColor={categoryColor.color}>
       <Card style={[styles.hero, { borderColor: categoryColor.color }]}>
         <View style={[styles.icon, { backgroundColor: categoryColor.tint }]}><Feather name="activity" size={22} color={categoryColor.color} /></View>
         <View style={styles.statsRow}>

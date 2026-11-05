@@ -152,9 +152,9 @@ export default function DocumentsScreen() {
 
   const onRefresh = async () => { setRefreshing(true); try { await refresh(false); } finally { setRefreshing(false); } };
 
-  if (couple.loading) return <Screen title="Dokümanlar"><CoupleLoading /></Screen>;
-  return <Screen title="Dokümanlar" refreshing={refreshing || loading} onRefresh={() => { void onRefresh(); }}>
-    {!couple.isPaired || !couple.couple ? <EmptyState icon="users" title="Önce eşleşin" description="Ortak belgeleri kullanmak için partnerinizle eşleşin." /> : <>
+  if (couple.loading) return <Screen title="Dokümanlar" toneColor={tone.color}><CoupleLoading /></Screen>;
+  return <Screen title="Dokümanlar" toneColor={tone.color} refreshing={refreshing || loading} onRefresh={() => { void onRefresh(); }}>
+    {!couple.isPaired || !couple.couple ? <EmptyState icon="users" toneColor={tone.color} toneTint={tone.tint} title="Önce eşleşin" description="Ortak belgeleri kullanmak için partnerinizle eşleşin." /> : <>
       <Text style={styles.intro}>Belgeleriniz yalnızca ikinizin erişebildiği ortak alanda saklanır. Tek dosya en fazla 25 MB olabilir.</Text>
       <Input label="Görünen ad" value={displayName} onChangeText={setDisplayName} placeholder="…" compact />
       <View style={styles.actions}>

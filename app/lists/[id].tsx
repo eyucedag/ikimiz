@@ -76,12 +76,12 @@ export default function SharedListScreen() {
 
   const checkedCount = items.filter((item) => item.isChecked).length;
 
-  if (couple.loading) return <Screen title="Liste"><CoupleLoading /></Screen>;
-  if (!couple.isPaired) return <Screen title="Liste"><EmptyState icon="users" title="Önce eşleşin" description="Ortak listeleri görmek için partnerinizle eşleşin." /></Screen>;
+  if (couple.loading) return <Screen title="Liste" toneColor={listColor.color}><CoupleLoading /></Screen>;
+  if (!couple.isPaired) return <Screen title="Liste" toneColor={listColor.color}><EmptyState icon="users" toneColor={listColor.color} toneTint={listColor.tint} title="Önce eşleşin" description="Ortak listeleri görmek için partnerinizle eşleşin." /></Screen>;
 
   return (
-    <Screen title={list?.title ?? 'Liste'} refreshing={loading} onRefresh={() => { void refresh(); }}>
-      {loading ? <CoupleLoading /> : !list ? <EmptyState icon="list" title="Liste bulunamadı" description={error || 'Bu liste kaldırılmış olabilir.'} /> : <>
+    <Screen title={list?.title ?? 'Liste'} toneColor={listColor.color} refreshing={loading} onRefresh={() => { void refresh(); }}>
+      {loading ? <CoupleLoading /> : !list ? <EmptyState icon="list" toneColor={listColor.color} toneTint={listColor.tint} title="Liste bulunamadı" description={error || 'Bu liste kaldırılmış olabilir.'} /> : <>
         <View style={styles.summary}>
           <View style={[styles.summaryIcon, { backgroundColor: listColor.tint }]}><Feather name="list" size={20} color={listColor.color} /></View>
           <View style={styles.summaryCopy}><Text style={styles.summaryTitle}>{checkedCount}/{items.length} tamamlandı</Text><Text style={styles.summaryHint}>{list.title}</Text></View>
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   summaryHint: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 2 },
   addCard: { padding: spacing.md, borderWidth: 1, marginBottom: spacing.md },
   error: { color: colors.error, fontSize: fontSize.xs, marginBottom: spacing.sm },
-  emptyCard: { borderColor: colors.accent, borderWidth: 1 },
+  emptyCard: { borderWidth: 1 },
   itemsCard: { borderWidth: 1, paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
   itemRow: { flexDirection: 'row', alignItems: 'center', minHeight: 48, gap: spacing.sm },
   itemDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },

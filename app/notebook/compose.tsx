@@ -80,10 +80,10 @@ export default function NotebookComposeScreen() {
     finally { setSaving(false); }
   };
 
-  if (couple.loading || loading) return <Screen title="Not Defteri"><CoupleLoading /></Screen>;
-  if (!couple.isPaired || !couple.couple) return <Screen title="Not Defteri"><EmptyState icon="users" title="Önce eşleşin" description="Ortak not yazmak için önce partnerinizle eşleşin." /></Screen>;
+  if (couple.loading || loading) return <Screen title="Not Defteri" toneColor={tone.color}><CoupleLoading /></Screen>;
+  if (!couple.isPaired || !couple.couple) return <Screen title="Not Defteri" toneColor={tone.color}><EmptyState icon="users" toneColor={tone.color} toneTint={tone.tint} title="Önce eşleşin" description="Ortak not yazmak için önce partnerinizle eşleşin." /></Screen>;
 
-  return <Screen title={noteId ? 'Notu Düzenle' : 'Not Defteri'}>
+  return <Screen title={noteId ? 'Notu Düzenle' : 'Not Defteri'} toneColor={tone.color}>
     <View style={[styles.editorCard, { borderColor: tone.color }]}>
       <TextInput value={title} onChangeText={setTitle} placeholder="Başlık…" placeholderTextColor={colors.textTertiary}
         style={styles.titleInput} accessibilityLabel="Not başlığı" returnKeyType="next" onSubmitEditing={() => inputRef.current?.focus()} />

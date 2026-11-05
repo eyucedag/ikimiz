@@ -11,6 +11,9 @@ import { useCouple } from '@/src/hooks/useCouple';
 import { findCoordinates, TravelPlace, travelService } from '@/src/services/travelService';
 import { supabase } from '@/src/lib/supabase';
 import { useAppAppearance } from '@/src/hooks/useAppAppearance';
+import { getCategoryColor } from '@/src/constants/categories';
+
+const travelTone = getCategoryColor('gezilen-yerler');
 
 function todayLocal() {
   const date = new Date();
@@ -112,16 +115,16 @@ export default function TravelMapScreen() {
     } },
   ]);
 
-  if (couple.loading) return <Screen title="Gezdiğimiz Yerler"><CoupleLoading /></Screen>;
+  if (couple.loading) return <Screen title="Gezdiğimiz Yerler" toneColor={travelTone.color}><CoupleLoading /></Screen>;
 
   return (
-    <Screen title="Gezdiğimiz Yerler" scrollRef={scrollRef}>
+    <Screen title="Gezdiğimiz Yerler" toneColor={travelTone.color} scrollRef={scrollRef}>
       <View style={styles.hero}>
-          <View style={styles.icon}><Feather name="map-pin" size={20} color={colors.accent} /></View>
+          <View style={[styles.icon, { backgroundColor: travelTone.tint }]}><Feather name="map-pin" size={20} color={travelTone.color} /></View>
         <Text style={styles.description}>Birlikte keşfettiğiniz şehirleri haritada işaretleyin.</Text>
       </View>
       {!couple.couple ? (
-        <EmptyState icon="users" title="Önce eşleşin" description="Gezilen yerleri ortak haritanızda görmek için partnerinizle eşleşmeniz gerekiyor." />
+        <EmptyState icon="users" toneColor={travelTone.color} toneTint={travelTone.tint} title="Önce eşleşin" description="Gezilen yerleri ortak haritanızda görmek için partnerinizle eşleşmeniz gerekiyor." />
       ) : (
         <>
           <Card style={styles.mapCard}>
@@ -131,7 +134,7 @@ export default function TravelMapScreen() {
               accessibilityLabel="Birlikte gezilen şehirler haritası"
             >
               {places.map((place) => (
-                <Marker key={place.id} coordinate={{ latitude: place.latitude, longitude: place.longitude }} title={`${place.city}, ${place.country}`} description={[`Ziyaret: ${place.visitedOn}`, place.note].filter(Boolean).join(' · ')} pinColor={colors.accent} />
+                <Marker key={place.id} coordinate={{ latitude: place.latitude, longitude: place.longitude }} title={`${place.city}, ${place.country}`} description={[`Ziyaret: ${place.visitedOn}`, place.note].filter(Boolean).join(' · ')} pinColor={travelTone.color} />
               ))}
             </MapView>
             {places.length === 0 ? <Text style={styles.mapHint}>İlk şehrinizi ekleyince haritada görünecek.</Text> : null}
@@ -142,7 +145,7 @@ export default function TravelMapScreen() {
             <Input compact label="Şehir" placeholder="…" value={city} onChangeText={setCity} autoCorrect={false} />
             <Text style={styles.inputLabel}>Ziyaret tarihi</Text>
             <Pressable accessibilityRole="button" onPress={() => { setDraftDate(parseLocalDate(visitedOn)); setShowDatePicker(true); }} style={({ pressed }) => [styles.dateButton, { backgroundColor: surfaceColor }, pressed && styles.dateButtonPressed]}>
-              <Feather name="calendar" size={17} color={colors.accent} />
+              <Feather name="calendar" size={17} color={travelTone.color} />
               <Text style={styles.dateText}>{parseLocalDate(visitedOn).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
             </Pressable>
             {showDatePicker && Platform.OS === 'android' ? (
@@ -152,7 +155,7 @@ export default function TravelMapScreen() {
                 display="default"
                 design="material"
                 title="Ziyaret tarihi"
-                positiveButton={{ label: 'Tamam', textColor: colors.accent }}
+                positiveButton={{ label: 'Tamam', textColor: travelTone.color }}
                 negativeButton={{ label: 'Vazgeç', textColor: '#6B6763' }}
                 maximumDate={new Date()}
                 onChange={onDateChange}
@@ -162,30 +165,30 @@ export default function TravelMapScreen() {
               <View style={styles.modalBackdrop}>
                 <View style={[styles.dateModal, { backgroundColor: surfaceColor }]}>
                   <View style={styles.dateModalHeader}>
-                    <Button title="Vazgeç" variant="ghost" compact toneColor={colors.accent} onPress={() => setShowDatePicker(false)} />
+                    <Button title="Vazgeç" variant="ghost" compact toneColor={travelTone.color} onPress={() => setShowDatePicker(false)} />
                     <Text style={styles.dateModalTitle}>Ziyaret tarihi</Text>
-                    <Button title="Tamam" variant="ghost" compact toneColor={colors.accent} onPress={() => { setVisitedOn(formatLocalDate(draftDate)); setShowDatePicker(false); }} />
+                    <Button title="Tamam" variant="ghost" compact toneColor={travelTone.color} onPress={() => { setVisitedOn(formatLocalDate(draftDate)); setShowDatePicker(false); }} />
                   </View>
-                  <DateTimePicker value={draftDate} mode="date" display="spinner" locale="tr-TR" themeVariant="light" textColor="#2D2D2D" accentColor={colors.accent} maximumDate={new Date()} onChange={onDateChange} />
+                  <DateTimePicker value={draftDate} mode="date" display="spinner" locale="tr-TR" themeVariant="light" textColor="#2D2D2D" accentColor={travelTone.color} maximumDate={new Date()} onChange={onDateChange} />
                 </View>
               </View>
             </Modal>
             <Input compact label="Not (isteğe bağlı)" placeholder="…" value={note} onChangeText={setNote} multiline style={styles.noteInput} />
             {error ? <Text style={styles.error}>{error}</Text> : null}
-            <Button title={editingPlace ? 'Değişiklikleri kaydet' : 'Haritaya ekle'} icon={editingPlace ? 'save' : 'map-pin'} compact toneColor={colors.accent} loading={loading} onPress={() => { void savePlace(); }} style={styles.addButton} />
-            {editingPlace ? <Button title="Düzenlemekten vazgeç" variant="ghost" compact onPress={resetForm} style={styles.cancelEdit} toneColor={colors.accent} /> : null}
+            <Button title={editingPlace ? 'Değişiklikleri kaydet' : 'Haritaya ekle'} icon={editingPlace ? 'save' : 'map-pin'} compact toneColor={travelTone.color} loading={loading} onPress={() => { void savePlace(); }} style={styles.addButton} />
+            {editingPlace ? <Button title="Düzenlemekten vazgeç" variant="ghost" compact onPress={resetForm} style={styles.cancelEdit} toneColor={travelTone.color} /> : null}
           </Card>
           <Text style={styles.listTitle}>Ziyaretleriniz · {places.length}</Text>
           {places.map((place) => (
             <Card key={place.id} style={styles.placeRow}>
-              <View style={styles.pin}><Feather name="map-pin" size={16} color={colors.accent} /></View>
+              <View style={[styles.pin, { backgroundColor: travelTone.tint }]}><Feather name="map-pin" size={16} color={travelTone.color} /></View>
               <View style={styles.placeInfo}>
                 <Text style={styles.placeName}>{place.city}, {place.country}</Text>
                 <Text style={styles.placeDate}>{place.visitedOn}</Text>
                 {place.note ? <Text style={styles.placeNote}>{place.note}</Text> : null}
               </View>
               <View style={styles.placeActions}>
-                <Button title="Düzenle" icon="edit-2" variant="ghost" compact onPress={() => startEditing(place)} toneColor={colors.accent} />
+                <Button title="Düzenle" icon="edit-2" variant="ghost" compact onPress={() => startEditing(place)} toneColor={travelTone.color} />
                 {place.ownerId === user?.id ? <Button title="Kaldır" variant="ghost" compact onPress={() => removePlace(place)} toneColor="#A64B58" /> : null}
               </View>
             </Card>
@@ -198,13 +201,13 @@ export default function TravelMapScreen() {
 
 const styles = StyleSheet.create({
   hero: { alignItems: 'center', marginTop: spacing.xs, marginBottom: spacing.sm },
-  icon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentLight },
+  icon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   description: { marginTop: spacing.xs, color: colors.textSecondary, fontSize: fontSize.xs, textAlign: 'center' },
-  mapCard: { overflow: 'hidden', padding: 0, marginBottom: spacing.md, borderWidth: 1, borderColor: colors.accent },
+  mapCard: { overflow: 'hidden', padding: 0, marginBottom: spacing.md, borderWidth: 1, borderColor: travelTone.color },
   map: { height: 230, width: '100%' },
   mapHint: { padding: spacing.sm, textAlign: 'center', color: colors.textSecondary, fontSize: fontSize.xs },
-  form: { borderWidth: 1, borderColor: colors.accent, marginBottom: spacing.md, padding: spacing.md },
-  formTitle: { fontSize: fontSize.sm, fontWeight: '700', color: colors.accent, marginBottom: spacing.xs },
+  form: { borderWidth: 1, borderColor: travelTone.color, marginBottom: spacing.md, padding: spacing.md },
+  formTitle: { fontSize: fontSize.sm, fontWeight: '700', color: travelTone.color, marginBottom: spacing.xs },
   error: { color: colors.error, fontSize: fontSize.sm, marginTop: spacing.sm },
   addButton: { marginTop: spacing.xs },
   noteInput: { minHeight: 58, textAlignVertical: 'top' },
@@ -217,9 +220,9 @@ const styles = StyleSheet.create({
   dateModalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border },
   dateModalTitle: { color: colors.text, fontSize: fontSize.md, fontWeight: '600' },
   cancelEdit: { marginTop: spacing.xs },
-  listTitle: { color: colors.accent, fontWeight: '700', fontSize: fontSize.md, marginBottom: spacing.sm },
-  placeRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.accent, marginBottom: spacing.md, paddingVertical: spacing.md },
-  pin: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: radius.control, backgroundColor: colors.accentLight, marginRight: spacing.sm },
+  listTitle: { color: travelTone.color, fontWeight: '700', fontSize: fontSize.md, marginBottom: spacing.sm },
+  placeRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: travelTone.color, marginBottom: spacing.md, paddingVertical: spacing.md },
+  pin: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: radius.control, marginRight: spacing.sm },
   placeInfo: { flex: 1 },
   placeActions: { alignItems: 'flex-end' },
   placeName: { color: colors.text, fontSize: fontSize.md, fontWeight: '600' },

@@ -20,6 +20,7 @@ interface ScreenProps {
   children: React.ReactNode;
   /** Üst başlık; verilirse geri butonlu bir başlık çubuğu gösterilir. */
   title?: string;
+  toneColor?: string;
   showBack?: boolean;
   headerRight?: React.ReactNode;
   scroll?: boolean;
@@ -34,7 +35,7 @@ interface ScreenProps {
  * Tüm ekranların ortak kabuğu: güvenli alan, krem zemin ve tabletlerde
  * en fazla 600pt genişliğinde ortalanmış içerik.
  */
-export function Screen({ children, title, showBack = true, headerRight, scroll = true, refreshing, onRefresh, inTabs, scrollRef }: ScreenProps) {
+export function Screen({ children, title, toneColor, showBack = true, headerRight, scroll = true, refreshing, onRefresh, inTabs, scrollRef }: ScreenProps) {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const { backgroundColor } = useAppAppearance();
@@ -44,8 +45,8 @@ export function Screen({ children, title, showBack = true, headerRight, scroll =
 
   const header = title ? (
     <View style={[styles.header, { width: contentWidth }]}>
-      {showBack ? <IconButton icon="arrow-left" onPress={goBack} accessibilityLabel="Geri dön" /> : <View style={styles.headerSpacer} />}
-      <Text style={styles.headerTitle} numberOfLines={1} accessibilityRole="header">
+      {showBack ? <IconButton icon="arrow-left" color={toneColor ?? colors.text} onPress={goBack} accessibilityLabel="Geri dön" /> : <View style={styles.headerSpacer} />}
+      <Text style={[styles.headerTitle, toneColor ? { color: toneColor } : undefined]} numberOfLines={1} accessibilityRole="header">
         {title}
       </Text>
       <View style={styles.headerSide}>{headerRight ?? null}</View>
@@ -57,7 +58,7 @@ export function Screen({ children, title, showBack = true, headerRight, scroll =
       ref={scrollRef}
       contentContainerStyle={styles.scrollContent}
       keyboardShouldPersistTaps="handled"
-      refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={colors.accent} /> : undefined}
+      refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={toneColor ?? colors.accent} /> : undefined}
     >
       <View style={[styles.inner, { width: contentWidth }]}>{children}</View>
     </ScrollView>

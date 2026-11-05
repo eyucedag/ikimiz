@@ -48,10 +48,10 @@ export default function NotebookScreen() {
     } },
   ]);
 
-  if (couple.loading) return <Screen title="Not Defteri"><CoupleLoading /></Screen>;
+  if (couple.loading) return <Screen title="Not Defteri" toneColor={tone.color}><CoupleLoading /></Screen>;
 
-  return <Screen title="Not Defteri" refreshing={refreshing || loading} onRefresh={() => { void onRefresh(); }}>
-    {!couple.isPaired || !couple.couple ? <EmptyState icon="users" title="Önce eşleşin" description="Not Defteri’ni partnerinizle ortak kullanmak için önce eşleşin." /> : <>
+  return <Screen title="Not Defteri" toneColor={tone.color} refreshing={refreshing || loading} onRefresh={() => { void onRefresh(); }}>
+    {!couple.isPaired || !couple.couple ? <EmptyState icon="users" toneColor={tone.color} toneTint={tone.tint} title="Önce eşleşin" description="Not Defteri’ni partnerinizle ortak kullanmak için önce eşleşin." /> : <>
       <Text style={[styles.intro, { color: tone.color }]}>Önemli bilgileri ve kayıtları birlikte saklayın.</Text>
       <Button title="Yeni Not" icon="plus" toneColor={tone.color} onPress={() => router.push('/notebook/compose')} style={styles.newNoteButton} />
       <Text style={[styles.sectionTitle, { color: tone.color }]}>Mevcut Notlar</Text>
