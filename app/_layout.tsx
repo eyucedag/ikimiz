@@ -48,6 +48,7 @@ function RootNavigator() {
         <Stack.Screen name="lists/[id]" />
         <Stack.Screen name="notebook/index" />
         <Stack.Screen name="notebook/compose" />
+        <Stack.Screen name="documents/index" />
       </Stack>
       {loading ? (
         <View style={[styles.loading, { backgroundColor }]}>

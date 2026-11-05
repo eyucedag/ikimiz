@@ -28,6 +28,7 @@ export default function CategoryScreen() {
   if (slug === 'gunun-sarkisi') return <Redirect href="/song-of-the-day" />;
   if (slug === 'listeler') return <Redirect href="/lists" />;
   if (slug === 'notlar') return <Redirect href="/notebook" />;
+  if (slug === 'onemli-belgeler') return <Redirect href="/documents" />;
   if (slug === 'opucuk') return <Redirect href="/(tabs)" />;
 
   if (!category) {

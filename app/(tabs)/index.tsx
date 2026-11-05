@@ -286,7 +286,7 @@ export default function TodayScreen() {
       {/* Kategoriler */}
       <SectionHeader title="Kategoriler" />
       <View style={styles.grid}>
-        {categories.filter((c) => c.slug !== 'opucuk' && c.slug !== 'ekrana-not').map((c) => (
+        {categories.filter((c) => c.slug !== 'opucuk' && c.slug !== 'ekrana-not' && c.slug !== 'gunun-sarkisi').map((c) => (
           <Pressable
             key={c.slug}
             onPress={() => router.push(getCategoryRoute(c.slug))}
