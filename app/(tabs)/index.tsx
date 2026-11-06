@@ -30,8 +30,6 @@ const HOME_CATEGORY_ITEMS: Category[] = [
   { slug: 'ruh-halim', title: 'Ruh Halim', icon: 'heart', color: '#AD633F', tint: '#F2E7DB', description: 'Bugünkü ruh halinizi partnerinizle paylaşın.' },
   { slug: 'yaklasanlar', title: 'Yaklaşanlar', icon: 'calendar', color: '#4B78C5', tint: '#EAF0FA', description: 'Yaklaşan etkinliklerinizi ve özel günlerinizi görün.' },
 ];
-const BASE_HOME_SECTIONS: HomeSection[] = ['categories'];
-const DEFAULT_HOME_ORDER: HomeSection[] = ['categories'];
 const DEFAULT_HOME_CATEGORY_ORDER = ['gunun-sarkisi', 'ekrana-not', 'ruh-halim', ...HOME_CATEGORY_ITEMS.filter((category) => !['gunun-sarkisi', 'ekrana-not', 'ruh-halim'].includes(category.slug)).map((category) => category.slug)];
 const HOME_CATEGORY_ICONS: Record<string, typeof auroraIcons.calendar> = {
   takvim: auroraIcons.calendar,
@@ -63,9 +61,8 @@ export default function TodayScreen() {
   const { width, height } = useWindowDimensions();
   const [refreshing, setRefreshing] = useState(false);
   const [homeLayoutVisible, setHomeLayoutVisible] = useState(false);
-  const [homeOrder, setHomeOrder] = useState<HomeSection[]>(DEFAULT_HOME_ORDER);
   const [homeCategoryOrder, setHomeCategoryOrder] = useState<string[]>(DEFAULT_HOME_CATEGORY_ORDER);
-  const [hiddenHomeSections, setHiddenHomeSections] = useState<HomeSection[]>([]);
+  const [hiddenHomeCategories, setHiddenHomeCategories] = useState<string[]>([]);
   const [photoVisible, setPhotoVisible] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [todaySong, setTodaySong] = useState<{ title: string; artist: string; url: string } | null>(null);
@@ -77,33 +74,26 @@ export default function TodayScreen() {
 
   useEffect(() => {
     let cancelled = false;
-    setHomeOrder(DEFAULT_HOME_ORDER);
     setHomeCategoryOrder(DEFAULT_HOME_CATEGORY_ORDER);
-    setHiddenHomeSections([]);
+    setHiddenHomeCategories([]);
     if (!homeLayoutStorageKey) return () => { cancelled = true; };
     void AsyncStorage.getItem(homeLayoutStorageKey).then((saved) => {
       if (cancelled || !saved) return;
       try {
-        const parsed = JSON.parse(saved) as { order?: unknown; hidden?: unknown; categoryOrder?: unknown };
-        const normalize = (value: unknown): HomeSection[] => {
-          if (value === 'quick-access' || value === 'categories' || value === 'song' || value === 'partner-note' || value === 'mood' || (typeof value === 'string' && value.startsWith('category:'))) return ['categories'];
-          if (typeof value !== 'string') return [];
-          if ((BASE_HOME_SECTIONS as string[]).includes(value)) return [value as HomeSection];
-          return [];
-        };
+        const parsed = JSON.parse(saved) as { order?: unknown; categoryOrder?: unknown; hiddenCategories?: unknown };
         const normalizeCategory = (value: unknown): string | null => {
           if (typeof value !== 'string') return null;
           const legacySlugs: Record<string, string> = { song: 'gunun-sarkisi', 'partner-note': 'ekrana-not', mood: 'ruh-halim' };
           const slug = value.startsWith('category:') ? value.slice('category:'.length) : legacySlugs[value] ?? value;
           return HOME_CATEGORY_ITEMS.some((category) => category.slug === slug) ? slug : null;
         };
-        const savedOrder = Array.isArray(parsed.order) ? [...new Set(parsed.order.flatMap(normalize))] : [];
-        const savedHidden = Array.isArray(parsed.hidden) ? [...new Set(parsed.hidden.flatMap(normalize))] : [];
         const storedCategoryValues = Array.isArray(parsed.categoryOrder) ? parsed.categoryOrder : Array.isArray(parsed.order) ? parsed.order : [];
         const savedCategoryOrder = [...new Set(storedCategoryValues.map(normalizeCategory).filter((slug): slug is string => slug !== null))];
-        setHomeOrder([...savedOrder, ...DEFAULT_HOME_ORDER.filter((section) => !savedOrder.includes(section))]);
         setHomeCategoryOrder([...savedCategoryOrder, ...DEFAULT_HOME_CATEGORY_ORDER.filter((slug) => !savedCategoryOrder.includes(slug))]);
-        setHiddenHomeSections(savedHidden);
+        const savedHiddenCategories = Array.isArray(parsed.hiddenCategories)
+          ? [...new Set(parsed.hiddenCategories.map(normalizeCategory).filter((slug): slug is string => slug !== null))]
+          : [];
+        setHiddenHomeCategories(savedHiddenCategories);
       } catch { /* Ignore outdated or invalid local preferences. */ }
     }).catch(() => undefined);
     return () => { cancelled = true; };
@@ -164,12 +154,11 @@ export default function TodayScreen() {
     return () => { void supabase.removeChannel(channel); };
   }, [couple.couple?.id, couple.refresh]);
 
-  const persistHomeLayout = (order: HomeSection[], hidden: HomeSection[], categoryOrder: string[] = homeCategoryOrder) => {
-    setHomeOrder(order);
-    setHiddenHomeSections(hidden);
+  const persistHomeLayout = (categoryOrder: string[] = homeCategoryOrder, hiddenCategories: string[] = hiddenHomeCategories) => {
     setHomeCategoryOrder(categoryOrder);
+    setHiddenHomeCategories(hiddenCategories);
     if (homeLayoutStorageKey) {
-      void AsyncStorage.setItem(homeLayoutStorageKey, JSON.stringify({ order, hidden, categoryOrder }))
+      void AsyncStorage.setItem(homeLayoutStorageKey, JSON.stringify({ categoryOrder, hiddenCategories }))
         .catch(() => Alert.alert('Düzen kaydedilemedi', 'Ana ekran düzeni bu cihaza kaydedilemedi.'));
     }
   };
@@ -179,14 +168,14 @@ export default function TodayScreen() {
     if (targetIndex < 0 || targetIndex >= homeCategoryOrder.length) return;
     const next = [...homeCategoryOrder];
     [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
-    persistHomeLayout(homeOrder, hiddenHomeSections, next);
+    persistHomeLayout(next);
   };
 
-  const toggleHomeSection = (section: HomeSection) => {
-    const hidden = hiddenHomeSections.includes(section)
-      ? hiddenHomeSections.filter((item) => item !== section)
-      : [...hiddenHomeSections, section];
-    persistHomeLayout(homeOrder, hidden);
+  const toggleHomeCategory = (slug: string) => {
+    const hidden = hiddenHomeCategories.includes(slug)
+      ? hiddenHomeCategories.filter((item) => item !== slug)
+      : [...hiddenHomeCategories, slug];
+    persistHomeLayout(homeCategoryOrder, hidden);
   };
 
   const sendKissFromHome = async () => {
@@ -476,7 +465,7 @@ export default function TodayScreen() {
         </View>
       </View>
       </DynamicSky>
-      {!hiddenHomeSections.includes('categories') ? <SectionHeader title="Kategoriler" compact /> : null}
+      <SectionHeader title="Kategoriler" compact />
     </View>
   );
 
@@ -484,7 +473,7 @@ export default function TodayScreen() {
       <Screen inTabs scroll={false}>
       <FlatList
         style={styles.homeList}
-        data={hiddenHomeSections.includes('categories') ? [] : homeCategoryOrder}
+        data={homeCategoryOrder.filter((slug) => !hiddenHomeCategories.includes(slug))}
         keyExtractor={(slug) => slug}
         renderItem={({ item: slug }) => <View style={styles.draggableHomeItem}>{renderCategorySlug(slug)}</View>}
         ListHeaderComponent={listHeader}
@@ -497,22 +486,17 @@ export default function TodayScreen() {
         <View style={styles.layoutBackdrop}>
           <View style={styles.layoutSheet}>
             <View style={styles.layoutHeader}>
-              <View><Text style={styles.layoutTitle}>Ana ekranı düzenle</Text><Text style={styles.layoutHint}>Kartları sırala veya bölümleri gösterip gizle.</Text></View>
+              <View><Text style={styles.layoutTitle}>Ana ekranı düzenle</Text><Text style={styles.layoutHint}>Kartları taşıyabilir veya ayrı ayrı gizleyebilirsiniz.</Text></View>
               <Pressable onPress={() => setHomeLayoutVisible(false)} accessibilityRole="button" accessibilityLabel="Düzenlemeyi kapat" style={styles.layoutClose}><Feather name="x" size={20} color={colors.text} /></Pressable>
             </View>
             <ScrollView style={styles.layoutScroll} showsVerticalScrollIndicator={false}>
-              <View style={styles.layoutGroupRow}>
-                <Text style={styles.layoutGroupTitle}>Ana ekran kartları</Text>
-                <Pressable onPress={() => toggleHomeSection('categories')} accessibilityRole="button" accessibilityLabel={hiddenHomeSections.includes('categories') ? 'Kategorileri göster' : 'Kategorileri gizle'} style={styles.layoutIconButton}>
-                  <Feather name={hiddenHomeSections.includes('categories') ? 'eye-off' : 'eye'} size={18} color={colors.accent} />
-                </Pressable>
-              </View>
               {homeCategoryOrder.map((slug, index) => {
                 const title = slug === 'gunun-sarkisi' ? 'Günün Şarkısı' : slug === 'ekrana-not' ? 'Partnerinden Not' : slug === 'ruh-halim' ? 'Ruh Halim' : HOME_CATEGORY_ITEMS.find((item) => item.slug === slug)?.title ?? slug;
                 return <View key={slug} style={styles.layoutCategoryRow}>
                   <Text numberOfLines={1} style={styles.layoutCategoryName}>{title}</Text>
                   <Pressable onPress={() => moveHomeCategory(index, -1)} disabled={index === 0} accessibilityRole="button" accessibilityLabel={`${title} kategorisini yukarı taşı`} style={[styles.layoutIconButton, index === 0 && styles.layoutIconButtonDisabled]}><Feather name="chevron-up" size={20} color={colors.accent} /></Pressable>
                   <Pressable onPress={() => moveHomeCategory(index, 1)} disabled={index === homeCategoryOrder.length - 1} accessibilityRole="button" accessibilityLabel={`${title} kategorisini aşağı taşı`} style={[styles.layoutIconButton, index === homeCategoryOrder.length - 1 && styles.layoutIconButtonDisabled]}><Feather name="chevron-down" size={20} color={colors.accent} /></Pressable>
+                  <Pressable onPress={() => toggleHomeCategory(slug)} accessibilityRole="button" accessibilityLabel={hiddenHomeCategories.includes(slug) ? `${title} kartını göster` : `${title} kartını gizle`} style={styles.layoutIconButton}><Feather name={hiddenHomeCategories.includes(slug) ? 'eye-off' : 'eye'} size={17} color={colors.accent} /></Pressable>
                 </View>;
               })}
             </ScrollView>
@@ -568,13 +552,10 @@ const styles = StyleSheet.create({
   layoutHint: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: spacing.xs },
   layoutClose: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
   layoutScroll: { flexShrink: 1 },
-  layoutGroupRow: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  layoutGroupTitle: { color: colors.text, fontSize: fontSize.md, fontWeight: '700' },
   layoutCategoryRow: { minHeight: 42, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingLeft: spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   layoutCategoryName: { flex: 1, color: colors.textSecondary, fontSize: fontSize.sm },
   layoutIconButton: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
   layoutIconButtonDisabled: { opacity: 0.35 },
-  layoutUpcomingRow: { marginTop: spacing.xs },
   layoutDone: { minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: spacing.md, borderRadius: radius.control, backgroundColor: colors.accent },
   layoutDoneText: { color: colors.white, fontSize: fontSize.md, fontWeight: '700' },
   treeControls: { width: '100%', alignItems: 'center', gap: 1 },
