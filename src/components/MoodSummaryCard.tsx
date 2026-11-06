@@ -16,6 +16,7 @@ interface MoodSummaryCardProps {
   loading: boolean;
   error: string | null;
   onPress: () => void;
+  onLongPress?: () => void;
   compact?: boolean;
   overlay?: boolean;
 }
@@ -37,7 +38,7 @@ function PersonMood({ name, entry, mine, toneColor, compact, overlay }: { name: 
 }
 
 /** Ana ekrandaki ruh hali özeti; veriyi ekran sağlar. */
-export function MoodSummaryCard({ today, partnerToday, partnerName, paired, loading, error, onPress, compact = false, overlay = false }: MoodSummaryCardProps) {
+export function MoodSummaryCard({ today, partnerToday, partnerName, paired, loading, error, onPress, onLongPress, compact = false, overlay = false }: MoodSummaryCardProps) {
   const categoryColor = getCategoryColor('ruh-halim');
   const content = <>
       <View style={[styles.heading, compact && styles.compactHeading]}>
@@ -73,9 +74,11 @@ export function MoodSummaryCard({ today, partnerToday, partnerName, paired, load
         style={[styles.action, compact && styles.compactAction, overlay && styles.overlayAction]}
       />
     </>;
-  return overlay
-    ? <View style={[styles.card, compact && styles.compactCard, styles.overlayCard]}>{content}</View>
-    : <Card style={[styles.card, compact && styles.compactCard, { borderColor: categoryColor.color, borderWidth: 1 }]}>{content}</Card>;
+  return (
+    overlay
+      ? <View style={[styles.card, compact && styles.compactCard, styles.overlayCard]}>{content}</View>
+      : <Card onLongPress={onLongPress} delayLongPress={350} style={[styles.card, compact && styles.compactCard, { borderColor: categoryColor.color, borderWidth: 1 }]}>{content}</Card>
+  );
 }
 
 const styles = StyleSheet.create({

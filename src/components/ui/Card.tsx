@@ -7,17 +7,21 @@ interface CardProps {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   onPress?: () => void;
+  onLongPress?: () => void;
+  delayLongPress?: number;
   accessibilityLabel?: string;
 }
 
-export function Card({ children, style, onPress, accessibilityLabel }: CardProps) {
+export function Card({ children, style, onPress, onLongPress, delayLongPress, accessibilityLabel }: CardProps) {
   const { surfaceColor } = useAppAppearance();
   const edgeColor = colors.border;
   const frameStyle = [styles.card, style, { backgroundColor: surfaceColor, borderColor: edgeColor, borderWidth: 1.5, borderRadius: radius.card, shadowColor: edgeColor }];
-  if (onPress) {
+  if (onPress || onLongPress) {
     return (
       <Pressable
         onPress={onPress}
+        onLongPress={onLongPress}
+        delayLongPress={delayLongPress}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
         style={({ pressed }) => [frameStyle, pressed && styles.pressed]}
