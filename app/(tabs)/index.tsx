@@ -232,21 +232,28 @@ export default function TodayScreen() {
         {HOME_GENERAL_CATEGORY_ITEMS.map(renderCategoryCard)}
       </>;
       case 'song': return (<>
-      <Card style={[styles.section, styles.compactCard, styles.songCard, { borderColor: songColor.color, borderWidth: 1 }]}>
-        <View>
-          <Pressable onPress={() => router.push('/song-of-the-day')} accessibilityRole="button" accessibilityLabel="Günün Şarkısı sayfasını aç" style={styles.upcomingCompact}>
-            <View style={[styles.upcomingIcon, { backgroundColor: songColor.tint }]}><Feather name="music" size={18} color={songColor.color} /></View>
-            <View style={styles.upcomingCopy}>
-              <Text style={styles.upcomingDescription}>Günün Şarkısı</Text>
-              {todaySong ? <>
-                <Text style={styles.songCardTitle} numberOfLines={1}>{todaySong.title}</Text>
-                <Text style={styles.songCardArtist} numberOfLines={1}>{todaySong.artist}</Text>
-              </> : <Text style={styles.upcomingTitle} numberOfLines={1}>Bugün birbirinize bir şarkı seçin.</Text>}
-            </View>
-            <Feather name="chevron-right" size={18} color={songColor.color} />
-          </Pressable>
-          {todaySong?.url ? <Button title="Şarkıyı dinle" icon="play" toneColor={songColor.color} onPress={() => { void listenToTodaySong(); }} compact style={styles.cardActionButton} /> : null}
-        </View>
+      <Card style={[styles.section, styles.songCard, { borderColor: songColor.color, borderWidth: 1 }]}>
+        <Pressable onPress={() => router.push('/song-of-the-day')} accessibilityRole="button" accessibilityLabel="Günün Şarkısını aç" style={styles.songHeading}>
+          <View style={[styles.songIcon, { backgroundColor: songColor.tint }]}><Feather name="music" size={21} color={songColor.color} /></View>
+          <View style={styles.upcomingCopy}>
+            <Text style={[styles.songEyebrow, { color: songColor.color }]}>Günün Şarkısı</Text>
+            <Text style={styles.songPrompt} numberOfLines={1}>{todaySong ? 'Bugün sizin için seçildi' : 'Bugün birbirinize bir şarkı seçin'}</Text>
+          </View>
+          <Feather name="chevron-right" size={19} color={songColor.color} />
+        </Pressable>
+        {todaySong ? (
+          <View style={[styles.songDetails, { backgroundColor: songColor.tint }]}>
+            <Text style={styles.songCardTitle} numberOfLines={2}>{todaySong.title}</Text>
+            <Text style={styles.songCardArtist} numberOfLines={1}>{todaySong.artist}</Text>
+          </View>
+        ) : null}
+        <Button
+          title={todaySong?.url ? 'Şarkıyı dinle' : 'Şarkı seç'}
+          icon={todaySong?.url ? 'play' : 'music'}
+          toneColor={songColor.color}
+          onPress={() => todaySong?.url ? void listenToTodaySong() : router.push('/song-of-the-day')}
+          style={styles.cardActionButton}
+        />
       </Card>
 
 
@@ -561,8 +568,13 @@ const styles = StyleSheet.create({
   durationMissing: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: spacing.xs },
   section: { marginBottom: spacing.md },
   compactCard: { paddingVertical: spacing.xs },
-  songCard: { paddingBottom: spacing.sm },
-  cardActionButton: { width: '100%', marginTop: spacing.xs, minHeight: 38, paddingVertical: 4 },
+  songCard: { paddingBottom: spacing.md },
+  songHeading: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  songIcon: { width: 40, height: 40, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  songEyebrow: { fontSize: fontSize.sm, fontWeight: '700' },
+  songPrompt: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 2 },
+  songDetails: { marginTop: spacing.sm, marginBottom: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.control },
+  cardActionButton: { width: '100%', marginTop: spacing.sm, minHeight: 42, paddingVertical: spacing.xs },
   noteCard: { paddingBottom: spacing.xs },
   noteHeader: { minHeight: 27, flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
   noteHeaderTitle: { flex: 1, color: colors.text, fontWeight: '600', fontSize: fontSize.md },
@@ -594,8 +606,8 @@ const styles = StyleSheet.create({
   upcomingCopy: { flex: 1 },
   upcomingDescription: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 1 },
   upcomingTitle: { fontSize: fontSize.md, color: colors.text, fontWeight: '500' },
-  songCardTitle: { fontSize: fontSize.lg, color: colors.text, fontWeight: '700', marginTop: 1 },
-  songCardArtist: { color: colors.textSecondary, fontSize: fontSize.md, fontWeight: '500', marginTop: 1 },
+  songCardTitle: { fontSize: fontSize.xl, color: colors.text, fontWeight: '700', lineHeight: 24 },
+  songCardArtist: { color: colors.textSecondary, fontSize: fontSize.md, fontWeight: '500', marginTop: spacing.xs },
   homeCategoryList: { gap: spacing.sm, marginBottom: spacing.md },
   homeCategoryCard: { minHeight: 72, width: '100%', flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
   homeCategoryIcon: { width: 42, height: 42, flexShrink: 0, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
