@@ -179,7 +179,7 @@ export default function TodayScreen() {
               name="arrow-up"
               size={27}
               color={direction.bothSharing ? '#159447' : direction.anySharing ? '#1676E8' : colors.cream}
-              style={direction.angle != null ? { transform: [{ rotate: `${direction.angle}deg` }] } : undefined}
+              style={direction.bothSharing && direction.angle != null ? { transform: [{ rotate: `${direction.angle}deg` }] } : undefined}
             />
             <Text style={styles.directionLabel}>Aşkım nerdesin?</Text>
           </Pressable>
