@@ -5,11 +5,10 @@ import { Feather } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Button, Card, EmptyState, Screen, SectionHeader } from '@/src/components/ui';
 import { MoodSummaryCard } from '@/src/components/MoodSummaryCard';
-import { KissCategoryButton } from '@/src/components/KissCategoryButton';
-import { categories, getCategoryColor, getCategoryRoute } from '@/src/constants/categories';
-import { colors, fontSize, layout, radius, spacing } from '@/src/constants/theme';
+import { DynamicSky } from '@/src/components/DynamicSky';
+import { getCategoryColor } from '@/src/constants/categories';
+import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAppState } from '@/src/hooks/useAppState';
-import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
 import { useScreenNotes } from '@/src/hooks/useScreenNotes';
@@ -28,7 +27,6 @@ export default function TodayScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const couple = useCouple();
-  const { surfaceColor } = useAppAppearance();
   const { latestFromPartner, refresh: refreshNotes, markRead } = useScreenNotes(couple);
   const moods = useMoods(couple);
   const { upcoming, refreshNotifications } = useAppState();
@@ -96,7 +94,12 @@ export default function TodayScreen() {
     return () => { void supabase.removeChannel(channel); };
   }, [couple.couple?.id, couple.refresh]);
 
-  const columns = Math.min(width, layout.maxContentWidth) >= 520 ? 4 : 2;
+  const quickAccess = [
+    { title: 'Takvim', icon: 'calendar' as const, route: '/calendar' },
+    { title: 'Özel Günler', icon: 'gift' as const, route: '/special-dates' },
+    { title: 'Gezilen Yerler', icon: 'map-pin' as const, route: '/travel-map' },
+    { title: 'Görevler', icon: 'check-square' as const, route: '/tasks' },
+  ];
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -162,6 +165,7 @@ export default function TodayScreen() {
 
   return (
     <Screen inTabs refreshing={refreshing} onRefresh={onRefresh}>
+      <DynamicSky>
       <View style={styles.header}>
         <View style={styles.identityRow}>
           {couple.couple?.photoUrl ? (
@@ -175,7 +179,8 @@ export default function TodayScreen() {
           )}
           <View style={styles.identityText}>
             <Text style={styles.appTitle} accessibilityRole="header">İkimiz</Text>
-            <Text style={styles.subtitle}>{greeting()}, {user?.displayName} · {todayLabel()}</Text>
+            <Text style={styles.subtitle}>{greeting(new Date(now))}, {user?.displayName}</Text>
+            <Text style={styles.dateLabel}>{todayLabel(new Date(now))}</Text>
             {togetherDuration ? <Text style={styles.duration}>{togetherDuration}</Text> : couple.isPaired ? <Text style={styles.durationMissing}>Birlikte olduğunuz zamanı profilden ekleyin</Text> : null}
           </View>
         </View>
@@ -196,6 +201,7 @@ export default function TodayScreen() {
         ) : null}
       </View>
       {direction.error ? <Text style={styles.directionHint}>{direction.error}</Text> : direction.anySharing ? <Text style={styles.directionHint}>{direction.bothSharing ? 'İkinizin konumu açık.' : 'Konum paylaşımı açık; yön için ikiniz de açın.'}</Text> : null}
+      </DynamicSky>
 
       <Card style={[styles.section, styles.compactCard, styles.songCard, { borderColor: songColor.color, borderWidth: 1 }]}>
         <View>
@@ -298,30 +304,15 @@ export default function TodayScreen() {
         )}
       </Card>
 
-      {/* Kategoriler */}
-      <SectionHeader title="Kategoriler" />
-      <View style={styles.grid}>
-        {categories.filter((c) => c.slug !== 'opucuk' && c.slug !== 'ekrana-not' && c.slug !== 'gunun-sarkisi').map((c) => (
-          <Pressable
-            key={c.slug}
-            onPress={() => router.push(getCategoryRoute(c.slug))}
-            accessibilityRole="button"
-            accessibilityLabel={c.title}
-            style={({ pressed }) => [styles.tile, { width: `${100 / columns}%` }, pressed && styles.pressed]}
-          >
-            <View style={[styles.tileInner, { backgroundColor: surfaceColor, borderColor: c.color, borderLeftColor: c.color, shadowColor: c.color }]}>
-              <View style={[styles.tileIcon, { backgroundColor: c.tint }]}>
-                <Feather name={c.icon as keyof typeof Feather.glyphMap} size={20} color={c.color} />
-              </View>
-              <Text style={styles.tileTitle} numberOfLines={2}>
-                {c.title}
-              </Text>
-              <View pointerEvents="none" style={styles.tileReflection} />
-            </View>
+      <SectionHeader title="Hızlı Erişim" actionLabel="Tümü" onAction={() => router.push('/categories')} />
+      <View style={styles.quickGrid}>
+        {quickAccess.map((item) => (
+          <Pressable key={item.title} onPress={() => router.push(item.route)} accessibilityRole="button" accessibilityLabel={item.title} style={({ pressed }) => [styles.quickItem, pressed && styles.pressed]}>
+            <View style={styles.quickIcon}><Feather name={item.icon} size={19} color={colors.copper} /></View>
+            <Text numberOfLines={2} style={styles.quickTitle}>{item.title}</Text>
           </Pressable>
         ))}
       </View>
-      <KissCategoryButton ownerId={user?.id} partnerId={couple.partner?.id} coupleId={couple.couple?.id} />
       <Modal visible={photoVisible} transparent animationType="fade" onRequestClose={() => setPhotoVisible(false)}>
         <View style={styles.photoModalBackdrop}>
           <Pressable onPress={() => setPhotoVisible(false)} accessibilityRole="button" accessibilityLabel="Fotoğrafı kapat" style={styles.photoClose}>
@@ -352,20 +343,21 @@ const styles = StyleSheet.create({
   header: { marginTop: spacing.sm, marginBottom: spacing.xl, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   identityRow: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   identityText: { flex: 1, minWidth: 0 },
-  directionButton: { flexShrink: 0, width: 48, height: 48, borderRadius: 24, marginLeft: spacing.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentLight },
-  directionHint: { color: colors.textSecondary, fontSize: fontSize.xs, marginLeft: 68, marginTop: -spacing.lg, marginBottom: spacing.sm },
-  couplePhoto: { width: 54, height: 54, borderRadius: 27, borderWidth: 1, borderColor: colors.border },
-  photoPlaceholder: { width: 54, height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentLight, borderWidth: 1, borderColor: colors.border },
-  photoModalBackdrop: { flex: 1, backgroundColor: 'rgba(18,15,18,0.94)', alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
+  directionButton: { flexShrink: 0, width: 44, height: 44, borderRadius: 22, marginLeft: spacing.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(8,45,37,0.56)', borderWidth: 1, borderColor: 'rgba(246,233,215,0.38)' },
+  directionHint: { color: colors.cream, fontSize: fontSize.xs, marginLeft: 68, marginTop: -spacing.lg, marginBottom: spacing.sm },
+  couplePhoto: { width: 54, height: 54, borderRadius: 27, borderWidth: 2, borderColor: colors.copper },
+  photoPlaceholder: { width: 54, height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(8,45,37,0.62)', borderWidth: 1.5, borderColor: colors.copper },
+  photoModalBackdrop: { flex: 1, backgroundColor: 'rgba(8,22,19,0.96)', alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
   photoClose: { position: 'absolute', top: 52, right: spacing.lg, width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center', zIndex: 1 },
   photoModalImage: { maxWidth: '100%', borderRadius: radius.card },
   photoModalPlaceholder: { minHeight: 240, alignItems: 'center', justifyContent: 'center' },
   photoModalHint: { marginTop: spacing.md, color: colors.white, fontSize: fontSize.md },
   photoChangeButton: { minWidth: 220, marginTop: spacing.xl },
   photoUploading: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
-  appTitle: { fontSize: fontSize.xxxl, fontWeight: '700', color: colors.text },
-  subtitle: { fontSize: fontSize.sm, color: colors.textSecondary, marginTop: spacing.xs },
-  duration: { fontSize: fontSize.sm, color: '#1676E8', fontWeight: '700', marginTop: spacing.xs },
+  appTitle: { fontFamily: 'serif', fontSize: fontSize.xxxl, fontWeight: '600', color: colors.cream, letterSpacing: 0.3 },
+  subtitle: { fontSize: fontSize.sm, color: colors.cream, marginTop: spacing.xs, fontWeight: '500' },
+  dateLabel: { fontSize: fontSize.xs, color: 'rgba(246,233,215,0.82)', marginTop: 2 },
+  duration: { fontSize: fontSize.sm, color: colors.copper, fontWeight: '700', marginTop: spacing.xs },
   durationMissing: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: spacing.xs },
   section: { marginBottom: spacing.md },
   compactCard: { paddingVertical: spacing.xs },
@@ -380,8 +372,8 @@ const styles = StyleSheet.create({
   allNotesButton: { width: 24, height: 22, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
   note: { borderRadius: radius.card, paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
   noteEmoji: { fontSize: fontSize.xxl, marginBottom: spacing.xs },
-  noteText: { fontSize: fontSize.md, color: colors.text, lineHeight: 20 },
-  noteMeta: { fontSize: fontSize.xs, color: colors.textSecondary, marginTop: spacing.xs },
+  noteText: { fontSize: fontSize.md, color: '#30272A', lineHeight: 20 },
+  noteMeta: { fontSize: fontSize.xs, color: '#62595B', marginTop: spacing.xs },
   muted: { fontSize: fontSize.sm, color: colors.textSecondary, lineHeight: 19 },
   connectRow: { flexDirection: 'row', alignItems: 'center' },
   connectIcon: {
@@ -404,32 +396,9 @@ const styles = StyleSheet.create({
   upcomingTitle: { fontSize: fontSize.md, color: colors.text, fontWeight: '500' },
   songCardTitle: { fontSize: fontSize.lg, color: colors.text, fontWeight: '700', marginTop: 1 },
   songCardArtist: { color: colors.textSecondary, fontSize: fontSize.md, fontWeight: '500', marginTop: 1 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -spacing.xs },
-  tile: { padding: spacing.xs },
-  tileInner: {
-    backgroundColor: colors.card,
-    borderRadius: 22,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderLeftWidth: 3,
-    padding: spacing.md,
-    minHeight: 104,
-    justifyContent: 'space-between',
-    shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.24,
-    shadowRadius: 9,
-    elevation: 4,
-  },
-  tileReflection: { position: 'absolute', top: 1, left: 12, right: 12, height: 2, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.9)' },
-  tileIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.control,
-    backgroundColor: colors.accentLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tileTitle: { fontSize: fontSize.sm, fontWeight: '600', color: colors.text, marginVertical: spacing.sm },
+  quickGrid: { flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: -spacing.xs, marginBottom: spacing.xl },
+  quickItem: { width: '25%', alignItems: 'center', paddingHorizontal: spacing.xs },
+  quickIcon: { width: 48, height: 48, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  quickTitle: { marginTop: spacing.xs, textAlign: 'center', fontSize: fontSize.xs, color: colors.cream, fontWeight: '500', lineHeight: 15 },
   pressed: { opacity: 0.8 },
 });

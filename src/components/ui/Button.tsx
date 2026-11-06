@@ -25,12 +25,12 @@ const palette: Record<Variant, { bg: string; fg: string; border: string }> = {
   danger: { bg: colors.card, fg: colors.error, border: colors.error },
 };
 
-export function Button({ title, onPress, variant = 'primary', icon, loading, disabled, style, compact, toneColor }: ButtonProps) {
+export function Button({ title, onPress, variant = 'primary', icon, loading, disabled, style, compact }: ButtonProps) {
   const { surfaceColor } = useAppAppearance();
   const p = palette[variant];
-  const backgroundColor = toneColor && variant === 'primary' ? toneColor : variant === 'secondary' || variant === 'danger' ? surfaceColor : p.bg;
-  const foregroundColor = toneColor && variant !== 'primary' ? toneColor : p.fg;
-  const borderColor = toneColor && variant !== 'ghost' ? toneColor : p.border;
+  const backgroundColor = variant === 'secondary' || variant === 'danger' ? surfaceColor : p.bg;
+  const foregroundColor = p.fg;
+  const borderColor = p.border;
   const inactive = disabled || loading;
   return (
     <Pressable
@@ -42,8 +42,6 @@ export function Button({ title, onPress, variant = 'primary', icon, loading, dis
         styles.base,
         compact && styles.compact,
         { backgroundColor, borderColor },
-        toneColor && variant !== 'ghost' && styles.neonFrame,
-        toneColor && variant !== 'ghost' && { shadowColor: toneColor },
         pressed && styles.pressed,
         inactive && styles.disabled,
         style,
@@ -70,7 +68,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  neonFrame: { shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.24, shadowRadius: 7, elevation: 3 },
   compact: { minHeight: 48, paddingHorizontal: spacing.lg },
   row: { flexDirection: 'row', alignItems: 'center' },
   icon: { marginRight: spacing.sm },

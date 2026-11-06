@@ -40,6 +40,7 @@ function RootNavigator() {
         <Stack.Screen name="screen-note/history" />
         <Stack.Screen name="mood/index" />
         <Stack.Screen name="travel-map/index" />
+        <Stack.Screen name="categories/index" />
         <Stack.Screen name="categories/[slug]" />
         <Stack.Screen name="calendar/index" />
         <Stack.Screen name="special-dates/index" />
@@ -67,7 +68,7 @@ export default function RootLayout() {
       <AppAppearanceProvider>
         <AuthProvider>
           <AppStateProvider>
-            <StatusBar style="dark" />
+            <StatusBar style="light" />
             <RootNavigator />
           </AppStateProvider>
         </AuthProvider>

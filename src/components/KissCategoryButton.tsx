@@ -40,14 +40,14 @@ export function KissCategoryButton({ ownerId, partnerId, coupleId }: Props) {
         accessibilityRole="button"
         accessibilityLabel="Partnerinize öpücük gönder"
         accessibilityState={{ disabled: !paired || sending }}
-        style={({ pressed }) => [styles.button, { backgroundColor: tone.tint, borderColor: tone.color, shadowColor: tone.color }, pressed && styles.pressed, !paired && styles.disabled]}
+        style={({ pressed }) => [styles.button, { backgroundColor: tone.tint, borderColor: colors.copper, shadowColor: colors.copper }, pressed && styles.pressed, !paired && styles.disabled]}
       >
-        {sending ? <ActivityIndicator color={tone.color} /> : <Text style={[styles.lips, { color: tone.color }]}>💋</Text>}
+        {sending ? <ActivityIndicator color={colors.copper} /> : <Text style={[styles.lips, { color: colors.copper }]}>💋</Text>}
       </Pressable>
-      <Text style={[styles.title, { color: tone.color }]}>Öpücük</Text>
+      <Text style={[styles.title, { color: colors.cream }]}>Öpücük</Text>
       <Text style={styles.usage}>Ne zaman istersen 💖</Text>
       {!paired ? <Text style={styles.message}>Öpücük göndermek için partnerinizle eşleşin.</Text> : null}
-      {notice ? <Text style={[styles.success, { color: tone.color }]}>{notice}</Text> : null}
+      {notice ? <Text style={[styles.success, { color: colors.copper }]}>{notice}</Text> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
   );

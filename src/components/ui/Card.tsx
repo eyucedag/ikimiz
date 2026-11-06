@@ -12,8 +12,7 @@ interface CardProps {
 
 export function Card({ children, style, onPress, accessibilityLabel }: CardProps) {
   const { surfaceColor } = useAppAppearance();
-  const customStyle = StyleSheet.flatten(style) ?? {};
-  const edgeColor = typeof customStyle.borderColor === 'string' ? customStyle.borderColor : colors.border;
+  const edgeColor = colors.border;
   const frameStyle = [styles.card, style, { backgroundColor: surfaceColor, borderColor: edgeColor, borderWidth: 1.5, borderRadius: radius.card, shadowColor: edgeColor }];
   if (onPress) {
     return (

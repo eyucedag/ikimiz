@@ -19,7 +19,7 @@
       "package": "app.ikimiz.mobile",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#FAF8F5"
+      "backgroundColor": "#082D25"
       }
     },
     "plugins": [
@@ -30,7 +30,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 180,
           "resizeMode": "contain",
-          "backgroundColor": "#FAF8F5"
+          "backgroundColor": "#082D25"
         }
       ],
       "@react-native-community/datetimepicker",

@@ -47,8 +47,8 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textTertiary,
-        tabBarStyle: { backgroundColor: surfaceColor, borderTopColor: colors.border },
-        tabBarLabelStyle: { fontSize: fontSize.xs, fontWeight: '500' },
+        tabBarStyle: { backgroundColor: surfaceColor, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 7, paddingBottom: 8, elevation: 12, shadowColor: '#020D0A', shadowOpacity: 0.22, shadowRadius: 14, shadowOffset: { width: 0, height: -4 } },
+        tabBarLabelStyle: { fontSize: fontSize.xs, fontWeight: '600' },
       }}
     >
       <Tabs.Screen name="index" options={{ title: 'Bugün', tabBarIcon: tabIcon('home') }} />
@@ -63,7 +63,7 @@ export default function TabsLayout() {
           title: 'Bildirimler',
           tabBarIcon: tabIcon('bell'),
           tabBarBadge: unreadCount > 0 ? (unreadCount > 9 ? '9+' : unreadCount) : undefined,
-          tabBarBadgeStyle: { backgroundColor: colors.earth2, fontSize: 10 },
+          tabBarBadgeStyle: { backgroundColor: colors.mauve, fontSize: 10 },
         }}
       />
       <Tabs.Screen name="profile" options={{ title: 'Ayarlar', tabBarIcon: tabIcon('settings') }} />
