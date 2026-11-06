@@ -41,7 +41,7 @@ export function CategoryTile({ category, width }: CategoryTileProps) {
 
 const styles = StyleSheet.create({
   tile: { padding: spacing.xs },
-  surface: { minHeight: 112, padding: spacing.md, flexDirection: 'row', alignItems: 'center', borderRadius: radius.card, borderWidth: 1, borderColor: 'rgba(134,154,131,0.48)', backgroundColor: 'rgba(29,74,61,0.88)', overflow: 'hidden', ...shadow },
+  surface: { minHeight: 112, padding: spacing.md, flexDirection: 'row', alignItems: 'center', borderRadius: radius.card, borderWidth: 1, borderColor: 'rgba(164,175,159,0.35)', backgroundColor: 'rgba(58,67,61,0.96)', overflow: 'hidden', ...shadow },
   copy: { zIndex: 1, width: '67%', alignItems: 'flex-start', gap: spacing.xs },
   icon: { width: 30, height: 30, flexShrink: 0, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(233,154,105,0.13)' },
   iconImage: { width: 23, height: 23 },

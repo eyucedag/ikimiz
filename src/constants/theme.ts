@@ -1,23 +1,23 @@
 /** Aurora Forest: tek merkezden yönetilen koyu orman ve sıcak ışık paleti. */
 export const colors = {
-  background: '#082D25',
-  card: '#1D4A3D',
+  background: '#292F2C',
+  card: '#3A433D',
   accent: '#E99A69',
-  accentLight: '#315A4A',
-  beige: '#869A83',
+  accentLight: '#4A554D',
+  beige: '#A4AF9F',
   earth1: '#E99A69',
   earth2: '#976779',
   text: '#F6E9D7',
-  textSecondary: '#D5DCCF',
-  textTertiary: '#AABBA9',
-  border: '#496858',
+  textSecondary: '#D9D9CF',
+  textTertiary: '#B8BDB2',
+  border: '#5A665D',
   error: '#F08A86',
   success: '#A5C29B',
   white: '#F6E9D7',
-  forestDeep: '#082D25',
-  forest: '#1D4A3D',
-  pine: '#3E6B57',
-  sage: '#869A83',
+  forestDeep: '#252B28',
+  forest: '#3A433D',
+  pine: '#68796D',
+  sage: '#A4AF9F',
   cream: '#F6E9D7',
   copper: '#E99A69',
   mauve: '#976779',
@@ -25,12 +25,12 @@ export const colors = {
 
 // Mevcut Ayarlar > Arka plan seçimi korunurken Aurora paletinde kalır.
 export const appBackgroundColors = [
-  { label: 'Orman', color: '#082D25' },
-  { label: 'Çam', color: '#0E352B' },
-  { label: 'Gölge', color: '#123A30' },
-  { label: 'Dağ', color: '#173D32' },
-  { label: 'Alacakaranlık', color: '#1B382F' },
-  { label: 'Kuzey', color: '#103833' },
+  { label: 'Gece Ormanı', color: '#292F2C' },
+  { label: 'Taş', color: '#303633' },
+  { label: 'Adaçayı', color: '#363C38' },
+  { label: 'Alacakaranlık', color: '#3A3935' },
+  { label: 'Sis', color: '#343A3B' },
+  { label: 'Kıyı', color: '#363A35' },
 ];
 
 export const fontSize = {
