@@ -27,7 +27,7 @@ export default function CategoriesTabScreen() {
         </DynamicSky>
         <SectionHeader title="Birlikte alanlarınız" />
         <View style={styles.grid}>
-          {fullCategoryList.map((category) => <CategoryTile key={category.slug} category={category} width={tileWidth} />)}
+          {fullCategoryList.map((category) => <CategoryTile key={category.slug} category={category.slug === 'ekrana-not' ? { ...category, title: 'Partnerinden Not' } : category} width={tileWidth} />)}
           <CategoryTile category={moodCategory} width={tileWidth} />
         </View>
       </View>
