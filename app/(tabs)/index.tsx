@@ -176,12 +176,18 @@ export default function TodayScreen() {
             style={styles.directionButton}
           >
             <Feather
-              name="compass"
-              size={24}
-              color={direction.bothSharing ? '#159447' : direction.anySharing ? '#1676E8' : colors.textSecondary}
-              style={direction.bothSharing && direction.angle != null ? { transform: [{ rotate: `${direction.angle}deg` }] } : undefined}
+              name="arrow-up"
+              size={27}
+              color={direction.bothSharing ? '#159447' : direction.anySharing ? '#1676E8' : colors.cream}
+              style={direction.angle != null ? { transform: [{ rotate: `${direction.angle}deg` }] } : undefined}
             />
+            <Text style={styles.directionLabel}>Aşkım nerdesin?</Text>
           </Pressable>
+          {direction.error ? (
+            <Text style={styles.directionHintOverlay}>{direction.error}</Text>
+          ) : direction.anySharing ? (
+            <Text style={styles.directionHintOverlay}>{direction.bothSharing ? 'İkinizin konumu açık.' : 'Konum paylaşımı açık; yön için ikiniz de açın.'}</Text>
+          ) : null}
           <MoodSummaryCard
             today={moods.today}
             partnerToday={moods.partnerToday}
@@ -215,7 +221,6 @@ export default function TodayScreen() {
         </View>
 
       </View>
-      {direction.error ? <Text style={styles.directionHint}>{direction.error}</Text> : direction.anySharing ? <Text style={styles.directionHint}>{direction.bothSharing ? 'İkinizin konumu açık.' : 'Konum paylaşımı açık; yön için ikiniz de açın.'}</Text> : null}
       </DynamicSky>
 
       <Card style={[styles.section, styles.compactCard, styles.songCard, { borderColor: songColor.color, borderWidth: 1 }]}>
@@ -351,7 +356,9 @@ const styles = StyleSheet.create({
   identityRow: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   identityText: { flex: 1, minWidth: 0 },
   treeControls: { width: '100%', alignItems: 'center', gap: 1 },
-  directionButton: { width: 36, height: 36, borderRadius: 18, marginBottom: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(41,47,44,0.74)', borderWidth: 1, borderColor: 'rgba(246,233,215,0.38)' },
+  directionButton: { minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingHorizontal: spacing.md, marginBottom: 2, borderRadius: 20, backgroundColor: 'rgba(41,47,44,0.82)', borderWidth: 1, borderColor: 'rgba(246,233,215,0.52)' },
+  directionLabel: { color: colors.cream, fontSize: fontSize.sm, fontWeight: '700' },
+  directionHintOverlay: { maxWidth: '100%', marginBottom: 3, textAlign: 'center', color: colors.cream, fontSize: 10, textShadowColor: 'rgba(8,45,37,0.96)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
   directionHint: { color: colors.cream, fontSize: fontSize.xs, marginLeft: 68, marginTop: -spacing.lg, marginBottom: spacing.sm },
   couplePhoto: { width: 54, height: 54, borderRadius: 27, borderWidth: 2, borderColor: colors.copper },
   photoPlaceholder: { width: 54, height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(41,47,44,0.78)', borderWidth: 1.5, borderColor: colors.copper },
