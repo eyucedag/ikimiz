@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Button, Card, CoupleLoading, EmptyState, Input, Screen } from '@/src/components/ui';
 import { getCategoryColor } from '@/src/constants/categories';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
@@ -19,6 +19,7 @@ const calendarTone = getCategoryColor('takvim');
 type Entry = { id: string; date: string; title: string; detail: string; kind: 'event' | 'special' | 'travel' | 'relationship'; color: string; ownerId?: string };
 const startOfMonth = (value: Date) => new Date(value.getFullYear(), value.getMonth(), 1);
 const dateKey = (value: Date) => `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
+const dateFromKey = (value: string) => { const [year, month, day] = value.split('-').map(Number); return new Date(year, month - 1, day); };
 const dateName = (value: string) => { const [y, m, d] = value.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }); };
 const monthName = (value: Date) => value.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
 
@@ -26,9 +27,11 @@ export default function CalendarScreen() {
   const { user } = useAuth();
   const couple = useCouple();
   const { refreshUpcoming } = useAppState();
+  const params = useLocalSearchParams<{ date?: string }>();
+  const routeDate = typeof params.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(params.date) ? params.date : null;
   const calendarColor = calendarTone;
-  const [month, setMonth] = useState(startOfMonth(new Date()));
-  const [selectedDate, setSelectedDate] = useState(dateKey(new Date()));
+  const [month, setMonth] = useState(() => startOfMonth(routeDate ? dateFromKey(routeDate) : new Date()));
+  const [selectedDate, setSelectedDate] = useState(routeDate ?? dateKey(new Date()));
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [time, setTime] = useState(new Date(2000, 0, 1, 18, 0));
@@ -39,6 +42,13 @@ export default function CalendarScreen() {
   const [travelPlaces, setTravelPlaces] = useState<TravelPlace[]>([]);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!routeDate) return;
+    const target = dateFromKey(routeDate);
+    setMonth(startOfMonth(target));
+    setSelectedDate(routeDate);
+  }, [routeDate]);
 
   const refresh = useCallback(async () => {
     if (!couple.couple?.id) return;

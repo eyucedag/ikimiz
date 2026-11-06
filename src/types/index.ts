@@ -66,6 +66,7 @@ export interface UpcomingItem {
   title: string;
   subtitle: string;
   date: string;
+  kind?: 'event' | 'special';
 }
 
 export interface Category {

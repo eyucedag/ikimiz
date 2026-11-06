@@ -28,9 +28,10 @@ type HomeSection = 'song' | 'partner-note' | 'mood' | 'upcoming' | 'categories';
 const HOME_CATEGORY_ITEMS: Category[] = [
   ...categories.filter((category) => category.slug !== 'opucuk').map((category) => category.slug === 'ekrana-not' ? { ...category, title: 'Partnerinden Not' } : category),
   { slug: 'ruh-halim', title: 'Ruh Halim', icon: 'heart', color: '#AD633F', tint: '#F2E7DB', description: 'Bugünkü ruh halinizi partnerinizle paylaşın.' },
+  { slug: 'yaklasanlar', title: 'Yaklaşanlar', icon: 'calendar', color: '#4B78C5', tint: '#EAF0FA', description: 'Yaklaşan etkinliklerinizi ve özel günlerinizi görün.' },
 ];
-const BASE_HOME_SECTIONS: HomeSection[] = ['upcoming'];
-const DEFAULT_HOME_ORDER: HomeSection[] = ['categories', 'upcoming'];
+const BASE_HOME_SECTIONS: HomeSection[] = ['categories'];
+const DEFAULT_HOME_ORDER: HomeSection[] = ['categories'];
 const DEFAULT_HOME_CATEGORY_ORDER = ['gunun-sarkisi', 'ekrana-not', 'ruh-halim', ...HOME_CATEGORY_ITEMS.filter((category) => !['gunun-sarkisi', 'ekrana-not', 'ruh-halim'].includes(category.slug)).map((category) => category.slug)];
 const HOME_CATEGORY_ICONS: Record<string, typeof auroraIcons.calendar> = {
   takvim: auroraIcons.calendar,
@@ -46,6 +47,7 @@ const HOME_CATEGORY_ICONS: Record<string, typeof auroraIcons.calendar> = {
   'gezilen-yerler': auroraIcons.places,
   'birlikte-adimlar': auroraIcons.steps,
   'ekrana-not': auroraIcons.notebook,
+  yaklasanlar: auroraIcons.calendar,
 };
 
 export default function TodayScreen() {
@@ -326,11 +328,11 @@ export default function TodayScreen() {
             <Feather name="chevron-right" size={18} color={calendarColor.color} />
           </Pressable>
         ) : (
-          upcoming.slice(0, 2).map((item) => (
-            <View key={item.id} style={styles.upcomingRow}>
+          upcoming.slice(0, 3).map((item) => (
+            <Pressable key={`${item.kind ?? 'event'}-${item.id}`} onPress={() => router.push(item.kind === 'special' ? '/special-dates' : { pathname: '/calendar', params: { date: item.date.slice(0, 10) } })} accessibilityRole="button" accessibilityLabel={`${item.title}, ${item.kind === 'special' ? 'özel günler' : 'takvim'} sayfasını aç`} style={styles.upcomingRow}>
               <Text style={styles.upcomingTitle}>{item.title}</Text>
               <Text style={styles.muted}>{item.subtitle}</Text>
-            </View>
+            </Pressable>
           ))
         )}
       </Card>
@@ -416,6 +418,7 @@ export default function TodayScreen() {
     if (slug === 'gunun-sarkisi') return renderHomeSection('song');
     if (slug === 'ekrana-not') return renderHomeSection('partner-note');
     if (slug === 'ruh-halim') return renderHomeSection('mood');
+    if (slug === 'yaklasanlar') return renderHomeSection('upcoming');
     const category = HOME_CATEGORY_ITEMS.find((item) => item.slug === slug);
     return category ? renderCategoryCard(category) : null;
   };
@@ -485,7 +488,6 @@ export default function TodayScreen() {
         keyExtractor={(slug) => slug}
         renderItem={({ item: slug }) => <View style={styles.draggableHomeItem}>{renderCategorySlug(slug)}</View>}
         ListHeaderComponent={listHeader}
-        ListFooterComponent={!hiddenHomeSections.includes('upcoming') && homeOrder.includes('upcoming') ? <View style={styles.responsiveContent}>{renderHomeSection('upcoming')}</View> : undefined}
         contentContainerStyle={styles.draggableListContent}
         refreshing={refreshing}
         onRefresh={onRefresh}
@@ -500,7 +502,7 @@ export default function TodayScreen() {
             </View>
             <ScrollView style={styles.layoutScroll} showsVerticalScrollIndicator={false}>
               <View style={styles.layoutGroupRow}>
-                <Text style={styles.layoutGroupTitle}>Kategoriler</Text>
+                <Text style={styles.layoutGroupTitle}>Ana ekran kartları</Text>
                 <Pressable onPress={() => toggleHomeSection('categories')} accessibilityRole="button" accessibilityLabel={hiddenHomeSections.includes('categories') ? 'Kategorileri göster' : 'Kategorileri gizle'} style={styles.layoutIconButton}>
                   <Feather name={hiddenHomeSections.includes('categories') ? 'eye-off' : 'eye'} size={18} color={colors.accent} />
                 </Pressable>
@@ -513,12 +515,6 @@ export default function TodayScreen() {
                   <Pressable onPress={() => moveHomeCategory(index, 1)} disabled={index === homeCategoryOrder.length - 1} accessibilityRole="button" accessibilityLabel={`${title} kategorisini aşağı taşı`} style={[styles.layoutIconButton, index === homeCategoryOrder.length - 1 && styles.layoutIconButtonDisabled]}><Feather name="chevron-down" size={20} color={colors.accent} /></Pressable>
                 </View>;
               })}
-              <View style={[styles.layoutGroupRow, styles.layoutUpcomingRow]}>
-                <Text style={styles.layoutGroupTitle}>Yaklaşanlar</Text>
-                <Pressable onPress={() => toggleHomeSection('upcoming')} accessibilityRole="button" accessibilityLabel={hiddenHomeSections.includes('upcoming') ? 'Yaklaşanları göster' : 'Yaklaşanları gizle'} style={styles.layoutIconButton}>
-                  <Feather name={hiddenHomeSections.includes('upcoming') ? 'eye-off' : 'eye'} size={18} color={colors.accent} />
-                </Pressable>
-              </View>
             </ScrollView>
             <Pressable onPress={() => setHomeLayoutVisible(false)} style={styles.layoutDone}><Text style={styles.layoutDoneText}>Tamam</Text></Pressable>
           </View>

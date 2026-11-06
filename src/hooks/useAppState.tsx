@@ -102,18 +102,38 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       const coupleIds = [...new Set((memberships ?? []).map((row) => String(row.couple_id)).filter(Boolean))];
       if (!coupleIds.length) { setUpcoming([]); return; }
       const now = new Date();
-      const { data, error } = await supabase.from('calendar_events')
+      const [{ data, error }, { data: specialDates }] = await Promise.all([
+        supabase.from('calendar_events')
         .select('id,title,location,starts_at,all_day')
         .in('couple_id', coupleIds).eq('visibility', 'shared').eq('is_deleted', false)
-        .gte('starts_at', now.toISOString()).order('starts_at').limit(5);
+        .gte('starts_at', now.toISOString()).order('starts_at').limit(10),
+        supabase.from('important_dates').select('id,title,date,kind,couple_id')
+          .in('couple_id', coupleIds).eq('visibility', 'shared').eq('is_deleted', false).limit(100),
+      ]);
       if (error) throw error;
-      setUpcoming((data ?? []).map((row) => {
+      const events = (data ?? []).map((row) => {
         const start = new Date(String(row.starts_at));
         const day = start.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
         const time = row.all_day ? '' : start.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
         const location = typeof row.location === 'string' && row.location.trim() ? row.location.trim() : '';
-        return { id: String(row.id), title: String(row.title), date: String(row.starts_at), subtitle: [day, time, location].filter(Boolean).join(' · ') };
-      }));
+        return { id: String(row.id), title: String(row.title), date: String(row.starts_at), kind: 'event' as const, subtitle: [day, time, location].filter(Boolean).join(' · ') };
+      });
+      const specialItems = (specialDates ?? []).flatMap((row) => {
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const [, monthText, dayText] = String(row.date).split('-');
+        const month = Number(monthText) - 1;
+        const day = Number(dayText);
+        if (!Number.isFinite(month) || !Number.isFinite(day)) return [];
+        let next = new Date(now.getFullYear(), month, day, 12);
+        const repeatsYearly = row.kind === 'anniversary' || row.kind === 'birthday';
+        if (repeatsYearly && next < today) next = new Date(now.getFullYear() + 1, month, day, 12);
+        if (next < today) return [];
+        const nextDate = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`;
+        const dateLabel = next.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+        const kindLabel = row.kind === 'birthday' ? 'Doğum günü' : row.kind === 'anniversary' ? 'Yıl dönümü' : 'Özel gün';
+        return [{ id: String(row.id), title: String(row.title), date: nextDate, kind: 'special' as const, subtitle: `${dateLabel} · ${kindLabel}` }];
+      });
+      setUpcoming([...events, ...specialItems].sort((a, b) => a.date.localeCompare(b.date)).slice(0, 10));
     } catch {
       // Takvim yüklemesi başarısız olsa da ana ekran kullanılabilir kalır.
     }
