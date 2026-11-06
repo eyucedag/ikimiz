@@ -167,7 +167,19 @@ export default function TodayScreen() {
   return (
     <Screen inTabs refreshing={refreshing} onRefresh={onRefresh}>
       <View style={styles.responsiveContent}>
-      <DynamicSky>
+      <DynamicSky treeContent={couple.isPaired ? (
+        <MoodSummaryCard
+          today={moods.today}
+          partnerToday={moods.partnerToday}
+          partnerName={couple.partner?.displayName ?? 'Partneriniz'}
+          paired={couple.isPaired}
+          loading={moods.loading || couple.loading}
+          error={moods.error}
+          onPress={() => router.push('/mood')}
+          compact
+          overlay
+        />
+      ) : null}>
       <View style={styles.header}>
         <View style={styles.identityRow}>
           {couple.couple?.photoUrl ? (
@@ -203,16 +215,6 @@ export default function TodayScreen() {
         ) : null}
       </View>
       {direction.error ? <Text style={styles.directionHint}>{direction.error}</Text> : direction.anySharing ? <Text style={styles.directionHint}>{direction.bothSharing ? 'İkinizin konumu açık.' : 'Konum paylaşımı açık; yön için ikiniz de açın.'}</Text> : null}
-      <MoodSummaryCard
-        today={moods.today}
-        partnerToday={moods.partnerToday}
-        partnerName={couple.partner?.displayName ?? 'Partneriniz'}
-        paired={couple.isPaired}
-        loading={moods.loading || couple.loading}
-        error={moods.error}
-        onPress={() => router.push('/mood')}
-        compact
-      />
       </DynamicSky>
 
       <Card style={[styles.section, styles.compactCard, styles.songCard, { borderColor: songColor.color, borderWidth: 1 }]}>

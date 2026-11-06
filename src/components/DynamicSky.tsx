@@ -22,9 +22,9 @@ const skyImages: Record<SkyPhase, number> = {
 };
 const forestOverlay = require('../../assets/aurora/sky/forest_overlay.png');
 
-interface DynamicSkyProps { children: React.ReactNode; compact?: boolean }
+interface DynamicSkyProps { children: React.ReactNode; compact?: boolean; treeContent?: React.ReactNode }
 
-export function DynamicSky({ children, compact = false }: DynamicSkyProps) {
+export function DynamicSky({ children, compact = false, treeContent }: DynamicSkyProps) {
   const { width: windowWidth } = useWindowDimensions();
   const sceneWidth = Math.min(620, Math.max(260, windowWidth - 36));
   const skyHeight = compact
@@ -74,6 +74,7 @@ export function DynamicSky({ children, compact = false }: DynamicSkyProps) {
       <View pointerEvents="none" style={styles.readabilityScrim} />
       <Image pointerEvents="none" source={forestOverlay} resizeMode="cover" style={[styles.image, styles.forestOverlay]} accessibilityIgnoresInvertColors />
       <View style={[styles.content, compact && styles.compactContent]}>{children}</View>
+      {treeContent ? <View style={styles.treeContent}>{treeContent}</View> : null}
     </View>
   );
 }
@@ -86,4 +87,5 @@ const styles = StyleSheet.create({
   forestOverlay: { opacity: 0.82 },
   content: { width: '100%', zIndex: 1, padding: 14, paddingBottom: 8 },
   compactContent: { padding: 14, paddingBottom: 24 },
+  treeContent: { position: 'absolute', zIndex: 2, left: 14, right: 14, bottom: 8 },
 });

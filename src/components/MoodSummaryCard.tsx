@@ -17,62 +17,65 @@ interface MoodSummaryCardProps {
   error: string | null;
   onPress: () => void;
   compact?: boolean;
+  overlay?: boolean;
 }
 
-function PersonMood({ name, entry, mine, toneColor, compact }: { name: string; entry: MoodEntry | null; mine?: boolean; toneColor: string; compact?: boolean }) {
+function PersonMood({ name, entry, mine, toneColor, compact, overlay }: { name: string; entry: MoodEntry | null; mine?: boolean; toneColor: string; compact?: boolean; overlay?: boolean }) {
   const option = entry ? getMoodOption(entry.mood) : null;
 
   return (
     <View style={[styles.person, compact && styles.compactPerson]} accessible accessibilityLabel={`${name}: ${option?.label ?? (mine ? 'Henüz seçmediniz' : 'Henüz paylaşmadı')}`}>
-      <View style={[styles.emojiCircle, compact && styles.compactMoodCircle, option && { backgroundColor: `${option.color}18` }]}>
+      <View style={[styles.emojiCircle, compact && styles.compactMoodCircle, overlay && styles.overlayMoodCircle, option && { backgroundColor: overlay ? 'rgba(246,233,215,0.18)' : `${option.color}18` }]}>
         {entry ? <Image source={auroraMoodIcons[entry.mood]} style={[styles.moodIcon, compact && styles.compactMoodIcon]} resizeMode="contain" /> : <Feather name="sun" size={compact ? 16 : 18} color={toneColor} />}
       </View>
       <View style={styles.personCopy}>
-        <Text style={styles.name} numberOfLines={1}>{name}</Text>
-        <Text style={[styles.status, !!option && styles.selectedStatus]} numberOfLines={1}>{option?.label ?? (mine ? 'Henüz seçmediniz' : 'Henüz paylaşmadı')}</Text>
+        <Text style={[styles.name, overlay && styles.overlayText]} numberOfLines={1}>{name}</Text>
+        <Text style={[styles.status, !!option && styles.selectedStatus, overlay && styles.overlayMutedText]} numberOfLines={1}>{option?.label ?? (mine ? 'Henüz seçmediniz' : 'Henüz paylaşmadı')}</Text>
       </View>
     </View>
   );
 }
 
 /** Ana ekrandaki ruh hali özeti; veriyi ekran sağlar. */
-export function MoodSummaryCard({ today, partnerToday, partnerName, paired, loading, error, onPress, compact = false }: MoodSummaryCardProps) {
+export function MoodSummaryCard({ today, partnerToday, partnerName, paired, loading, error, onPress, compact = false, overlay = false }: MoodSummaryCardProps) {
   const categoryColor = getCategoryColor('ruh-halim');
-  return (
-    <Card style={[styles.card, compact && styles.compactCard, { borderColor: categoryColor.color, borderWidth: 1 }]}>
+  const content = <>
       <View style={[styles.heading, compact && styles.compactHeading]}>
-        <View style={[styles.headingIcon, compact && styles.compactHeadingIcon, { backgroundColor: categoryColor.tint }]}><Feather name="heart" size={compact ? 15 : 19} color={categoryColor.color} /></View>
+        <View style={[styles.headingIcon, compact && styles.compactHeadingIcon, overlay && styles.overlayHeadingIcon, { backgroundColor: overlay ? 'transparent' : categoryColor.tint }]}><Feather name="heart" size={compact ? 15 : 19} color={overlay ? '#F6E9D7' : categoryColor.color} /></View>
         <View style={styles.flex}>
-          <Text style={styles.title} accessibilityRole="header">Ruh Halim</Text>
+          <Text style={[styles.title, overlay && styles.overlayText]} accessibilityRole="header">Ruh Halim</Text>
         </View>
       </View>
 
       {loading && !today && !partnerToday ? (
         <View style={styles.loading} accessibilityLiveRegion="polite">
-          <ActivityIndicator color={categoryColor.color} />
-          <Text style={styles.muted}>Ruh halleri yükleniyor…</Text>
+          <ActivityIndicator color={overlay ? '#F6E9D7' : categoryColor.color} />
+          <Text style={[styles.muted, overlay && styles.overlayMutedText]}>Ruh halleri yükleniyor…</Text>
         </View>
       ) : paired ? (
         <View style={[styles.people, compact && styles.compactPeople]}>
-          <PersonMood name="Siz" entry={today} mine toneColor={categoryColor.color} compact={compact} />
-          <View style={[styles.divider, compact && styles.compactDivider]} />
-          <PersonMood name={partnerName || 'Partneriniz'} entry={partnerToday} toneColor={categoryColor.color} compact={compact} />
+          <PersonMood name="Siz" entry={today} mine toneColor={categoryColor.color} compact={compact} overlay={overlay} />
+          <View style={[styles.divider, compact && styles.compactDivider, overlay && styles.overlayDivider]} />
+          <PersonMood name={partnerName || 'Partneriniz'} entry={partnerToday} toneColor={categoryColor.color} compact={compact} overlay={overlay} />
         </View>
       ) : (
-          <Text style={styles.unpaired} numberOfLines={2}>Partnerinizle eşleşin; günlük ruh halinizi paylaşın.</Text>
+          <Text style={[styles.unpaired, overlay && styles.overlayMutedText]} numberOfLines={2}>Partnerinizle eşleşin; günlük ruh halinizi paylaşın.</Text>
       )}
 
-      {error ? <Text style={styles.error} accessibilityLiveRegion="polite">{error}</Text> : null}
+      {error ? <Text style={[styles.error, overlay && styles.overlayText]} accessibilityLiveRegion="polite">{error}</Text> : null}
       <Button
         title={paired ? (today ? 'Ruhumu Gör' : 'Ruh Halini Paylaş') : 'Ruh Halim’i Keşfet'}
         icon={paired ? 'smile' : 'heart'}
         toneColor={categoryColor.color}
         onPress={onPress}
         compact
-        style={[styles.action, compact && styles.compactAction]}
+        variant={overlay ? 'ghost' : 'primary'}
+        style={[styles.action, compact && styles.compactAction, overlay && styles.overlayAction]}
       />
-    </Card>
-  );
+    </>;
+  return overlay
+    ? <View style={[styles.card, compact && styles.compactCard, styles.overlayCard]}>{content}</View>
+    : <Card style={[styles.card, compact && styles.compactCard, { borderColor: categoryColor.color, borderWidth: 1 }]}>{content}</Card>;
 }
 
 const styles = StyleSheet.create({
@@ -104,4 +107,11 @@ const styles = StyleSheet.create({
   error: { fontSize: fontSize.sm, color: colors.error, lineHeight: 19, marginTop: spacing.md },
   action: { marginTop: spacing.xs, minHeight: 36, paddingVertical: 3 },
   compactAction: { height: 32, minHeight: 32, marginTop: 3, paddingVertical: 0, paddingHorizontal: spacing.sm, borderRadius: 12 },
+  overlayCard: { backgroundColor: 'transparent', borderWidth: 0, padding: 0, shadowOpacity: 0, elevation: 0 },
+  overlayText: { color: '#F6E9D7', textShadowColor: 'rgba(8,45,37,0.9)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
+  overlayMutedText: { color: 'rgba(246,233,215,0.88)', textShadowColor: 'rgba(8,45,37,0.95)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
+  overlayHeadingIcon: { borderRadius: 12 },
+  overlayMoodCircle: { backgroundColor: 'rgba(246,233,215,0.18)' },
+  overlayDivider: { backgroundColor: 'rgba(246,233,215,0.48)' },
+  overlayAction: { height: 30, minHeight: 30, marginTop: 1, borderWidth: 0, paddingHorizontal: 2, alignSelf: 'flex-start' },
 });
