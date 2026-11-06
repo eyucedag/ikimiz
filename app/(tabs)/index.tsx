@@ -178,13 +178,13 @@ export default function TodayScreen() {
             <Feather
               name="arrow-up"
               size={27}
-              color={direction.bothSharing ? '#159447' : direction.anySharing ? '#1676E8' : colors.cream}
+              color={direction.bothSharing ? '#159447' : direction.sharing || direction.anySharing ? '#1676E8' : colors.cream}
               style={direction.bothSharing && direction.angle != null ? { transform: [{ rotate: `${direction.angle}deg` }] } : undefined}
             />
             <Text style={styles.directionLabel}>Aşkım nerdesin?</Text>
           </Pressable>
           <Text style={styles.directionHintOverlay} numberOfLines={1}>
-            {direction.error ?? (direction.bothSharing ? 'İkinizin konumu açık.' : direction.sharing ? 'Konumunuz açık; partneriniz de açınca yönü göreceksiniz.' : direction.anySharing ? 'Partnerinizin konumu açık; yön için siz de açın.' : ' ')}
+            {direction.error || (direction.bothSharing ? 'İkinizin konumu açık.' : direction.sharing ? 'Konumunuz açık; partneriniz de açınca yönü göreceksiniz.' : direction.anySharing ? 'Partnerinizin konumu açık; yön için siz de açın.' : ' ')}
           </Text>
           <MoodSummaryCard
             today={moods.today}
