@@ -32,6 +32,20 @@ const HOME_SECTION_TITLES: Record<HomeSection, string> = {
   upcoming: 'Yaklaşanlar',
   categories: 'Kategoriler',
 };
+const HOME_CATEGORY_ICONS: Record<string, typeof auroraIcons.calendar> = {
+  takvim: auroraIcons.calendar,
+  'ozel-gunler': auroraIcons.specialDates,
+  listeler: auroraIcons.lists,
+  notlar: auroraIcons.notebook,
+  'onemli-belgeler': auroraIcons.documents,
+  galeri: auroraIcons.gallery,
+  'sesli-anilar': auroraIcons.audioMemories,
+  gorevler: auroraIcons.tasks,
+  'hediye-radari': auroraIcons.giftRadar,
+  'bilinmesi-gerekenler': auroraIcons.importantFacts,
+  'gezilen-yerler': auroraIcons.places,
+  'birlikte-adimlar': auroraIcons.steps,
+};
 
 export default function TodayScreen() {
   const noteColor = getCategoryColor('ekrana-not');
@@ -301,7 +315,9 @@ export default function TodayScreen() {
               accessibilityLabel={`${category.title}. ${category.description}`}
               style={styles.homeCategoryCard}
             >
-              <View style={[styles.homeCategoryAccent, { backgroundColor: categoryTone.color }]} />
+              <View style={[styles.homeCategoryIcon, { backgroundColor: categoryTone.tint }]}>
+                <Image source={HOME_CATEGORY_ICONS[category.slug]} style={styles.homeCategoryIconImage} resizeMode="contain" tintColor={categoryTone.color} />
+              </View>
               <View style={styles.homeCategoryCopy}>
                 <Text numberOfLines={1} style={styles.homeCategoryTitle}>{category.title}</Text>
                 <Text numberOfLines={1} style={styles.homeCategoryDescription}>{category.description}</Text>
@@ -573,7 +589,8 @@ const styles = StyleSheet.create({
   songCardArtist: { color: colors.textSecondary, fontSize: fontSize.md, fontWeight: '500', marginTop: 1 },
   homeCategoryList: { gap: spacing.sm, marginBottom: spacing.md },
   homeCategoryCard: { minHeight: 72, width: '100%', flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
-  homeCategoryAccent: { width: 4, height: 38, borderRadius: 2 },
+  homeCategoryIcon: { width: 42, height: 42, flexShrink: 0, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  homeCategoryIconImage: { width: 28, height: 28 },
   homeCategoryCopy: { flex: 1, minWidth: 0 },
   homeCategoryTitle: { flex: 1, color: colors.text, fontSize: fontSize.md, fontWeight: '600' },
   homeCategoryDescription: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 3 },
