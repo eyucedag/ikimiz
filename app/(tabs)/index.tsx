@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   header: { marginTop: spacing.xs, marginBottom: spacing.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   identityRow: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   identityText: { flex: 1, minWidth: 0 },
-  treeControls: { alignItems: 'center', gap: 1 },
+  treeControls: { width: '100%', alignItems: 'center', gap: 1 },
   directionButton: { width: 36, height: 36, borderRadius: 18, marginBottom: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(41,47,44,0.74)', borderWidth: 1, borderColor: 'rgba(246,233,215,0.38)' },
   directionHint: { color: colors.cream, fontSize: fontSize.xs, marginLeft: 68, marginTop: -spacing.lg, marginBottom: spacing.sm },
   couplePhoto: { width: 54, height: 54, borderRadius: 27, borderWidth: 2, borderColor: colors.copper },

@@ -69,7 +69,7 @@ export function MoodSummaryCard({ today, partnerToday, partnerName, paired, load
         toneColor={categoryColor.color}
         onPress={onPress}
         compact
-        variant={overlay ? 'ghost' : 'primary'}
+        variant="primary"
         style={[styles.action, compact && styles.compactAction, overlay && styles.overlayAction]}
       />
     </>;
@@ -107,11 +107,11 @@ const styles = StyleSheet.create({
   error: { fontSize: fontSize.sm, color: colors.error, lineHeight: 19, marginTop: spacing.md },
   action: { marginTop: spacing.xs, minHeight: 36, paddingVertical: 3 },
   compactAction: { height: 32, minHeight: 32, marginTop: 3, paddingVertical: 0, paddingHorizontal: spacing.sm, borderRadius: 12 },
-  overlayCard: { backgroundColor: 'transparent', borderWidth: 0, padding: 0, shadowOpacity: 0, elevation: 0 },
+  overlayCard: { width: '100%', backgroundColor: 'transparent', borderWidth: 0, padding: 0, shadowOpacity: 0, elevation: 0 },
   overlayText: { color: '#F6E9D7', textShadowColor: 'rgba(8,45,37,0.9)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
   overlayMutedText: { color: 'rgba(246,233,215,0.88)', textShadowColor: 'rgba(8,45,37,0.95)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
   overlayHeadingIcon: { borderRadius: 12 },
   overlayMoodCircle: { backgroundColor: 'rgba(246,233,215,0.18)' },
   overlayDivider: { backgroundColor: 'rgba(246,233,215,0.48)' },
-  overlayAction: { height: 30, minHeight: 30, marginTop: 1, borderWidth: 0, paddingHorizontal: 2, alignSelf: 'flex-start' },
+  overlayAction: { width: '100%', height: 44, minHeight: 44, marginTop: 3, borderWidth: 0, paddingHorizontal: spacing.sm, borderRadius: 12 },
 });
