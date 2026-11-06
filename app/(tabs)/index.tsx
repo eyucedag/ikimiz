@@ -7,6 +7,7 @@ import { Button, Card, EmptyState, Screen, SectionHeader } from '@/src/component
 import { MoodSummaryCard } from '@/src/components/MoodSummaryCard';
 import { DynamicSky } from '@/src/components/DynamicSky';
 import { getCategoryColor } from '@/src/constants/categories';
+import { auroraIcons } from '@/src/constants/auroraAssets';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAppState } from '@/src/hooks/useAppState';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -95,10 +96,10 @@ export default function TodayScreen() {
   }, [couple.couple?.id, couple.refresh]);
 
   const quickAccess = [
-    { title: 'Takvim', icon: 'calendar' as const, route: '/calendar' },
-    { title: 'Özel Günler', icon: 'gift' as const, route: '/special-dates' },
-    { title: 'Gezilen Yerler', icon: 'map-pin' as const, route: '/travel-map' },
-    { title: 'Görevler', icon: 'check-square' as const, route: '/tasks' },
+    { title: 'Takvim', icon: auroraIcons.calendar, route: '/calendar' },
+    { title: 'Özel Günler', icon: auroraIcons.specialDates, route: '/special-dates' },
+    { title: 'Gezilen Yerler', icon: auroraIcons.places, route: '/travel-map' },
+    { title: 'Görevler', icon: auroraIcons.tasks, route: '/tasks' },
   ];
 
   const onRefresh = async () => {
@@ -165,6 +166,7 @@ export default function TodayScreen() {
 
   return (
     <Screen inTabs refreshing={refreshing} onRefresh={onRefresh}>
+      <View style={styles.responsiveContent}>
       <DynamicSky>
       <View style={styles.header}>
         <View style={styles.identityRow}>
@@ -308,7 +310,7 @@ export default function TodayScreen() {
       <View style={styles.quickGrid}>
         {quickAccess.map((item) => (
           <Pressable key={item.title} onPress={() => router.push(item.route)} accessibilityRole="button" accessibilityLabel={item.title} style={({ pressed }) => [styles.quickItem, pressed && styles.pressed]}>
-            <View style={styles.quickIcon}><Feather name={item.icon} size={19} color={colors.copper} /></View>
+            <View style={styles.quickIcon}><Image source={item.icon} style={styles.quickIconImage} resizeMode="contain" tintColor={colors.copper} /></View>
             <Text numberOfLines={2} style={styles.quickTitle}>{item.title}</Text>
           </Pressable>
         ))}
@@ -335,11 +337,13 @@ export default function TodayScreen() {
         </View>
       </Modal>
       {uploadingPhoto ? <View pointerEvents="none" style={styles.photoUploading}><ActivityIndicator color={colors.accent} /></View> : null}
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  responsiveContent: { width: '100%', maxWidth: 650, alignSelf: 'center' },
   header: { marginTop: spacing.sm, marginBottom: spacing.xl, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   identityRow: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   identityText: { flex: 1, minWidth: 0 },
@@ -400,6 +404,7 @@ const styles = StyleSheet.create({
   quickGrid: { flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: -spacing.xs, marginBottom: spacing.xl },
   quickItem: { width: '25%', alignItems: 'center', paddingHorizontal: spacing.xs },
   quickIcon: { width: 48, height: 48, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  quickIconImage: { width: 35, height: 35 },
   quickTitle: { marginTop: spacing.xs, textAlign: 'center', fontSize: fontSize.xs, color: colors.cream, fontWeight: '500', lineHeight: 15 },
   pressed: { opacity: 0.8 },
 });

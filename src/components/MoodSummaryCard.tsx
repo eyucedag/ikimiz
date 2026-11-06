@@ -1,8 +1,9 @@
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Button, Card } from '@/src/components/ui';
 import { getMoodOption } from '@/src/constants/moods';
+import { auroraMoodIcons } from '@/src/constants/auroraAssets';
 import { getCategoryColor } from '@/src/constants/categories';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { MoodEntry } from '@/src/types/mood';
@@ -23,7 +24,7 @@ function PersonMood({ name, entry, mine, toneColor }: { name: string; entry: Moo
   return (
     <View style={styles.person} accessible accessibilityLabel={`${name}: ${option?.label ?? (mine ? 'Henüz seçmediniz' : 'Henüz paylaşmadı')}`}>
       <View style={[styles.emojiCircle, option && { backgroundColor: `${option.color}18` }]}>
-        {option ? <Text style={styles.emoji}>{option.emoji}</Text> : <Feather name="sun" size={18} color={toneColor} />}
+        {entry ? <Image source={auroraMoodIcons[entry.mood]} style={styles.moodIcon} resizeMode="contain" /> : <Feather name="sun" size={18} color={toneColor} />}
       </View>
       <View style={styles.personCopy}>
         <Text style={styles.name} numberOfLines={1}>{name}</Text>
@@ -82,8 +83,8 @@ const styles = StyleSheet.create({
   people: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.xs },
   person: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: spacing.xs },
   personCopy: { flex: 1, minWidth: 0 },
-  emojiCircle: { width: 30, height: 30, flexShrink: 0, borderRadius: 15, backgroundColor: colors.beige, alignItems: 'center', justifyContent: 'center' },
-  emoji: { fontSize: 21 },
+  emojiCircle: { width: 34, height: 34, flexShrink: 0, borderRadius: 17, backgroundColor: colors.beige, alignItems: 'center', justifyContent: 'center' },
+  moodIcon: { width: 30, height: 30 },
   name: { fontSize: fontSize.xs, fontWeight: '600', color: colors.text },
   status: { fontSize: 10, color: colors.textSecondary, lineHeight: 13, marginTop: 1 },
   selectedStatus: { color: colors.text },

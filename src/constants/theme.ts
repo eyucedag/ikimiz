@@ -16,6 +16,7 @@ export const colors = {
   white: '#F6E9D7',
   forestDeep: '#082D25',
   forest: '#1D4A3D',
+  pine: '#3E6B57',
   sage: '#869A83',
   cream: '#F6E9D7',
   copper: '#E99A69',

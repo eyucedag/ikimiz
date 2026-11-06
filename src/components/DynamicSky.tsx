@@ -14,13 +14,13 @@ export function getSkyPhase(date: Date): SkyPhase {
 }
 
 const skyImages: Record<SkyPhase, number> = {
-  morning: require('../../assets/aurora/sky_sabah.png'),
-  day: require('../../assets/aurora/sky_gunduz.png'),
-  sunset: require('../../assets/aurora/sky_aksamustu.png'),
-  evening: require('../../assets/aurora/sky_aksam.png'),
-  night: require('../../assets/aurora/sky_gece.png'),
+  morning: require('../../assets/aurora/sky/sky_sabah.png'),
+  day: require('../../assets/aurora/sky/sky_gunduz.png'),
+  sunset: require('../../assets/aurora/sky/sky_aksamustu.png'),
+  evening: require('../../assets/aurora/sky/sky_aksam.png'),
+  night: require('../../assets/aurora/sky/sky_gece.png'),
 };
-const forestOverlay = require('../../assets/aurora/forest_overlay.png');
+const forestOverlay = require('../../assets/aurora/sky/forest_overlay.png');
 
 interface DynamicSkyProps { children: React.ReactNode; compact?: boolean }
 
@@ -31,11 +31,26 @@ export function DynamicSky({ children, compact = false }: DynamicSkyProps) {
   const previousPhase = useRef(phase);
 
   useEffect(() => {
-    const refreshPhase = () => setPhase(getSkyPhase(new Date()));
-    const interval = setInterval(refreshPhase, 30_000);
-    const subscription = AppState.addEventListener('change', (state: AppStateStatus) => { if (state === 'active') refreshPhase(); });
-    refreshPhase();
-    return () => { clearInterval(interval); subscription.remove(); };
+    let timer: ReturnType<typeof setTimeout>;
+    const refreshAndSchedule = () => {
+      const now = new Date();
+      setPhase(getSkyPhase(now));
+      const nextBoundary = new Date(now);
+      const nextHour = [6, 10, 17, 19, 22].find((hour) => hour > now.getHours());
+      if (nextHour === undefined) nextBoundary.setDate(nextBoundary.getDate() + 1);
+      nextBoundary.setHours(nextHour ?? 6, 0, 0, 0);
+      // Recheck periodically as well, so clock or time-zone changes apply without a restart.
+      const untilBoundary = nextBoundary.getTime() - Date.now() + 50;
+      timer = setTimeout(refreshAndSchedule, Math.max(50, Math.min(untilBoundary, 60_000)));
+    };
+    const subscription = AppState.addEventListener('change', (state: AppStateStatus) => {
+      if (state === 'active') {
+        clearTimeout(timer);
+        refreshAndSchedule();
+      }
+    });
+    refreshAndSchedule();
+    return () => { clearTimeout(timer); subscription.remove(); };
   }, []);
 
   useEffect(() => {

@@ -1,17 +1,17 @@
 import React from 'react';
-import { ColorValue, GestureResponderEvent, Pressable, PressableProps, StyleSheet, View } from 'react-native';
+import { ColorValue, GestureResponderEvent, Image, Pressable, PressableProps, StyleSheet, View } from 'react-native';
 import { Tabs } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
 import { colors, fontSize, shadow } from '@/src/constants/theme';
+import { auroraIcons } from '@/src/constants/auroraAssets';
 import { useAppState } from '@/src/hooks/useAppState';
 import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 
-type IconName = keyof typeof Feather.glyphMap;
+type IconName = 'today' | 'search' | 'notifications' | 'settings';
 
 const tabIcon =
   (name: IconName) =>
-  ({ color, size }: { color: ColorValue; size: number }) => (
-    <Feather name={name} size={size - 2} color={color as string} />
+  ({ color, size, focused }: { color: ColorValue; size: number; focused: boolean }) => (
+    <Image source={auroraIcons[name]} resizeMode="contain" style={{ width: size + 2, height: size + 2, tintColor: color, opacity: focused ? 1 : 0.72 }} />
   );
 
 type AddTabButtonProps = {
@@ -31,7 +31,7 @@ function AddTabButton({ onPress, accessibilityState }: AddTabButtonProps) {
         accessibilityState={accessibilityState}
         style={({ pressed }) => [styles.addButton, { borderColor: backgroundColor }, pressed && styles.addPressed]}
       >
-        <Feather name="plus" size={28} color={colors.white} />
+        <Image source={auroraIcons.add} resizeMode="contain" style={styles.addIcon} />
       </Pressable>
     </View>
   );
@@ -51,7 +51,7 @@ export default function TabsLayout() {
         tabBarLabelStyle: { fontSize: fontSize.xs, fontWeight: '600' },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Bugün', tabBarIcon: tabIcon('home') }} />
+      <Tabs.Screen name="index" options={{ title: 'Bugün', tabBarIcon: tabIcon('today') }} />
       <Tabs.Screen name="search" options={{ title: 'Ara', tabBarIcon: tabIcon('search') }} />
       <Tabs.Screen
         name="add"
@@ -61,7 +61,7 @@ export default function TabsLayout() {
         name="notifications"
         options={{
           title: 'Bildirimler',
-          tabBarIcon: tabIcon('bell'),
+          tabBarIcon: tabIcon('notifications'),
           tabBarBadge: unreadCount > 0 ? (unreadCount > 9 ? '9+' : unreadCount) : undefined,
           tabBarBadgeStyle: { backgroundColor: colors.mauve, fontSize: 10 },
         }}
@@ -86,4 +86,5 @@ const styles = StyleSheet.create({
     ...shadow,
   },
   addPressed: { opacity: 0.85 },
+  addIcon: { width: 35, height: 35 },
 });
