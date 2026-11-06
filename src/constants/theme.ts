@@ -1,29 +1,29 @@
 export const colors = {
-  background: '#FAF8F5',
-  card: '#FFFEFC',
-  accent: '#536F8D',
-  accentLight: '#E7EDF3',
-  beige: '#F1ECE5',
-  earth1: '#C6A15A',
-  earth2: '#786B5D',
-  text: '#2D2D2D',
-  textSecondary: '#6B6763',
-  textTertiary: '#928C86',
-  border: '#E8E4DE',
-  error: '#C0392B',
-  success: '#728B48',
+  background: '#F7F3EE',
+  card: '#FFFDF9',
+  accent: '#A94F69',
+  accentLight: '#F6E8EC',
+  beige: '#F2EAE2',
+  earth1: '#C58B54',
+  earth2: '#79675D',
+  text: '#30272A',
+  textSecondary: '#71666A',
+  textTertiary: '#968A8E',
+  border: '#E8DED9',
+  error: '#C34448',
+  success: '#45866C',
   white: '#FFFFFF',
 };
 
 export const appBackgroundColors = [
-  { label: 'Krem', color: '#FAF8F5' },
-  { label: 'Pembe', color: '#F9E9EF' },
-  { label: 'Şeftali', color: '#F9ECE3' },
-  { label: 'Sarı', color: '#FBF4DC' },
-  { label: 'Yeşil', color: '#EEF4E6' },
-  { label: 'Turkuaz', color: '#E7F3EF' },
-  { label: 'Mavi', color: '#E9EFF8' },
-  { label: 'Lila', color: '#F1EAF5' },
+  { label: 'Krem', color: '#F7F3EE' },
+  { label: 'Pembe', color: '#F8EDF1' },
+  { label: 'Şeftali', color: '#F9F0E9' },
+  { label: 'Sarı', color: '#F8F4E8' },
+  { label: 'Yeşil', color: '#F0F4EC' },
+  { label: 'Turkuaz', color: '#EDF4F1' },
+  { label: 'Mavi', color: '#EEF2F7' },
+  { label: 'Lila', color: '#F3EEF6' },
 ];
 
 export const fontSize = {
@@ -47,16 +47,16 @@ export const spacing = {
 };
 
 export const radius = {
-  card: 16,
-  control: 10,
+  card: 18,
+  control: 12,
   pill: 20,
 };
 
 export const shadow = {
-  shadowColor: '#000000',
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.1,
-  shadowRadius: 4,
+  shadowColor: '#715B5D',
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.08,
+  shadowRadius: 9,
   elevation: 2,
 };
 

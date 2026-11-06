@@ -81,9 +81,9 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   center: { alignItems: 'center' },
   scrollContent: { alignItems: 'center', paddingBottom: spacing.xxxl },
-  inner: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
-  headerTitle: { flex: 1, textAlign: 'center', fontSize: fontSize.lg, fontWeight: '600', color: colors.text },
+  inner: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.sm, paddingVertical: spacing.sm },
+  headerTitle: { flex: 1, textAlign: 'center', fontSize: fontSize.lg, fontWeight: '700', color: colors.text, letterSpacing: 0.15 },
   headerSpacer: { width: 40 },
   headerSide: { width: 40, alignItems: 'flex-end' },
 });

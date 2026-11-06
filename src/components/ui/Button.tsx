@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   base: {
     minHeight: 48,
     borderRadius: radius.control,
-    borderWidth: 1,
+    borderWidth: 1.25,
     paddingHorizontal: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   compact: { minHeight: 48, paddingHorizontal: spacing.lg },
   row: { flexDirection: 'row', alignItems: 'center' },
   icon: { marginRight: spacing.sm },
-  label: { fontSize: fontSize.md, fontWeight: '600' },
+  label: { fontSize: fontSize.md, fontWeight: '700', letterSpacing: 0.1 },
   labelCompact: { fontSize: fontSize.md },
   pressed: { opacity: 0.8 },
   disabled: { opacity: 0.5 },

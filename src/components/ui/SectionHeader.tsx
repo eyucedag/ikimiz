@@ -28,7 +28,7 @@ export function SectionHeader({ title, actionLabel, onAction, actionColor, compa
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
   compactRow: { marginBottom: spacing.xs },
-  title: { fontSize: fontSize.lg, fontWeight: '600', color: colors.text },
+  title: { fontSize: fontSize.lg, fontWeight: '700', color: colors.text, letterSpacing: 0.1 },
   compactTitle: { fontSize: fontSize.md },
   action: { fontSize: fontSize.sm, fontWeight: '600', color: colors.accent },
 });

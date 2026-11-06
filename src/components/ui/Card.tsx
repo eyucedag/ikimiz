@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.card,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#EAE1DC',
     ...shadow,
   },
   pressed: { opacity: 0.85 },
