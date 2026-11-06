@@ -181,7 +181,7 @@ export default function TodayScreen() {
             <Text style={styles.appTitle} accessibilityRole="header">İkimiz</Text>
             <Text style={styles.subtitle}>{greeting(new Date(now))}, {user?.displayName}</Text>
             <Text style={styles.dateLabel}>{todayLabel(new Date(now))}</Text>
-            {togetherDuration ? <Text style={styles.duration}>{togetherDuration}</Text> : couple.isPaired ? <Text style={styles.durationMissing}>Birlikte olduğunuz zamanı profilden ekleyin</Text> : null}
+            {togetherDuration ? <View style={styles.durationPill}><Text style={styles.duration}>{togetherDuration}</Text></View> : couple.isPaired ? <Text style={styles.durationMissing}>Birlikte olduğunuz zamanı profilden ekleyin</Text> : null}
           </View>
         </View>
         {couple.isPaired ? (
@@ -357,14 +357,15 @@ const styles = StyleSheet.create({
   appTitle: { fontFamily: 'serif', fontSize: fontSize.xxxl, fontWeight: '600', color: colors.cream, letterSpacing: 0.3 },
   subtitle: { fontSize: fontSize.sm, color: colors.cream, marginTop: spacing.xs, fontWeight: '500' },
   dateLabel: { fontSize: fontSize.xs, color: 'rgba(246,233,215,0.82)', marginTop: 2 },
-  duration: { fontSize: fontSize.sm, color: colors.copper, fontWeight: '700', marginTop: spacing.xs },
+  durationPill: { alignSelf: 'flex-start', maxWidth: '100%', backgroundColor: 'rgba(8,45,37,0.82)', borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: 3, marginTop: spacing.xs },
+  duration: { fontSize: fontSize.xs, color: colors.cream, fontWeight: '700' },
   durationMissing: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: spacing.xs },
   section: { marginBottom: spacing.md },
   compactCard: { paddingVertical: spacing.xs },
   songCard: { paddingBottom: spacing.sm },
-  cardActionButton: { width: '100%', marginTop: spacing.sm },
-  noteCard: { paddingBottom: spacing.sm },
-  noteHeader: { minHeight: 34, flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
+  cardActionButton: { width: '100%', marginTop: spacing.xs, minHeight: 38, paddingVertical: 4 },
+  noteCard: { paddingBottom: spacing.xs },
+  noteHeader: { minHeight: 27, flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
   noteHeaderTitle: { flex: 1, color: colors.text, fontWeight: '600', fontSize: fontSize.md },
   noteHeaderActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   allNotesAction: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },

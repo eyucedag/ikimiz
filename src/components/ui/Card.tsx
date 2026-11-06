@@ -23,11 +23,10 @@ export function Card({ children, style, onPress, accessibilityLabel }: CardProps
         style={({ pressed }) => [frameStyle, pressed && styles.pressed]}
       >
         {children}
-        <View pointerEvents="none" style={styles.reflection} />
       </Pressable>
     );
   }
-  return <View style={frameStyle}>{children}<View pointerEvents="none" style={styles.reflection} /></View>;
+  return <View style={frameStyle}>{children}</View>;
 }
 
 const styles = StyleSheet.create({
@@ -42,6 +41,5 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  reflection: { position: 'absolute', top: 1, left: 14, right: 14, height: 2, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.82)' },
   pressed: { opacity: 0.85 },
 });
