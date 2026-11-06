@@ -476,7 +476,7 @@ export default function TodayScreen() {
         keyExtractor={(slug) => slug}
         onDragEnd={({ data }) => persistHomeLayout(homeOrder, hiddenHomeSections, data)}
         renderItem={({ item: slug, drag, isActive }) => (
-          <ScaleDecorator>
+          <ScaleDecorator activeScale={1}>
             <View style={[styles.draggableHomeItem, isActive && styles.draggableHomeItemActive]}>
               {renderCategorySlug(slug, drag)}
               {isHomeReordering ? (
