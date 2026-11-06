@@ -8,7 +8,6 @@ import { Button, Card, EmptyState, Screen, SectionHeader } from '@/src/component
 import { MoodSummaryCard } from '@/src/components/MoodSummaryCard';
 import { DynamicSky } from '@/src/components/DynamicSky';
 import { categories, getCategoryColor, getCategoryRoute } from '@/src/constants/categories';
-import { getMoodOption } from '@/src/constants/moods';
 import { auroraIcons } from '@/src/constants/auroraAssets';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAppState } from '@/src/hooks/useAppState';
@@ -32,10 +31,7 @@ const HOME_CATEGORY_ITEMS: Category[] = [
 ];
 const HOME_GENERAL_CATEGORY_ITEMS = HOME_CATEGORY_ITEMS.filter((category) => !['ekrana-not', 'gunun-sarkisi', 'ruh-halim'].includes(category.slug));
 const BASE_HOME_SECTIONS: HomeSection[] = ['upcoming'];
-const DEFAULT_HOME_ORDER: HomeSection[] = [
-  'category:gunun-sarkisi', 'category:ekrana-not', 'category:ruh-halim', 'upcoming',
-  ...HOME_GENERAL_CATEGORY_ITEMS.map((category) => `category:${category.slug}` as HomeSection),
-];
+const DEFAULT_HOME_ORDER: HomeSection[] = ['categories', 'upcoming'];
 const HOME_SECTION_TITLES: Record<'song' | 'partner-note' | 'mood' | 'upcoming' | 'categories', string> = {
   song: 'Günün Şarkısı', 'partner-note': 'Partnerinden Not', mood: 'Ruh Halim', upcoming: 'Yaklaşanlar', categories: 'Kategoriler',
 };
@@ -56,7 +52,6 @@ const HOME_CATEGORY_ICONS: Record<string, typeof auroraIcons.calendar> = {
   'gezilen-yerler': auroraIcons.places,
   'birlikte-adimlar': auroraIcons.steps,
   'ekrana-not': auroraIcons.notebook,
-  'ruh-halim': auroraIcons.importantFacts,
 };
 
 export default function TodayScreen() {
@@ -93,13 +88,9 @@ export default function TodayScreen() {
       try {
         const parsed = JSON.parse(saved) as { order?: unknown; hidden?: unknown };
         const normalize = (value: unknown): HomeSection[] => {
-          if (value === 'quick-access' || value === 'categories') return HOME_GENERAL_CATEGORY_ITEMS.map((category) => `category:${category.slug}` as HomeSection);
-          if (value === 'song') return ['category:gunun-sarkisi'];
-          if (value === 'partner-note') return ['category:ekrana-not'];
-          if (value === 'mood') return ['category:ruh-halim'];
+          if (value === 'quick-access' || value === 'categories' || value === 'song' || value === 'partner-note' || value === 'mood' || (typeof value === 'string' && value.startsWith('category:'))) return ['categories'];
           if (typeof value !== 'string') return [];
           if ((BASE_HOME_SECTIONS as string[]).includes(value)) return [value as HomeSection];
-          if (value.startsWith('category:') && HOME_CATEGORY_ITEMS.some((category) => category.slug === value.slice('category:'.length))) return [value as HomeSection];
           return [];
         };
         const savedOrder = Array.isArray(parsed.order) ? [...new Set(parsed.order.flatMap(normalize))] : [];
@@ -208,45 +199,38 @@ export default function TodayScreen() {
     }
   };
 
+  const renderCategoryCard = (category: Category) => {
+    const categoryTone = getCategoryColor(category.slug);
+    return (
+      <Card
+        key={category.slug}
+        onPress={() => router.push(getCategoryRoute(category.slug))}
+        accessibilityLabel={`${category.title}. ${category.description}`}
+        style={styles.homeCategoryCard}
+      >
+        <View style={[styles.homeCategoryIcon, { backgroundColor: categoryTone.tint }]}>
+          <Image source={HOME_CATEGORY_ICONS[category.slug] ?? auroraIcons.calendar} style={styles.homeCategoryIconImage} resizeMode="contain" tintColor={categoryTone.color} />
+        </View>
+        <View style={styles.homeCategoryCopy}>
+          <Text numberOfLines={1} style={styles.homeCategoryTitle}>{category.title}</Text>
+          <Text numberOfLines={1} style={styles.homeCategoryDescription}>{category.description}</Text>
+        </View>
+        <View style={[styles.homeCategoryArrow, { backgroundColor: categoryTone.tint }]}>
+          <Feather name="chevron-right" size={16} color={categoryTone.color} />
+        </View>
+      </Card>
+    );
+  };
+
   const renderHomeSection = (section: HomeSection): React.ReactNode => {
-    if (section.startsWith('category:')) {
-      const category = HOME_CATEGORY_ITEMS.find((item) => item.slug === section.slice('category:'.length));
-      if (!category) return null;
-      if (category.slug === 'gunun-sarkisi') return renderHomeSection('song');
-      if (category.slug === 'ekrana-not') return renderHomeSection('partner-note');
-      if (category.slug === 'ruh-halim') return renderHomeSection('mood');
-      const categoryTone = getCategoryColor(category.slug);
-      let categoryDescription = category.description;
-      if (category.slug === 'gunun-sarkisi' && todaySong) categoryDescription = `${todaySong.title} · ${todaySong.artist}`;
-      if (category.slug === 'ekrana-not' && latestFromPartner) categoryDescription = `${latestFromPartner.text} · ${relativeTime(latestFromPartner.createdAt)}`;
-      if (category.slug === 'ruh-halim' && (moods.today || moods.partnerToday)) {
-        const myMood = moods.today ? getMoodOption(moods.today.mood).label : 'Henüz seçmediniz';
-        const partnerMood = moods.partnerToday ? getMoodOption(moods.partnerToday.mood).label : 'Henüz paylaşılmadı';
-        categoryDescription = `Siz: ${myMood} · ${couple.partner?.displayName ?? 'Partneriniz'}: ${partnerMood}`;
-      }
-      return (
-        <Card
-          key={section}
-          onPress={() => router.push(category.slug === 'ekrana-not' ? '/screen-note/history' : getCategoryRoute(category.slug))}
-          accessibilityLabel={`${category.title}. ${category.description}`}
-          style={styles.homeCategoryCard}
-        >
-          <View style={[styles.homeCategoryIcon, { backgroundColor: categoryTone.tint }]}>
-            {HOME_CATEGORY_ICONS[category.slug]
-              ? <Image source={HOME_CATEGORY_ICONS[category.slug]} style={styles.homeCategoryIconImage} resizeMode="contain" tintColor={categoryTone.color} />
-              : <Feather name="music" size={22} color={categoryTone.color} />}
-          </View>
-          <View style={styles.homeCategoryCopy}>
-            <Text numberOfLines={1} style={styles.homeCategoryTitle}>{category.title}</Text>
-            <Text numberOfLines={1} style={styles.homeCategoryDescription}>{categoryDescription}</Text>
-          </View>
-          <View style={[styles.homeCategoryArrow, { backgroundColor: categoryTone.tint }]}>
-            <Feather name="chevron-right" size={16} color={categoryTone.color} />
-          </View>
-        </Card>
-      );
-    }
     switch (section) {
+      case 'categories': return <>
+        <SectionHeader title="Kategoriler" compact />
+        {renderHomeSection('song')}
+        {renderHomeSection('partner-note')}
+        {renderHomeSection('mood')}
+        {HOME_GENERAL_CATEGORY_ITEMS.map(renderCategoryCard)}
+      </>;
       case 'song': return (<>
       <Card style={[styles.section, styles.compactCard, styles.songCard, { borderColor: songColor.color, borderWidth: 1 }]}>
         <View>
