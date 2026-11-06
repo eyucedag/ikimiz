@@ -24,20 +24,18 @@ import { useAutomaticNearbySteps } from '@/src/hooks/useAutomaticNearbySteps';
 import { kissService } from '@/src/services/kissService';
 import { Category } from '@/src/types';
 
-type HomeSection = 'song' | 'partner-note' | 'mood' | 'upcoming' | 'categories' | `category:${string}`;
+type HomeSection = 'song' | 'partner-note' | 'mood' | 'upcoming' | 'categories';
 const HOME_CATEGORY_ITEMS: Category[] = [
   ...categories.filter((category) => category.slug !== 'opucuk').map((category) => category.slug === 'ekrana-not' ? { ...category, title: 'Partnerinden Not' } : category),
   { slug: 'ruh-halim', title: 'Ruh Halim', icon: 'heart', color: '#AD633F', tint: '#F2E7DB', description: 'Bugünkü ruh halinizi partnerinizle paylaşın.' },
 ];
-const HOME_GENERAL_CATEGORY_ITEMS = HOME_CATEGORY_ITEMS.filter((category) => !['ekrana-not', 'gunun-sarkisi', 'ruh-halim'].includes(category.slug));
 const BASE_HOME_SECTIONS: HomeSection[] = ['upcoming'];
 const DEFAULT_HOME_ORDER: HomeSection[] = ['categories', 'upcoming'];
+const DEFAULT_HOME_CATEGORY_ORDER = ['gunun-sarkisi', 'ekrana-not', 'ruh-halim', ...HOME_CATEGORY_ITEMS.filter((category) => !['gunun-sarkisi', 'ekrana-not', 'ruh-halim'].includes(category.slug)).map((category) => category.slug)];
 const HOME_SECTION_TITLES: Record<'song' | 'partner-note' | 'mood' | 'upcoming' | 'categories', string> = {
   song: 'Günün Şarkısı', 'partner-note': 'Partnerinden Not', mood: 'Ruh Halim', upcoming: 'Yaklaşanlar', categories: 'Kategoriler',
 };
-const getHomeSectionTitle = (section: HomeSection) => section.startsWith('category:')
-  ? HOME_CATEGORY_ITEMS.find((category) => category.slug === section.slice('category:'.length))?.title ?? 'Kategori'
-  : HOME_SECTION_TITLES[section as keyof typeof HOME_SECTION_TITLES];
+const getHomeSectionTitle = (section: HomeSection) => HOME_SECTION_TITLES[section];
 const HOME_CATEGORY_ICONS: Record<string, typeof auroraIcons.calendar> = {
   takvim: auroraIcons.calendar,
   'ozel-gunler': auroraIcons.specialDates,
@@ -68,6 +66,7 @@ export default function TodayScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [homeLayoutVisible, setHomeLayoutVisible] = useState(false);
   const [homeOrder, setHomeOrder] = useState<HomeSection[]>(DEFAULT_HOME_ORDER);
+  const [homeCategoryOrder, setHomeCategoryOrder] = useState<string[]>(DEFAULT_HOME_CATEGORY_ORDER);
   const [hiddenHomeSections, setHiddenHomeSections] = useState<HomeSection[]>([]);
   const [photoVisible, setPhotoVisible] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -81,21 +80,31 @@ export default function TodayScreen() {
   useEffect(() => {
     let cancelled = false;
     setHomeOrder(DEFAULT_HOME_ORDER);
+    setHomeCategoryOrder(DEFAULT_HOME_CATEGORY_ORDER);
     setHiddenHomeSections([]);
     if (!homeLayoutStorageKey) return () => { cancelled = true; };
     void AsyncStorage.getItem(homeLayoutStorageKey).then((saved) => {
       if (cancelled || !saved) return;
       try {
-        const parsed = JSON.parse(saved) as { order?: unknown; hidden?: unknown };
+        const parsed = JSON.parse(saved) as { order?: unknown; hidden?: unknown; categoryOrder?: unknown };
         const normalize = (value: unknown): HomeSection[] => {
           if (value === 'quick-access' || value === 'categories' || value === 'song' || value === 'partner-note' || value === 'mood' || (typeof value === 'string' && value.startsWith('category:'))) return ['categories'];
           if (typeof value !== 'string') return [];
           if ((BASE_HOME_SECTIONS as string[]).includes(value)) return [value as HomeSection];
           return [];
         };
+        const normalizeCategory = (value: unknown): string | null => {
+          if (typeof value !== 'string') return null;
+          const legacySlugs: Record<string, string> = { song: 'gunun-sarkisi', 'partner-note': 'ekrana-not', mood: 'ruh-halim' };
+          const slug = value.startsWith('category:') ? value.slice('category:'.length) : legacySlugs[value] ?? value;
+          return HOME_CATEGORY_ITEMS.some((category) => category.slug === slug) ? slug : null;
+        };
         const savedOrder = Array.isArray(parsed.order) ? [...new Set(parsed.order.flatMap(normalize))] : [];
         const savedHidden = Array.isArray(parsed.hidden) ? [...new Set(parsed.hidden.flatMap(normalize))] : [];
+        const storedCategoryValues = Array.isArray(parsed.categoryOrder) ? parsed.categoryOrder : Array.isArray(parsed.order) ? parsed.order : [];
+        const savedCategoryOrder = [...new Set(storedCategoryValues.map(normalizeCategory).filter((slug): slug is string => slug !== null))];
         setHomeOrder([...savedOrder, ...DEFAULT_HOME_ORDER.filter((section) => !savedOrder.includes(section))]);
+        setHomeCategoryOrder([...savedCategoryOrder, ...DEFAULT_HOME_CATEGORY_ORDER.filter((slug) => !savedCategoryOrder.includes(slug))]);
         setHiddenHomeSections(savedHidden);
       } catch { /* Ignore outdated or invalid local preferences. */ }
     }).catch(() => undefined);
@@ -157,11 +166,12 @@ export default function TodayScreen() {
     return () => { void supabase.removeChannel(channel); };
   }, [couple.couple?.id, couple.refresh]);
 
-  const persistHomeLayout = (order: HomeSection[], hidden: HomeSection[]) => {
+  const persistHomeLayout = (order: HomeSection[], hidden: HomeSection[], categoryOrder: string[] = homeCategoryOrder) => {
     setHomeOrder(order);
     setHiddenHomeSections(hidden);
+    setHomeCategoryOrder(categoryOrder);
     if (homeLayoutStorageKey) {
-      void AsyncStorage.setItem(homeLayoutStorageKey, JSON.stringify({ order, hidden }))
+      void AsyncStorage.setItem(homeLayoutStorageKey, JSON.stringify({ order, hidden, categoryOrder }))
         .catch(() => Alert.alert('Düzen kaydedilemedi', 'Ana ekran düzeni bu cihaza kaydedilemedi.'));
     }
   };
@@ -172,14 +182,23 @@ export default function TodayScreen() {
     if (index < 0 || target < 0 || target >= homeOrder.length) return;
     const next = [...homeOrder];
     [next[index], next[target]] = [next[target], next[index]];
-    persistHomeLayout(next, hiddenHomeSections);
+    persistHomeLayout(next, hiddenHomeSections, homeCategoryOrder);
+  };
+
+  const moveHomeCategory = (slug: string, offset: -1 | 1) => {
+    const index = homeCategoryOrder.indexOf(slug);
+    const target = index + offset;
+    if (index < 0 || target < 0 || target >= homeCategoryOrder.length) return;
+    const next = [...homeCategoryOrder];
+    [next[index], next[target]] = [next[target], next[index]];
+    persistHomeLayout(homeOrder, hiddenHomeSections, next);
   };
 
   const toggleHomeSection = (section: HomeSection) => {
     const next = hiddenHomeSections.includes(section)
       ? hiddenHomeSections.filter((item) => item !== section)
       : [...hiddenHomeSections, section];
-    persistHomeLayout(homeOrder, next);
+    persistHomeLayout(homeOrder, next, homeCategoryOrder);
   };
 
   const sendKissFromHome = async () => {
@@ -226,10 +245,17 @@ export default function TodayScreen() {
     switch (section) {
       case 'categories': return <>
         <SectionHeader title="Kategoriler" compact />
-        {renderHomeSection('song')}
-        {renderHomeSection('partner-note')}
-        {renderHomeSection('mood')}
-        {HOME_GENERAL_CATEGORY_ITEMS.map(renderCategoryCard)}
+        {homeCategoryOrder.map((slug) => {
+          const category = HOME_CATEGORY_ITEMS.find((item) => item.slug === slug);
+          const card = slug === 'gunun-sarkisi'
+            ? renderHomeSection('song')
+            : slug === 'ekrana-not'
+              ? renderHomeSection('partner-note')
+              : slug === 'ruh-halim'
+                ? renderHomeSection('mood')
+                : category ? renderCategoryCard(category) : null;
+          return <React.Fragment key={slug}>{card}</React.Fragment>;
+        })}
       </>;
       case 'song': return (<>
       <Card style={[styles.section, styles.songCard, { borderColor: songColor.color, borderWidth: 1 }]}>
@@ -480,7 +506,7 @@ export default function TodayScreen() {
                 <Feather name="x" size={20} color={colors.text} />
               </Pressable>
             </View>
-            <Text style={styles.homeLayoutDescription}>Kategoriler birlikte taşınır, gösterilir veya gizlenir. Bu düzen yalnızca senin hesabında saklanır.</Text>
+            <Text style={styles.homeLayoutDescription}>Kategoriler birlikte gösterilir veya gizlenir; içerideki kartların sırasını ayrı ayrı değiştirebilirsin.</Text>
             {homeOrder.map((section, index) => {
               const hidden = hiddenHomeSections.includes(section);
               return (
@@ -500,14 +526,26 @@ export default function TodayScreen() {
                     </View>
                   </View>
                   {section === 'categories' ? (
-                    <View style={[styles.homeLayoutCategoryList, hidden && styles.homeLayoutRowHidden]}>
-                      {HOME_CATEGORY_ITEMS.map((category) => (
-                        <View key={category.slug} style={styles.homeLayoutCategoryChip}>
-                          <Text style={styles.homeLayoutCategoryText}>{category.title}</Text>
+                    <ScrollView style={[styles.homeLayoutCategoryList, hidden && styles.homeLayoutRowHidden]} nestedScrollEnabled showsVerticalScrollIndicator>
+                      {homeCategoryOrder.map((slug, categoryIndex) => {
+                        const category = HOME_CATEGORY_ITEMS.find((item) => item.slug === slug);
+                        if (!category) return null;
+                        return (
+                        <View key={category.slug} style={styles.homeLayoutCategoryRow}>
+                          <Text numberOfLines={1} style={styles.homeLayoutCategoryText}>{category.title}</Text>
+                          <View style={styles.homeLayoutActions}>
+                            <Pressable onPress={() => moveHomeCategory(slug, -1)} disabled={categoryIndex === 0} accessibilityRole="button" accessibilityLabel={`${category.title} kategorisini yukarı taşı`} style={styles.homeLayoutIconButton}>
+                              <Feather name="chevron-up" size={18} color={categoryIndex === 0 ? colors.textTertiary : colors.accent} />
+                            </Pressable>
+                            <Pressable onPress={() => moveHomeCategory(slug, 1)} disabled={categoryIndex === homeCategoryOrder.length - 1} accessibilityRole="button" accessibilityLabel={`${category.title} kategorisini aşağı taşı`} style={styles.homeLayoutIconButton}>
+                              <Feather name="chevron-down" size={18} color={categoryIndex === homeCategoryOrder.length - 1 ? colors.textTertiary : colors.accent} />
+                            </Pressable>
+                          </View>
                         </View>
-                      ))}
-                      <View style={styles.homeLayoutCategoryChip}><Text style={styles.homeLayoutCategoryText}>Öpücük · üstte</Text></View>
-                    </View>
+                        );
+                      })}
+                      <View style={styles.homeLayoutCategoryRow}><Text style={styles.homeLayoutCategoryText}>Öpücük · üstte sabit</Text></View>
+                    </ScrollView>
                   ) : null}
                 </View>
               );
@@ -638,9 +676,9 @@ const styles = StyleSheet.create({
   homeLayoutRowHidden: { opacity: 0.62 },
   homeLayoutRowTitle: { flex: 1, color: colors.text, fontSize: fontSize.sm, fontWeight: '600' },
   homeLayoutTextHidden: { color: colors.textSecondary },
-  homeLayoutCategoryList: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, paddingHorizontal: spacing.xs, paddingTop: spacing.xs, paddingBottom: spacing.sm },
-  homeLayoutCategoryChip: { minHeight: 25, justifyContent: 'center', paddingHorizontal: spacing.sm, borderRadius: radius.pill, backgroundColor: colors.beige },
-  homeLayoutCategoryText: { color: colors.textSecondary, fontSize: 10, fontWeight: '600' },
+  homeLayoutCategoryList: { maxHeight: 280, marginLeft: spacing.sm, paddingBottom: spacing.xs },
+  homeLayoutCategoryRow: { minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, paddingVertical: 2 },
+  homeLayoutCategoryText: { flex: 1, color: colors.textSecondary, fontSize: fontSize.xs, fontWeight: '600' },
   homeLayoutActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   homeLayoutIconButton: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 17, backgroundColor: colors.beige },
   homeLayoutFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.sm },
