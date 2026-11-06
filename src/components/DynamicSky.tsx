@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, AppState, AppStateStatus, Image, StyleSheet, View } from 'react-native';
+import { Animated, AppState, AppStateStatus, Image, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { colors, spacing } from '@/src/constants/theme';
 
 export type SkyPhase = 'morning' | 'day' | 'sunset' | 'evening' | 'night';
@@ -25,6 +25,10 @@ const forestOverlay = require('../../assets/aurora/sky/forest_overlay.png');
 interface DynamicSkyProps { children: React.ReactNode; compact?: boolean }
 
 export function DynamicSky({ children, compact = false }: DynamicSkyProps) {
+  const { width: windowWidth } = useWindowDimensions();
+  const skyHeight = compact
+    ? Math.min(210, Math.max(150, windowWidth * 0.38))
+    : Math.min(440, Math.max(330, windowWidth * 0.9));
   const [phase, setPhase] = useState<SkyPhase>(() => getSkyPhase(new Date()));
   const [transitionFrom, setTransitionFrom] = useState<SkyPhase | null>(null);
   const transitionOpacity = useRef(new Animated.Value(0)).current;
@@ -63,7 +67,7 @@ export function DynamicSky({ children, compact = false }: DynamicSkyProps) {
   }, [phase, transitionOpacity]);
 
   return (
-    <View style={[styles.container, compact && styles.compactContainer]}>
+    <View style={[styles.container, { height: skyHeight }, compact && styles.compactContainer]}>
       <Image source={skyImages[phase]} resizeMode="cover" style={styles.image} accessibilityIgnoresInvertColors />
       {transitionFrom ? <Animated.Image pointerEvents="none" source={skyImages[transitionFrom]} resizeMode="cover" style={[styles.image, { opacity: transitionOpacity }]} /> : null}
       <View pointerEvents="none" style={styles.readabilityScrim} />
@@ -74,11 +78,11 @@ export function DynamicSky({ children, compact = false }: DynamicSkyProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { width: '100%', maxWidth: 620, minHeight: 355, aspectRatio: 1.75, alignSelf: 'center', borderRadius: 22, overflow: 'hidden', justifyContent: 'flex-start', marginBottom: 18, backgroundColor: colors.background },
-  compactContainer: { minHeight: 142, aspectRatio: 2.2, marginBottom: spacing.lg },
+  container: { width: '100%', maxWidth: 620, alignSelf: 'center', borderRadius: 22, overflow: 'hidden', justifyContent: 'flex-start', marginBottom: 18, backgroundColor: colors.background },
+  compactContainer: { marginBottom: spacing.lg },
   image: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
   readabilityScrim: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(32, 35, 33, 0.08)' },
   forestOverlay: { opacity: 0.82 },
-  content: { zIndex: 1, padding: 18, paddingBottom: 34 },
-  compactContent: { padding: 14, paddingBottom: 42 },
+  content: { width: '100%', zIndex: 1, padding: 18, paddingBottom: 14 },
+  compactContent: { padding: 14, paddingBottom: 24 },
 });
