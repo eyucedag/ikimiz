@@ -26,9 +26,10 @@ interface DynamicSkyProps { children: React.ReactNode; compact?: boolean }
 
 export function DynamicSky({ children, compact = false }: DynamicSkyProps) {
   const { width: windowWidth } = useWindowDimensions();
+  const sceneWidth = Math.min(620, Math.max(260, windowWidth - 36));
   const skyHeight = compact
-    ? Math.min(210, Math.max(150, windowWidth * 0.38))
-    : Math.min(440, Math.max(330, windowWidth * 0.9));
+    ? Math.min(210, Math.max(150, sceneWidth * 0.38))
+    : Math.min(385, Math.max(248, sceneWidth / 1.42 + 18));
   const [phase, setPhase] = useState<SkyPhase>(() => getSkyPhase(new Date()));
   const [transitionFrom, setTransitionFrom] = useState<SkyPhase | null>(null);
   const transitionOpacity = useRef(new Animated.Value(0)).current;
@@ -83,6 +84,6 @@ const styles = StyleSheet.create({
   image: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
   readabilityScrim: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(32, 35, 33, 0.08)' },
   forestOverlay: { opacity: 0.82 },
-  content: { width: '100%', zIndex: 1, padding: 18, paddingBottom: 14 },
+  content: { width: '100%', zIndex: 1, padding: 14, paddingBottom: 8 },
   compactContent: { padding: 14, paddingBottom: 24 },
 });

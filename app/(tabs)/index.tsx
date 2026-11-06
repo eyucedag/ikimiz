@@ -211,6 +211,7 @@ export default function TodayScreen() {
         loading={moods.loading || couple.loading}
         error={moods.error}
         onPress={() => router.push('/mood')}
+        compact
       />
       </DynamicSky>
 
@@ -343,7 +344,7 @@ export default function TodayScreen() {
 
 const styles = StyleSheet.create({
   responsiveContent: { width: '100%', maxWidth: 650, alignSelf: 'center' },
-  header: { marginTop: spacing.sm, marginBottom: spacing.xl, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  header: { marginTop: spacing.xs, marginBottom: spacing.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   identityRow: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   identityText: { flex: 1, minWidth: 0 },
   directionButton: { flexShrink: 0, width: 44, height: 44, borderRadius: 22, marginLeft: spacing.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(41,47,44,0.74)', borderWidth: 1, borderColor: 'rgba(246,233,215,0.38)' },
