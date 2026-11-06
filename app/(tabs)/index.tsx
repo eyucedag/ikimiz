@@ -295,16 +295,21 @@ export default function TodayScreen() {
         {homeCategories.map((category) => {
           const categoryTone = getCategoryColor(category.slug);
           return (
-          <Pressable
-            key={category.slug}
-            onPress={() => router.push(getCategoryRoute(category.slug))}
-            accessibilityRole="button"
-            accessibilityLabel={category.title}
-            style={({ pressed }) => [styles.homeCategoryCard, { borderColor: categoryTone.color }, pressed && styles.pressed]}
-          >
-            <Text numberOfLines={1} style={styles.homeCategoryTitle}>{category.title}</Text>
-            <Feather name="chevron-right" size={18} color={categoryTone.color} />
-          </Pressable>
+            <Card
+              key={category.slug}
+              onPress={() => router.push(getCategoryRoute(category.slug))}
+              accessibilityLabel={`${category.title}. ${category.description}`}
+              style={styles.homeCategoryCard}
+            >
+              <View style={[styles.homeCategoryAccent, { backgroundColor: categoryTone.color }]} />
+              <View style={styles.homeCategoryCopy}>
+                <Text numberOfLines={1} style={styles.homeCategoryTitle}>{category.title}</Text>
+                <Text numberOfLines={1} style={styles.homeCategoryDescription}>{category.description}</Text>
+              </View>
+              <View style={[styles.homeCategoryArrow, { backgroundColor: categoryTone.tint }]}>
+                <Feather name="chevron-right" size={16} color={categoryTone.color} />
+              </View>
+            </Card>
           );
         })}
       </View>
@@ -567,8 +572,12 @@ const styles = StyleSheet.create({
   songCardTitle: { fontSize: fontSize.lg, color: colors.text, fontWeight: '700', marginTop: 1 },
   songCardArtist: { color: colors.textSecondary, fontSize: fontSize.md, fontWeight: '500', marginTop: 1 },
   homeCategoryList: { gap: spacing.sm, marginBottom: spacing.md },
-  homeCategoryCard: { minHeight: 48, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.md, borderRadius: radius.card, borderWidth: 1, backgroundColor: colors.card },
+  homeCategoryCard: { minHeight: 72, width: '100%', flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
+  homeCategoryAccent: { width: 4, height: 38, borderRadius: 2 },
+  homeCategoryCopy: { flex: 1, minWidth: 0 },
   homeCategoryTitle: { flex: 1, color: colors.text, fontSize: fontSize.md, fontWeight: '600' },
+  homeCategoryDescription: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 3 },
+  homeCategoryArrow: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   homeLayoutBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(10,20,18,0.58)', paddingHorizontal: spacing.md, paddingBottom: spacing.md },
   homeLayoutSheet: { width: '100%', maxWidth: 540, alignSelf: 'center', borderRadius: radius.card, padding: spacing.md, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
   homeLayoutHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.xs },
