@@ -377,7 +377,7 @@ export default function TodayScreen() {
   };
 
   return (
-      <Screen inTabs scroll={height < 780} refreshing={refreshing} onRefresh={onRefresh}>
+      <Screen inTabs scroll refreshing={refreshing} onRefresh={onRefresh}>
       <View style={styles.responsiveContent}>
       <View style={styles.homeTopBar}>
         <Text style={styles.homeTopTitle} accessibilityRole="header">İkimiz</Text>
