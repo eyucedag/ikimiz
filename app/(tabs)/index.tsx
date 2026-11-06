@@ -480,23 +480,35 @@ export default function TodayScreen() {
                 <Feather name="x" size={20} color={colors.text} />
               </Pressable>
             </View>
-            <Text style={styles.homeLayoutDescription}>Kartları tek tek gösterip gizleyebilir ve sıralarını değiştirebilirsin. Bu düzen yalnızca senin hesabında saklanır.</Text>
+            <Text style={styles.homeLayoutDescription}>Kategoriler birlikte taşınır, gösterilir veya gizlenir. Bu düzen yalnızca senin hesabında saklanır.</Text>
             {homeOrder.map((section, index) => {
               const hidden = hiddenHomeSections.includes(section);
               return (
-                <View key={section} style={[styles.homeLayoutRow, hidden && styles.homeLayoutRowHidden]}>
-                  <Text style={[styles.homeLayoutRowTitle, hidden && styles.homeLayoutTextHidden]}>{getHomeSectionTitle(section)}</Text>
-                  <View style={styles.homeLayoutActions}>
-                    <Pressable onPress={() => moveHomeSection(section, -1)} disabled={index === 0} accessibilityRole="button" accessibilityLabel={`${getHomeSectionTitle(section)} bölümünü yukarı taşı`} style={styles.homeLayoutIconButton}>
-                      <Feather name="chevron-up" size={19} color={index === 0 ? colors.textTertiary : colors.accent} />
-                    </Pressable>
-                    <Pressable onPress={() => moveHomeSection(section, 1)} disabled={index === homeOrder.length - 1} accessibilityRole="button" accessibilityLabel={`${getHomeSectionTitle(section)} bölümünü aşağı taşı`} style={styles.homeLayoutIconButton}>
-                      <Feather name="chevron-down" size={19} color={index === homeOrder.length - 1 ? colors.textTertiary : colors.accent} />
-                    </Pressable>
-                    <Pressable onPress={() => toggleHomeSection(section)} accessibilityRole="button" accessibilityLabel={hidden ? `${getHomeSectionTitle(section)} bölümünü göster` : `${getHomeSectionTitle(section)} bölümünü gizle`} style={styles.homeLayoutIconButton}>
-                      <Feather name={hidden ? 'eye-off' : 'eye'} size={18} color={colors.accent} />
-                    </Pressable>
+                <View key={section}>
+                  <View style={[styles.homeLayoutRow, hidden && styles.homeLayoutRowHidden]}>
+                    <Text style={[styles.homeLayoutRowTitle, hidden && styles.homeLayoutTextHidden]}>{getHomeSectionTitle(section)}</Text>
+                    <View style={styles.homeLayoutActions}>
+                      <Pressable onPress={() => moveHomeSection(section, -1)} disabled={index === 0} accessibilityRole="button" accessibilityLabel={`${getHomeSectionTitle(section)} bölümünü yukarı taşı`} style={styles.homeLayoutIconButton}>
+                        <Feather name="chevron-up" size={19} color={index === 0 ? colors.textTertiary : colors.accent} />
+                      </Pressable>
+                      <Pressable onPress={() => moveHomeSection(section, 1)} disabled={index === homeOrder.length - 1} accessibilityRole="button" accessibilityLabel={`${getHomeSectionTitle(section)} bölümünü aşağı taşı`} style={styles.homeLayoutIconButton}>
+                        <Feather name="chevron-down" size={19} color={index === homeOrder.length - 1 ? colors.textTertiary : colors.accent} />
+                      </Pressable>
+                      <Pressable onPress={() => toggleHomeSection(section)} accessibilityRole="button" accessibilityLabel={hidden ? `${getHomeSectionTitle(section)} bölümünü göster` : `${getHomeSectionTitle(section)} bölümünü gizle`} style={styles.homeLayoutIconButton}>
+                        <Feather name={hidden ? 'eye-off' : 'eye'} size={18} color={colors.accent} />
+                      </Pressable>
+                    </View>
                   </View>
+                  {section === 'categories' ? (
+                    <View style={[styles.homeLayoutCategoryList, hidden && styles.homeLayoutRowHidden]}>
+                      {HOME_CATEGORY_ITEMS.map((category) => (
+                        <View key={category.slug} style={styles.homeLayoutCategoryChip}>
+                          <Text style={styles.homeLayoutCategoryText}>{category.title}</Text>
+                        </View>
+                      ))}
+                      <View style={styles.homeLayoutCategoryChip}><Text style={styles.homeLayoutCategoryText}>Öpücük · üstte</Text></View>
+                    </View>
+                  ) : null}
                 </View>
               );
             })}
@@ -626,6 +638,9 @@ const styles = StyleSheet.create({
   homeLayoutRowHidden: { opacity: 0.62 },
   homeLayoutRowTitle: { flex: 1, color: colors.text, fontSize: fontSize.sm, fontWeight: '600' },
   homeLayoutTextHidden: { color: colors.textSecondary },
+  homeLayoutCategoryList: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, paddingHorizontal: spacing.xs, paddingTop: spacing.xs, paddingBottom: spacing.sm },
+  homeLayoutCategoryChip: { minHeight: 25, justifyContent: 'center', paddingHorizontal: spacing.sm, borderRadius: radius.pill, backgroundColor: colors.beige },
+  homeLayoutCategoryText: { color: colors.textSecondary, fontSize: 10, fontWeight: '600' },
   homeLayoutActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   homeLayoutIconButton: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 17, backgroundColor: colors.beige },
   homeLayoutFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.sm },
