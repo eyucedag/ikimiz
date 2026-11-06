@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ActivityIndicator, Alert, Image, Linking, Modal, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Button, Card, EmptyState, Screen, SectionHeader } from '@/src/components/ui';
 import { MoodSummaryCard } from '@/src/components/MoodSummaryCard';
 import { DynamicSky } from '@/src/components/DynamicSky';
-import { getCategoryColor } from '@/src/constants/categories';
+import { categories, getCategoryColor, getCategoryRoute } from '@/src/constants/categories';
 import { auroraIcons } from '@/src/constants/auroraAssets';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAppState } from '@/src/hooks/useAppState';
@@ -21,14 +21,31 @@ import { songOfTheDayService } from '@/src/services/songOfTheDayService';
 import { greeting, relativeTime, todayLabel } from '@/src/utils/date';
 import { useCoupleDirection } from '@/src/hooks/useCoupleDirection';
 import { useAutomaticNearbySteps } from '@/src/hooks/useAutomaticNearbySteps';
+import { kissService } from '@/src/services/kissService';
 
-type HomeSection = 'song' | 'partner-note' | 'upcoming' | 'quick-access';
-const DEFAULT_HOME_ORDER: HomeSection[] = ['song', 'partner-note', 'upcoming', 'quick-access'];
+type HomeSection = 'song' | 'partner-note' | 'upcoming' | 'categories';
+const DEFAULT_HOME_ORDER: HomeSection[] = ['song', 'partner-note', 'upcoming', 'categories'];
 const HOME_SECTION_TITLES: Record<HomeSection, string> = {
   song: 'Günün Şarkısı',
   'partner-note': 'Partnerinden Not',
   upcoming: 'Yaklaşanlar',
-  'quick-access': 'Hızlı Erişim',
+  categories: 'Kategoriler',
+};
+
+const HOME_CATEGORY_ICONS: Record<string, typeof auroraIcons.calendar> = {
+  takvim: auroraIcons.calendar,
+  'ozel-gunler': auroraIcons.specialDates,
+  listeler: auroraIcons.lists,
+  notlar: auroraIcons.notebook,
+  'onemli-belgeler': auroraIcons.documents,
+  galeri: auroraIcons.gallery,
+  'sesli-anilar': auroraIcons.audioMemories,
+  gorevler: auroraIcons.tasks,
+  'hediye-radari': auroraIcons.giftRadar,
+  'bilinmesi-gerekenler': auroraIcons.importantFacts,
+  'gezilen-yerler': auroraIcons.places,
+  'birlikte-adimlar': auroraIcons.steps,
+  opucuk: auroraIcons.kiss,
 };
 
 export default function TodayScreen() {
@@ -46,10 +63,11 @@ export default function TodayScreen() {
   const [homeLayoutVisible, setHomeLayoutVisible] = useState(false);
   const [homeOrder, setHomeOrder] = useState<HomeSection[]>(DEFAULT_HOME_ORDER);
   const [hiddenHomeSections, setHiddenHomeSections] = useState<HomeSection[]>([]);
-  const [showHomeMood, setShowHomeMood] = useState(true);
   const [photoVisible, setPhotoVisible] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [todaySong, setTodaySong] = useState<{ title: string; artist: string; url: string } | null>(null);
+  const [sendingKiss, setSendingKiss] = useState(false);
+  const [kissFeedback, setKissFeedback] = useState('');
   const direction = useCoupleDirection(couple.couple?.id, user?.id, couple.partner?.id);
   useAutomaticNearbySteps(user?.id, couple.couple?.id, couple.partner?.id);
   const [now, setNow] = useState(Date.now());
@@ -59,17 +77,19 @@ export default function TodayScreen() {
     let cancelled = false;
     setHomeOrder(DEFAULT_HOME_ORDER);
     setHiddenHomeSections([]);
-    setShowHomeMood(true);
     if (!homeLayoutStorageKey) return () => { cancelled = true; };
     void AsyncStorage.getItem(homeLayoutStorageKey).then((saved) => {
       if (cancelled || !saved) return;
       try {
-        const parsed = JSON.parse(saved) as { order?: unknown; hidden?: unknown; showMood?: unknown };
-        const valid = (value: unknown): value is HomeSection => typeof value === 'string' && DEFAULT_HOME_ORDER.includes(value as HomeSection);
-        const savedOrder = Array.isArray(parsed.order) ? parsed.order.filter(valid) : [];
+        const parsed = JSON.parse(saved) as { order?: unknown; hidden?: unknown };
+        const normalize = (value: unknown): HomeSection | null => {
+          if (value === 'quick-access') return 'categories';
+          return typeof value === 'string' && DEFAULT_HOME_ORDER.includes(value as HomeSection) ? value as HomeSection : null;
+        };
+        const savedOrder = Array.isArray(parsed.order) ? [...new Set(parsed.order.map(normalize).filter((value): value is HomeSection => value !== null))] : [];
+        const savedHidden = Array.isArray(parsed.hidden) ? [...new Set(parsed.hidden.map(normalize).filter((value): value is HomeSection => value !== null))] : [];
         setHomeOrder([...savedOrder, ...DEFAULT_HOME_ORDER.filter((section) => !savedOrder.includes(section))]);
-        setHiddenHomeSections(Array.isArray(parsed.hidden) ? parsed.hidden.filter(valid) : []);
-        setShowHomeMood(parsed.showMood !== false);
+        setHiddenHomeSections(savedHidden);
       } catch { /* Ignore outdated or invalid local preferences. */ }
     }).catch(() => undefined);
     return () => { cancelled = true; };
@@ -130,19 +150,16 @@ export default function TodayScreen() {
     return () => { void supabase.removeChannel(channel); };
   }, [couple.couple?.id, couple.refresh]);
 
-  const quickAccess = [
-    { title: 'Takvim', icon: auroraIcons.calendar, route: '/calendar' },
-    { title: 'Özel Günler', icon: auroraIcons.specialDates, route: '/special-dates' },
-    { title: 'Gezilen Yerler', icon: auroraIcons.places, route: '/travel-map' },
-    { title: 'Görevler', icon: auroraIcons.tasks, route: '/tasks' },
-  ];
+  const homeCategories = categories
+    .filter((category) => !['ekrana-not', 'gunun-sarkisi'].includes(category.slug))
+    .map((category) => ({ ...category, homeIcon: HOME_CATEGORY_ICONS[category.slug] }))
+    .filter((category) => !!category.homeIcon);
 
-  const persistHomeLayout = (order: HomeSection[], hidden: HomeSection[], showMood: boolean) => {
+  const persistHomeLayout = (order: HomeSection[], hidden: HomeSection[]) => {
     setHomeOrder(order);
     setHiddenHomeSections(hidden);
-    setShowHomeMood(showMood);
     if (homeLayoutStorageKey) {
-      void AsyncStorage.setItem(homeLayoutStorageKey, JSON.stringify({ order, hidden, showMood }))
+      void AsyncStorage.setItem(homeLayoutStorageKey, JSON.stringify({ order, hidden }))
         .catch(() => Alert.alert('Düzen kaydedilemedi', 'Ana ekran düzeni bu cihaza kaydedilemedi.'));
     }
   };
@@ -153,14 +170,32 @@ export default function TodayScreen() {
     if (index < 0 || target < 0 || target >= homeOrder.length) return;
     const next = [...homeOrder];
     [next[index], next[target]] = [next[target], next[index]];
-    persistHomeLayout(next, hiddenHomeSections, showHomeMood);
+    persistHomeLayout(next, hiddenHomeSections);
   };
 
   const toggleHomeSection = (section: HomeSection) => {
     const next = hiddenHomeSections.includes(section)
       ? hiddenHomeSections.filter((item) => item !== section)
       : [...hiddenHomeSections, section];
-    persistHomeLayout(homeOrder, next, showHomeMood);
+    persistHomeLayout(homeOrder, next);
+  };
+
+  const sendKissFromHome = async () => {
+    if (sendingKiss) return;
+    if (!user?.id || !couple.partner?.id || !couple.couple?.id) {
+      Alert.alert('Önce eşleşin', 'Öpücük göndermek için partnerinizle eşleşmeniz gerekiyor.');
+      return;
+    }
+    setSendingKiss(true);
+    setKissFeedback('');
+    try {
+      await kissService.send({ ownerId: user.id, partnerId: couple.partner.id, coupleId: couple.couple.id });
+      setKissFeedback('Öpücüğün partnerine gitti');
+    } catch (error) {
+      setKissFeedback(error instanceof Error ? error.message : 'Öpücük gönderilemedi.');
+    } finally {
+      setSendingKiss(false);
+    }
   };
 
   const renderHomeSection = (section: HomeSection): React.ReactNode => {
@@ -265,16 +300,26 @@ export default function TodayScreen() {
 
 
       </>);
-      case 'quick-access': return (<>
-      <SectionHeader title="Hızlı Erişim" actionLabel="Tümü" onAction={() => router.push('/categories')} />
-      <View style={styles.quickGrid}>
-        {quickAccess.map((item) => (
-          <Pressable key={item.title} onPress={() => router.push(item.route)} accessibilityRole="button" accessibilityLabel={item.title} style={({ pressed }) => [styles.quickItem, pressed && styles.pressed]}>
-            <View style={styles.quickIcon}><Image source={item.icon} style={styles.quickIconImage} resizeMode="contain" tintColor={colors.copper} /></View>
-            <Text numberOfLines={2} style={styles.quickTitle}>{item.title}</Text>
+      case 'categories': return (<>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRail}>
+        {homeCategories.map((category) => (
+          <Pressable
+            key={category.slug}
+            onPress={() => category.slug === 'opucuk' ? void sendKissFromHome() : router.push(getCategoryRoute(category.slug))}
+            accessibilityRole="button"
+            accessibilityLabel={category.slug === 'opucuk' ? 'Partnerinize öpücük gönder' : category.title}
+            style={({ pressed }) => [styles.quickItem, pressed && styles.pressed]}
+          >
+            <View style={styles.quickIcon}>
+              {category.slug === 'opucuk' && sendingKiss
+                ? <ActivityIndicator color={colors.copper} />
+                : <Image source={category.homeIcon} style={styles.quickIconImage} resizeMode="contain" tintColor={colors.copper} />}
+            </View>
+            <Text numberOfLines={2} style={styles.quickTitle}>{category.title}</Text>
           </Pressable>
         ))}
-      </View>
+      </ScrollView>
+      {kissFeedback ? <Text style={styles.kissFeedback}>{kissFeedback}</Text> : null}
 
       </>);
       default: return null;
@@ -346,6 +391,12 @@ export default function TodayScreen() {
   return (
       <Screen inTabs scroll={height < 780} refreshing={refreshing} onRefresh={onRefresh}>
       <View style={styles.responsiveContent}>
+      <View style={styles.homeTopBar}>
+        <Text style={styles.homeTopTitle} accessibilityRole="header">İkimiz</Text>
+        <Pressable onPress={() => setHomeLayoutVisible(true)} accessibilityRole="button" accessibilityLabel="Ana ekranı düzenle" style={styles.layoutEditButton}>
+          <Feather name="sliders" size={17} color={colors.text} />
+        </Pressable>
+      </View>
       <DynamicSky treeContent={couple.isPaired ? (
         <View style={styles.treeControls}>
           <Pressable
@@ -365,7 +416,7 @@ export default function TodayScreen() {
           <Text style={styles.directionHintOverlay} numberOfLines={1}>
             {direction.error || (direction.bothSharing ? 'İkinizin konumu açık.' : direction.sharing ? 'Konumunuz açık; partneriniz de açınca yönü göreceksiniz.' : direction.anySharing ? 'Partnerinizin konumu açık; yön için siz de açın.' : ' ')}
           </Text>
-          {showHomeMood ? <MoodSummaryCard
+          <MoodSummaryCard
             today={moods.today}
             partnerToday={moods.partnerToday}
             partnerName={couple.partner?.displayName ?? 'Partneriniz'}
@@ -375,7 +426,7 @@ export default function TodayScreen() {
             onPress={() => router.push('/mood')}
             compact
             overlay
-          /> : null}
+          />
         </View>
       ) : null}>
       <View style={styles.header}>
@@ -390,15 +441,11 @@ export default function TodayScreen() {
             </Pressable>
           )}
           <View style={styles.identityText}>
-            <Text style={styles.appTitle} accessibilityRole="header">İkimiz</Text>
             <Text style={styles.subtitle}>{greeting(new Date(now))}, {user?.displayName}</Text>
             <Text style={styles.dateLabel}>{todayLabel(new Date(now))}</Text>
             {togetherDuration ? <View style={styles.durationPill}><Text style={styles.duration}>{togetherDuration}</Text></View> : couple.isPaired ? <Text style={styles.durationMissing}>Birlikte olduğunuz zamanı profilden ekleyin</Text> : null}
           </View>
         </View>
-        <Pressable onPress={() => setHomeLayoutVisible(true)} accessibilityRole="button" accessibilityLabel="Ana ekranı düzenle" style={styles.layoutEditButton}>
-          <Feather name="sliders" size={18} color={colors.cream} />
-        </Pressable>
       </View>
       </DynamicSky>
 
@@ -415,12 +462,6 @@ export default function TodayScreen() {
               </Pressable>
             </View>
             <Text style={styles.homeLayoutDescription}>Bölümleri gösterip gizleyebilir ve sıralarını değiştirebilirsin. Bu düzen yalnızca senin hesabında saklanır.</Text>
-            <View style={styles.homeLayoutRow}>
-              <Text style={styles.homeLayoutRowTitle}>Ruh Halim · Manzara</Text>
-              <Pressable onPress={() => persistHomeLayout(homeOrder, hiddenHomeSections, !showHomeMood)} accessibilityRole="button" accessibilityLabel={showHomeMood ? 'Ruh Halini gizle' : 'Ruh Halini göster'} style={styles.homeLayoutIconButton}>
-                <Feather name={showHomeMood ? 'eye' : 'eye-off'} size={18} color={colors.accent} />
-              </Pressable>
-            </View>
             {homeOrder.map((section, index) => {
               const hidden = hiddenHomeSections.includes(section);
               return (
@@ -441,7 +482,7 @@ export default function TodayScreen() {
               );
             })}
             <View style={styles.homeLayoutFooter}>
-              <Pressable onPress={() => persistHomeLayout(DEFAULT_HOME_ORDER, [], true)} accessibilityRole="button" style={styles.homeLayoutReset}>
+              <Pressable onPress={() => persistHomeLayout(DEFAULT_HOME_ORDER, [])} accessibilityRole="button" style={styles.homeLayoutReset}>
                 <Text style={styles.homeLayoutResetText}>Varsayılana dön</Text>
               </Pressable>
               <Button title="Tamam" compact onPress={() => setHomeLayoutVisible(false)} style={styles.homeLayoutDone} />
@@ -478,10 +519,12 @@ export default function TodayScreen() {
 
 const styles = StyleSheet.create({
   responsiveContent: { width: '100%', maxWidth: 650, alignSelf: 'center' },
+  homeTopBar: { minHeight: 38, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.xs },
+  homeTopTitle: { color: colors.text, fontFamily: 'serif', fontSize: fontSize.xxl, fontWeight: '600' },
   header: { marginTop: spacing.xs, marginBottom: spacing.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   identityRow: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   identityText: { flex: 1, minWidth: 0 },
-  layoutEditButton: { width: 38, height: 38, flexShrink: 0, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(41,47,44,0.68)', borderWidth: 1, borderColor: 'rgba(246,233,215,0.4)', marginLeft: spacing.xs },
+  layoutEditButton: { width: 32, height: 32, flexShrink: 0, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, marginLeft: spacing.xs },
   treeControls: { width: '100%', alignItems: 'center', gap: 1 },
   directionButton: { minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingHorizontal: spacing.md, marginBottom: 2, borderRadius: 20, backgroundColor: 'rgba(41,47,44,0.82)', borderWidth: 1, borderColor: 'rgba(246,233,215,0.52)', transform: [{ translateY: 14 }] },
   directionLabel: { color: colors.cream, fontSize: fontSize.sm, fontWeight: '700' },
@@ -538,11 +581,12 @@ const styles = StyleSheet.create({
   upcomingTitle: { fontSize: fontSize.md, color: colors.text, fontWeight: '500' },
   songCardTitle: { fontSize: fontSize.lg, color: colors.text, fontWeight: '700', marginTop: 1 },
   songCardArtist: { color: colors.textSecondary, fontSize: fontSize.md, fontWeight: '500', marginTop: 1 },
-  quickGrid: { flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: -spacing.xs, marginBottom: spacing.xl },
-  quickItem: { width: '25%', alignItems: 'center', paddingHorizontal: spacing.xs },
+  categoryRail: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: spacing.xs, paddingBottom: spacing.sm },
+  quickItem: { width: 82, alignItems: 'center', paddingHorizontal: spacing.xs, marginRight: spacing.xs },
   quickIcon: { width: 48, height: 48, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
   quickIconImage: { width: 35, height: 35 },
   quickTitle: { marginTop: spacing.xs, textAlign: 'center', fontSize: fontSize.xs, color: colors.text, fontWeight: '500', lineHeight: 15 },
+  kissFeedback: { color: colors.textSecondary, textAlign: 'center', fontSize: fontSize.xs, marginTop: 2 },
   homeLayoutBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(10,20,18,0.58)', paddingHorizontal: spacing.md, paddingBottom: spacing.md },
   homeLayoutSheet: { width: '100%', maxWidth: 540, alignSelf: 'center', borderRadius: radius.card, padding: spacing.md, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
   homeLayoutHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.xs },
