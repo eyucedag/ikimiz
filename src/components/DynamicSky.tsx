@@ -13,14 +13,14 @@ export function getSkyPhase(date: Date): SkyPhase {
   return 'night';
 }
 
-// These are direct crops of the five landscape illustrations in the user's Aurora Forest reference.
 const skyImages: Record<SkyPhase, number> = {
-  morning: require('../../assets/images/aurora/aurora-morning.png'),
-  day: require('../../assets/images/aurora/aurora-day.png'),
-  sunset: require('../../assets/images/aurora/aurora-sunset.png'),
-  evening: require('../../assets/images/aurora/aurora-evening.png'),
-  night: require('../../assets/images/aurora/aurora-night.png'),
+  morning: require('../../assets/aurora/sky_sabah.png'),
+  day: require('../../assets/aurora/sky_gunduz.png'),
+  sunset: require('../../assets/aurora/sky_aksamustu.png'),
+  evening: require('../../assets/aurora/sky_aksam.png'),
+  night: require('../../assets/aurora/sky_gece.png'),
 };
+const forestOverlay = require('../../assets/aurora/forest_overlay.png');
 
 interface DynamicSkyProps { children: React.ReactNode; compact?: boolean }
 
@@ -51,6 +51,8 @@ export function DynamicSky({ children, compact = false }: DynamicSkyProps) {
     <View style={[styles.container, compact && styles.compactContainer]}>
       <Image source={skyImages[phase]} resizeMode="cover" style={styles.image} accessibilityIgnoresInvertColors />
       {transitionFrom ? <Animated.Image pointerEvents="none" source={skyImages[transitionFrom]} resizeMode="cover" style={[styles.image, { opacity: transitionOpacity }]} /> : null}
+      <View pointerEvents="none" style={styles.readabilityScrim} />
+      <Image pointerEvents="none" source={forestOverlay} resizeMode="cover" style={styles.image} accessibilityIgnoresInvertColors />
       <View style={[styles.content, compact && styles.compactContent]}>{children}</View>
     </View>
   );
@@ -60,6 +62,7 @@ const styles = StyleSheet.create({
   container: { width: '100%', maxWidth: 620, minHeight: 190, aspectRatio: 1.95, alignSelf: 'center', borderRadius: 22, overflow: 'hidden', justifyContent: 'flex-start', marginBottom: 18, backgroundColor: colors.background },
   compactContainer: { minHeight: 142, aspectRatio: 2.2, marginBottom: spacing.lg },
   image: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
+  readabilityScrim: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(8, 45, 37, 0.12)' },
   content: { zIndex: 1, padding: 18, paddingBottom: 34 },
   compactContent: { padding: 14, paddingBottom: 42 },
 });
