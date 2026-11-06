@@ -184,7 +184,7 @@ export default function TodayScreen() {
             <Text style={styles.directionLabel}>Aşkım nerdesin?</Text>
           </Pressable>
           <Text style={styles.directionHintOverlay} numberOfLines={1}>
-            {direction.error ?? (direction.anySharing ? (direction.bothSharing ? 'İkinizin konumu açık.' : 'Konum paylaşımı açık; yön için ikiniz de açın.') : ' ')}
+            {direction.error ?? (direction.bothSharing ? 'İkinizin konumu açık.' : direction.sharing ? 'Konumunuz açık; partneriniz de açınca yönü göreceksiniz.' : direction.anySharing ? 'Partnerinizin konumu açık; yön için siz de açın.' : ' ')}
           </Text>
           <MoodSummaryCard
             today={moods.today}
@@ -354,9 +354,9 @@ const styles = StyleSheet.create({
   identityRow: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   identityText: { flex: 1, minWidth: 0 },
   treeControls: { width: '100%', alignItems: 'center', gap: 1 },
-  directionButton: { minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingHorizontal: spacing.md, marginBottom: 2, borderRadius: 20, backgroundColor: 'rgba(41,47,44,0.82)', borderWidth: 1, borderColor: 'rgba(246,233,215,0.52)' },
+  directionButton: { minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingHorizontal: spacing.md, marginBottom: 2, borderRadius: 20, backgroundColor: 'rgba(41,47,44,0.82)', borderWidth: 1, borderColor: 'rgba(246,233,215,0.52)', transform: [{ translateY: 14 }] },
   directionLabel: { color: colors.cream, fontSize: fontSize.sm, fontWeight: '700' },
-  directionHintOverlay: { width: '100%', height: 15, lineHeight: 12, maxWidth: '100%', marginBottom: 3, textAlign: 'center', color: colors.cream, fontSize: 10, textShadowColor: 'rgba(8,45,37,0.96)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
+  directionHintOverlay: { width: '100%', height: 15, lineHeight: 12, maxWidth: '100%', marginBottom: 3, textAlign: 'center', color: colors.cream, fontSize: 10, textShadowColor: 'rgba(8,45,37,0.96)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3, transform: [{ translateY: 14 }] },
   directionHint: { color: colors.cream, fontSize: fontSize.xs, marginLeft: 68, marginTop: -spacing.lg, marginBottom: spacing.sm },
   couplePhoto: { width: 54, height: 54, borderRadius: 27, borderWidth: 2, borderColor: colors.copper },
   photoPlaceholder: { width: 54, height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(41,47,44,0.78)', borderWidth: 1.5, borderColor: colors.copper },
