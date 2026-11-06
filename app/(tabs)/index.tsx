@@ -309,13 +309,14 @@ export default function TodayScreen() {
             accessibilityLabel={c.title}
             style={({ pressed }) => [styles.tile, { width: `${100 / columns}%` }, pressed && styles.pressed]}
           >
-            <View style={[styles.tileInner, { backgroundColor: surfaceColor, borderColor: c.color, borderTopColor: c.color }]}>
+            <View style={[styles.tileInner, { backgroundColor: surfaceColor, borderColor: c.color, borderLeftColor: c.color, shadowColor: c.color }]}>
               <View style={[styles.tileIcon, { backgroundColor: c.tint }]}>
                 <Feather name={c.icon as keyof typeof Feather.glyphMap} size={20} color={c.color} />
               </View>
               <Text style={styles.tileTitle} numberOfLines={2}>
                 {c.title}
               </Text>
+              <View pointerEvents="none" style={styles.tileReflection} />
             </View>
           </Pressable>
         ))}
@@ -407,15 +408,20 @@ const styles = StyleSheet.create({
   tile: { padding: spacing.xs },
   tileInner: {
     backgroundColor: colors.card,
-    borderRadius: radius.card,
-    borderWidth: 1,
+    borderRadius: 22,
+    borderWidth: 1.5,
     borderColor: colors.border,
-    borderTopWidth: 3,
-    borderTopColor: colors.accent,
+    borderLeftWidth: 3,
     padding: spacing.md,
     minHeight: 104,
     justifyContent: 'space-between',
+    shadowColor: colors.accent,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.24,
+    shadowRadius: 9,
+    elevation: 4,
   },
+  tileReflection: { position: 'absolute', top: 1, left: 12, right: 12, height: 2, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.9)' },
   tileIcon: {
     width: 36,
     height: 36,
