@@ -4,6 +4,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider, useAuth } from '@/src/hooks/useAuth';
 import { AppStateProvider } from '@/src/hooks/useAppState';
 import { colors } from '@/src/constants/theme';
@@ -64,16 +65,18 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <AppAppearanceProvider>
-        <AuthProvider>
-          <AppStateProvider>
-            <StatusBar style="dark" />
-            <RootNavigator />
-          </AppStateProvider>
-        </AuthProvider>
-      </AppAppearanceProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={styles.root}>
+      <SafeAreaProvider>
+        <AppAppearanceProvider>
+          <AuthProvider>
+            <AppStateProvider>
+              <StatusBar style="dark" />
+              <RootNavigator />
+            </AppStateProvider>
+          </AuthProvider>
+        </AppAppearanceProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 
