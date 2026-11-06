@@ -23,29 +23,14 @@ import { useCoupleDirection } from '@/src/hooks/useCoupleDirection';
 import { useAutomaticNearbySteps } from '@/src/hooks/useAutomaticNearbySteps';
 import { kissService } from '@/src/services/kissService';
 
-type HomeSection = 'song' | 'partner-note' | 'upcoming' | 'categories';
-const DEFAULT_HOME_ORDER: HomeSection[] = ['song', 'partner-note', 'upcoming', 'categories'];
+type HomeSection = 'song' | 'partner-note' | 'mood' | 'upcoming' | 'categories';
+const DEFAULT_HOME_ORDER: HomeSection[] = ['song', 'partner-note', 'mood', 'upcoming', 'categories'];
 const HOME_SECTION_TITLES: Record<HomeSection, string> = {
   song: 'Günün Şarkısı',
   'partner-note': 'Partnerinden Not',
+  mood: 'Ruh Halim',
   upcoming: 'Yaklaşanlar',
   categories: 'Kategoriler',
-};
-
-const HOME_CATEGORY_ICONS: Record<string, typeof auroraIcons.calendar> = {
-  takvim: auroraIcons.calendar,
-  'ozel-gunler': auroraIcons.specialDates,
-  listeler: auroraIcons.lists,
-  notlar: auroraIcons.notebook,
-  'onemli-belgeler': auroraIcons.documents,
-  galeri: auroraIcons.gallery,
-  'sesli-anilar': auroraIcons.audioMemories,
-  gorevler: auroraIcons.tasks,
-  'hediye-radari': auroraIcons.giftRadar,
-  'bilinmesi-gerekenler': auroraIcons.importantFacts,
-  'gezilen-yerler': auroraIcons.places,
-  'birlikte-adimlar': auroraIcons.steps,
-  opucuk: auroraIcons.kiss,
 };
 
 export default function TodayScreen() {
@@ -67,7 +52,6 @@ export default function TodayScreen() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [todaySong, setTodaySong] = useState<{ title: string; artist: string; url: string } | null>(null);
   const [sendingKiss, setSendingKiss] = useState(false);
-  const [kissFeedback, setKissFeedback] = useState('');
   const direction = useCoupleDirection(couple.couple?.id, user?.id, couple.partner?.id);
   useAutomaticNearbySteps(user?.id, couple.couple?.id, couple.partner?.id);
   const [now, setNow] = useState(Date.now());
@@ -150,10 +134,7 @@ export default function TodayScreen() {
     return () => { void supabase.removeChannel(channel); };
   }, [couple.couple?.id, couple.refresh]);
 
-  const homeCategories = categories
-    .filter((category) => !['ekrana-not', 'gunun-sarkisi'].includes(category.slug))
-    .map((category) => ({ ...category, homeIcon: HOME_CATEGORY_ICONS[category.slug] }))
-    .filter((category) => !!category.homeIcon);
+  const homeCategories = categories.filter((category) => !['ekrana-not', 'gunun-sarkisi', 'opucuk'].includes(category.slug));
 
   const persistHomeLayout = (order: HomeSection[], hidden: HomeSection[]) => {
     setHomeOrder(order);
@@ -187,12 +168,11 @@ export default function TodayScreen() {
       return;
     }
     setSendingKiss(true);
-    setKissFeedback('');
     try {
       await kissService.send({ ownerId: user.id, partnerId: couple.partner.id, coupleId: couple.couple.id });
-      setKissFeedback('Öpücüğün partnerine gitti');
+      Alert.alert('Öpücük gönderildi', 'Öpücüğün partnerine gitti.');
     } catch (error) {
-      setKissFeedback(error instanceof Error ? error.message : 'Öpücük gönderilemedi.');
+      Alert.alert('Öpücük gönderilemedi', error instanceof Error ? error.message : 'Lütfen yeniden deneyin.');
     } finally {
       setSendingKiss(false);
     }
@@ -300,26 +280,34 @@ export default function TodayScreen() {
 
 
       </>);
+      case 'mood': return <MoodSummaryCard
+        today={moods.today}
+        partnerToday={moods.partnerToday}
+        partnerName={couple.partner?.displayName ?? 'Partneriniz'}
+        paired={couple.isPaired}
+        loading={moods.loading || couple.loading}
+        error={moods.error}
+        onPress={() => router.push('/mood')}
+      />;
       case 'categories': return (<>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRail}>
-        {homeCategories.map((category) => (
+      <SectionHeader title="Kategoriler" compact />
+      <View style={styles.homeCategoryList}>
+        {homeCategories.map((category) => {
+          const categoryTone = getCategoryColor(category.slug);
+          return (
           <Pressable
             key={category.slug}
-            onPress={() => category.slug === 'opucuk' ? void sendKissFromHome() : router.push(getCategoryRoute(category.slug))}
+            onPress={() => router.push(getCategoryRoute(category.slug))}
             accessibilityRole="button"
-            accessibilityLabel={category.slug === 'opucuk' ? 'Partnerinize öpücük gönder' : category.title}
-            style={({ pressed }) => [styles.quickItem, pressed && styles.pressed]}
+            accessibilityLabel={category.title}
+            style={({ pressed }) => [styles.homeCategoryCard, { borderColor: categoryTone.color }, pressed && styles.pressed]}
           >
-            <View style={styles.quickIcon}>
-              {category.slug === 'opucuk' && sendingKiss
-                ? <ActivityIndicator color={colors.copper} />
-                : <Image source={category.homeIcon} style={styles.quickIconImage} resizeMode="contain" tintColor={colors.copper} />}
-            </View>
-            <Text numberOfLines={2} style={styles.quickTitle}>{category.title}</Text>
+            <Text numberOfLines={1} style={styles.homeCategoryTitle}>{category.title}</Text>
+            <Feather name="chevron-right" size={18} color={categoryTone.color} />
           </Pressable>
-        ))}
-      </ScrollView>
-      {kissFeedback ? <Text style={styles.kissFeedback}>{kissFeedback}</Text> : null}
+          );
+        })}
+      </View>
 
       </>);
       default: return null;
@@ -393,9 +381,14 @@ export default function TodayScreen() {
       <View style={styles.responsiveContent}>
       <View style={styles.homeTopBar}>
         <Text style={styles.homeTopTitle} accessibilityRole="header">İkimiz</Text>
-        <Pressable onPress={() => setHomeLayoutVisible(true)} accessibilityRole="button" accessibilityLabel="Ana ekranı düzenle" style={styles.layoutEditButton}>
-          <Feather name="sliders" size={17} color={colors.text} />
-        </Pressable>
+        <View style={styles.homeTopActions}>
+          <Pressable onPress={() => void sendKissFromHome()} accessibilityRole="button" accessibilityLabel="Partnerinize öpücük gönder" style={styles.kissTopButton} disabled={sendingKiss}>
+            {sendingKiss ? <ActivityIndicator color={colors.copper} size="small" /> : <Text style={styles.kissTopEmoji}>💋</Text>}
+          </Pressable>
+          <Pressable onPress={() => setHomeLayoutVisible(true)} accessibilityRole="button" accessibilityLabel="Ana ekranı düzenle" style={styles.layoutEditButton}>
+            <Feather name="sliders" size={17} color={colors.text} />
+          </Pressable>
+        </View>
       </View>
       <DynamicSky treeContent={couple.isPaired ? (
         <View style={styles.treeControls}>
@@ -416,17 +409,6 @@ export default function TodayScreen() {
           <Text style={styles.directionHintOverlay} numberOfLines={1}>
             {direction.error || (direction.bothSharing ? 'İkinizin konumu açık.' : direction.sharing ? 'Konumunuz açık; partneriniz de açınca yönü göreceksiniz.' : direction.anySharing ? 'Partnerinizin konumu açık; yön için siz de açın.' : ' ')}
           </Text>
-          <MoodSummaryCard
-            today={moods.today}
-            partnerToday={moods.partnerToday}
-            partnerName={couple.partner?.displayName ?? 'Partneriniz'}
-            paired={couple.isPaired}
-            loading={moods.loading || couple.loading}
-            error={moods.error}
-            onPress={() => router.push('/mood')}
-            compact
-            overlay
-          />
         </View>
       ) : null}>
       <View style={styles.header}>
@@ -520,6 +502,9 @@ export default function TodayScreen() {
 const styles = StyleSheet.create({
   responsiveContent: { width: '100%', maxWidth: 650, alignSelf: 'center' },
   homeTopBar: { minHeight: 38, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.xs },
+  homeTopActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  kissTopButton: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  kissTopEmoji: { fontSize: 17, lineHeight: 21 },
   homeTopTitle: { color: colors.text, fontFamily: 'serif', fontSize: fontSize.xxl, fontWeight: '600' },
   header: { marginTop: spacing.xs, marginBottom: spacing.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   identityRow: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
@@ -581,12 +566,9 @@ const styles = StyleSheet.create({
   upcomingTitle: { fontSize: fontSize.md, color: colors.text, fontWeight: '500' },
   songCardTitle: { fontSize: fontSize.lg, color: colors.text, fontWeight: '700', marginTop: 1 },
   songCardArtist: { color: colors.textSecondary, fontSize: fontSize.md, fontWeight: '500', marginTop: 1 },
-  categoryRail: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: spacing.xs, paddingBottom: spacing.sm },
-  quickItem: { width: 82, alignItems: 'center', paddingHorizontal: spacing.xs, marginRight: spacing.xs },
-  quickIcon: { width: 48, height: 48, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-  quickIconImage: { width: 35, height: 35 },
-  quickTitle: { marginTop: spacing.xs, textAlign: 'center', fontSize: fontSize.xs, color: colors.text, fontWeight: '500', lineHeight: 15 },
-  kissFeedback: { color: colors.textSecondary, textAlign: 'center', fontSize: fontSize.xs, marginTop: 2 },
+  homeCategoryList: { gap: spacing.sm, marginBottom: spacing.md },
+  homeCategoryCard: { minHeight: 48, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.md, borderRadius: radius.card, borderWidth: 1, backgroundColor: colors.card },
+  homeCategoryTitle: { flex: 1, color: colors.text, fontSize: fontSize.md, fontWeight: '600' },
   homeLayoutBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(10,20,18,0.58)', paddingHorizontal: spacing.md, paddingBottom: spacing.md },
   homeLayoutSheet: { width: '100%', maxWidth: 540, alignSelf: 'center', borderRadius: radius.card, padding: spacing.md, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
   homeLayoutHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.xs },

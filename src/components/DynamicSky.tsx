@@ -29,7 +29,7 @@ export function DynamicSky({ children, compact = false, treeContent }: DynamicSk
   const sceneWidth = Math.min(620, Math.max(260, windowWidth - 36));
   const skyHeight = compact
     ? Math.min(210, Math.max(150, sceneWidth * 0.38))
-    : Math.min(385, Math.max(248, sceneWidth / 1.42 + 18));
+    : Math.min(350, Math.max(228, sceneWidth / 1.58 + 4));
   const [phase, setPhase] = useState<SkyPhase>(() => getSkyPhase(new Date()));
   const [transitionFrom, setTransitionFrom] = useState<SkyPhase | null>(null);
   const transitionOpacity = useRef(new Animated.Value(0)).current;

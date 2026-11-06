@@ -1,5 +1,6 @@
 import React from 'react';
 import { ColorValue, GestureResponderEvent, Image, Pressable, PressableProps, StyleSheet, View } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { colors, fontSize, shadow } from '@/src/constants/theme';
 import { auroraIcons } from '@/src/constants/auroraAssets';
@@ -52,7 +53,7 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen name="index" options={{ title: 'Bugün', tabBarIcon: tabIcon('today') }} />
-      <Tabs.Screen name="search" options={{ title: 'Ara', tabBarIcon: tabIcon('search') }} />
+      <Tabs.Screen name="search" options={{ title: 'Kategoriler', tabBarIcon: ({ color, size }) => <Feather name="grid" size={size} color={color as string} /> }} />
       <Tabs.Screen
         name="add"
         options={{ title: 'Ekle', tabBarLabel: () => null, tabBarButton: (props) => <AddTabButton {...props} /> }}
