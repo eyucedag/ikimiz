@@ -165,20 +165,35 @@ export default function TodayScreen() {
   };
 
   return (
-    <Screen inTabs refreshing={refreshing} onRefresh={onRefresh}>
+    <Screen inTabs scroll={height < 780} refreshing={refreshing} onRefresh={onRefresh}>
       <View style={styles.responsiveContent}>
       <DynamicSky treeContent={couple.isPaired ? (
-        <MoodSummaryCard
-          today={moods.today}
-          partnerToday={moods.partnerToday}
-          partnerName={couple.partner?.displayName ?? 'Partneriniz'}
-          paired={couple.isPaired}
-          loading={moods.loading || couple.loading}
-          error={moods.error}
-          onPress={() => router.push('/mood')}
-          compact
-          overlay
-        />
+        <View style={styles.treeControls}>
+          <Pressable
+            onPress={() => direction.sharing ? direction.stop() : void direction.start()}
+            accessibilityRole="button"
+            accessibilityLabel={direction.angle == null ? 'Partner yönünü görmek için konum paylaşımını aç' : 'Partnerin yönünü göster'}
+            style={styles.directionButton}
+          >
+            <Feather
+              name="compass"
+              size={24}
+              color={direction.bothSharing ? '#159447' : direction.anySharing ? '#1676E8' : colors.textSecondary}
+              style={direction.bothSharing && direction.angle != null ? { transform: [{ rotate: `${direction.angle}deg` }] } : undefined}
+            />
+          </Pressable>
+          <MoodSummaryCard
+            today={moods.today}
+            partnerToday={moods.partnerToday}
+            partnerName={couple.partner?.displayName ?? 'Partneriniz'}
+            paired={couple.isPaired}
+            loading={moods.loading || couple.loading}
+            error={moods.error}
+            onPress={() => router.push('/mood')}
+            compact
+            overlay
+          />
+        </View>
       ) : null}>
       <View style={styles.header}>
         <View style={styles.identityRow}>
@@ -198,21 +213,7 @@ export default function TodayScreen() {
             {togetherDuration ? <View style={styles.durationPill}><Text style={styles.duration}>{togetherDuration}</Text></View> : couple.isPaired ? <Text style={styles.durationMissing}>Birlikte olduğunuz zamanı profilden ekleyin</Text> : null}
           </View>
         </View>
-        {couple.isPaired ? (
-          <Pressable
-            onPress={() => direction.sharing ? direction.stop() : void direction.start()}
-            accessibilityRole="button"
-            accessibilityLabel={direction.angle == null ? 'Partner yönünü görmek için konum paylaşımını aç' : 'Partnerin yönünü göster'}
-            style={styles.directionButton}
-          >
-            <Feather
-              name="navigation"
-              size={24}
-              color={direction.bothSharing ? '#159447' : direction.anySharing ? '#1676E8' : colors.textSecondary}
-              style={direction.bothSharing && direction.angle != null ? { transform: [{ rotate: `${direction.angle}deg` }] } : undefined}
-            />
-          </Pressable>
-        ) : null}
+
       </View>
       {direction.error ? <Text style={styles.directionHint}>{direction.error}</Text> : direction.anySharing ? <Text style={styles.directionHint}>{direction.bothSharing ? 'İkinizin konumu açık.' : 'Konum paylaşımı açık; yön için ikiniz de açın.'}</Text> : null}
       </DynamicSky>
@@ -349,7 +350,8 @@ const styles = StyleSheet.create({
   header: { marginTop: spacing.xs, marginBottom: spacing.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   identityRow: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   identityText: { flex: 1, minWidth: 0 },
-  directionButton: { flexShrink: 0, width: 44, height: 44, borderRadius: 22, marginLeft: spacing.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(41,47,44,0.74)', borderWidth: 1, borderColor: 'rgba(246,233,215,0.38)' },
+  treeControls: { alignItems: 'center', gap: 1 },
+  directionButton: { width: 36, height: 36, borderRadius: 18, marginBottom: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(41,47,44,0.74)', borderWidth: 1, borderColor: 'rgba(246,233,215,0.38)' },
   directionHint: { color: colors.cream, fontSize: fontSize.xs, marginLeft: 68, marginTop: -spacing.lg, marginBottom: spacing.sm },
   couplePhoto: { width: 54, height: 54, borderRadius: 27, borderWidth: 2, borderColor: colors.copper },
   photoPlaceholder: { width: 54, height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(41,47,44,0.78)', borderWidth: 1.5, borderColor: colors.copper },
