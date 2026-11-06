@@ -23,15 +23,19 @@ import { useCoupleDirection } from '@/src/hooks/useCoupleDirection';
 import { useAutomaticNearbySteps } from '@/src/hooks/useAutomaticNearbySteps';
 import { kissService } from '@/src/services/kissService';
 
-type HomeSection = 'song' | 'partner-note' | 'mood' | 'upcoming' | 'categories';
-const DEFAULT_HOME_ORDER: HomeSection[] = ['song', 'partner-note', 'mood', 'upcoming', 'categories'];
-const HOME_SECTION_TITLES: Record<HomeSection, string> = {
+type HomeSection = 'song' | 'partner-note' | 'mood' | 'upcoming' | `category:${string}`;
+const HOME_CATEGORY_ITEMS = categories.filter((category) => !['ekrana-not', 'gunun-sarkisi', 'opucuk'].includes(category.slug));
+const BASE_HOME_SECTIONS: HomeSection[] = ['song', 'partner-note', 'mood', 'upcoming'];
+const DEFAULT_HOME_ORDER: HomeSection[] = [...BASE_HOME_SECTIONS, ...HOME_CATEGORY_ITEMS.map((category) => `category:${category.slug}` as HomeSection)];
+const HOME_SECTION_TITLES: Record<'song' | 'partner-note' | 'mood' | 'upcoming', string> = {
   song: 'Günün Şarkısı',
   'partner-note': 'Partnerinden Not',
   mood: 'Ruh Halim',
   upcoming: 'Yaklaşanlar',
-  categories: 'Kategoriler',
 };
+const getHomeSectionTitle = (section: HomeSection) => section.startsWith('category:')
+  ? HOME_CATEGORY_ITEMS.find((category) => category.slug === section.slice('category:'.length))?.title ?? 'Kategori'
+  : HOME_SECTION_TITLES[section as keyof typeof HOME_SECTION_TITLES];
 const HOME_CATEGORY_ICONS: Record<string, typeof auroraIcons.calendar> = {
   takvim: auroraIcons.calendar,
   'ozel-gunler': auroraIcons.specialDates,
@@ -80,12 +84,15 @@ export default function TodayScreen() {
       if (cancelled || !saved) return;
       try {
         const parsed = JSON.parse(saved) as { order?: unknown; hidden?: unknown };
-        const normalize = (value: unknown): HomeSection | null => {
-          if (value === 'quick-access') return 'categories';
-          return typeof value === 'string' && DEFAULT_HOME_ORDER.includes(value as HomeSection) ? value as HomeSection : null;
+        const normalize = (value: unknown): HomeSection[] => {
+          if (value === 'quick-access' || value === 'categories') return HOME_CATEGORY_ITEMS.map((category) => `category:${category.slug}` as HomeSection);
+          if (typeof value !== 'string') return [];
+          if ((BASE_HOME_SECTIONS as string[]).includes(value)) return [value as HomeSection];
+          if (value.startsWith('category:') && HOME_CATEGORY_ITEMS.some((category) => category.slug === value.slice('category:'.length))) return [value as HomeSection];
+          return [];
         };
-        const savedOrder = Array.isArray(parsed.order) ? [...new Set(parsed.order.map(normalize).filter((value): value is HomeSection => value !== null))] : [];
-        const savedHidden = Array.isArray(parsed.hidden) ? [...new Set(parsed.hidden.map(normalize).filter((value): value is HomeSection => value !== null))] : [];
+        const savedOrder = Array.isArray(parsed.order) ? [...new Set(parsed.order.flatMap(normalize))] : [];
+        const savedHidden = Array.isArray(parsed.hidden) ? [...new Set(parsed.hidden.flatMap(normalize))] : [];
         setHomeOrder([...savedOrder, ...DEFAULT_HOME_ORDER.filter((section) => !savedOrder.includes(section))]);
         setHiddenHomeSections(savedHidden);
       } catch { /* Ignore outdated or invalid local preferences. */ }
@@ -148,8 +155,6 @@ export default function TodayScreen() {
     return () => { void supabase.removeChannel(channel); };
   }, [couple.couple?.id, couple.refresh]);
 
-  const homeCategories = categories.filter((category) => !['ekrana-not', 'gunun-sarkisi', 'opucuk'].includes(category.slug));
-
   const persistHomeLayout = (order: HomeSection[], hidden: HomeSection[]) => {
     setHomeOrder(order);
     setHiddenHomeSections(hidden);
@@ -193,6 +198,30 @@ export default function TodayScreen() {
   };
 
   const renderHomeSection = (section: HomeSection): React.ReactNode => {
+    if (section.startsWith('category:')) {
+      const category = HOME_CATEGORY_ITEMS.find((item) => item.slug === section.slice('category:'.length));
+      if (!category) return null;
+      const categoryTone = getCategoryColor(category.slug);
+      return (
+        <Card
+          key={section}
+          onPress={() => router.push(getCategoryRoute(category.slug))}
+          accessibilityLabel={`${category.title}. ${category.description}`}
+          style={styles.homeCategoryCard}
+        >
+          <View style={[styles.homeCategoryIcon, { backgroundColor: categoryTone.tint }]}>
+            <Image source={HOME_CATEGORY_ICONS[category.slug]} style={styles.homeCategoryIconImage} resizeMode="contain" tintColor={categoryTone.color} />
+          </View>
+          <View style={styles.homeCategoryCopy}>
+            <Text numberOfLines={1} style={styles.homeCategoryTitle}>{category.title}</Text>
+            <Text numberOfLines={1} style={styles.homeCategoryDescription}>{category.description}</Text>
+          </View>
+          <View style={[styles.homeCategoryArrow, { backgroundColor: categoryTone.tint }]}>
+            <Feather name="chevron-right" size={16} color={categoryTone.color} />
+          </View>
+        </Card>
+      );
+    }
     switch (section) {
       case 'song': return (<>
       <Card style={[styles.section, styles.compactCard, styles.songCard, { borderColor: songColor.color, borderWidth: 1 }]}>
@@ -303,34 +332,6 @@ export default function TodayScreen() {
         error={moods.error}
         onPress={() => router.push('/mood')}
       />;
-      case 'categories': return (<>
-      <SectionHeader title="Kategoriler" compact />
-      <View style={styles.homeCategoryList}>
-        {homeCategories.map((category) => {
-          const categoryTone = getCategoryColor(category.slug);
-          return (
-            <Card
-              key={category.slug}
-              onPress={() => router.push(getCategoryRoute(category.slug))}
-              accessibilityLabel={`${category.title}. ${category.description}`}
-              style={styles.homeCategoryCard}
-            >
-              <View style={[styles.homeCategoryIcon, { backgroundColor: categoryTone.tint }]}>
-                <Image source={HOME_CATEGORY_ICONS[category.slug]} style={styles.homeCategoryIconImage} resizeMode="contain" tintColor={categoryTone.color} />
-              </View>
-              <View style={styles.homeCategoryCopy}>
-                <Text numberOfLines={1} style={styles.homeCategoryTitle}>{category.title}</Text>
-                <Text numberOfLines={1} style={styles.homeCategoryDescription}>{category.description}</Text>
-              </View>
-              <View style={[styles.homeCategoryArrow, { backgroundColor: categoryTone.tint }]}>
-                <Feather name="chevron-right" size={16} color={categoryTone.color} />
-              </View>
-            </Card>
-          );
-        })}
-      </View>
-
-      </>);
       default: return null;
     }
   };
@@ -469,15 +470,15 @@ export default function TodayScreen() {
               const hidden = hiddenHomeSections.includes(section);
               return (
                 <View key={section} style={[styles.homeLayoutRow, hidden && styles.homeLayoutRowHidden]}>
-                  <Text style={[styles.homeLayoutRowTitle, hidden && styles.homeLayoutTextHidden]}>{HOME_SECTION_TITLES[section]}</Text>
+                  <Text style={[styles.homeLayoutRowTitle, hidden && styles.homeLayoutTextHidden]}>{getHomeSectionTitle(section)}</Text>
                   <View style={styles.homeLayoutActions}>
-                    <Pressable onPress={() => moveHomeSection(section, -1)} disabled={index === 0} accessibilityRole="button" accessibilityLabel={`${HOME_SECTION_TITLES[section]} bölümünü yukarı taşı`} style={styles.homeLayoutIconButton}>
+                    <Pressable onPress={() => moveHomeSection(section, -1)} disabled={index === 0} accessibilityRole="button" accessibilityLabel={`${getHomeSectionTitle(section)} bölümünü yukarı taşı`} style={styles.homeLayoutIconButton}>
                       <Feather name="chevron-up" size={19} color={index === 0 ? colors.textTertiary : colors.accent} />
                     </Pressable>
-                    <Pressable onPress={() => moveHomeSection(section, 1)} disabled={index === homeOrder.length - 1} accessibilityRole="button" accessibilityLabel={`${HOME_SECTION_TITLES[section]} bölümünü aşağı taşı`} style={styles.homeLayoutIconButton}>
+                    <Pressable onPress={() => moveHomeSection(section, 1)} disabled={index === homeOrder.length - 1} accessibilityRole="button" accessibilityLabel={`${getHomeSectionTitle(section)} bölümünü aşağı taşı`} style={styles.homeLayoutIconButton}>
                       <Feather name="chevron-down" size={19} color={index === homeOrder.length - 1 ? colors.textTertiary : colors.accent} />
                     </Pressable>
-                    <Pressable onPress={() => toggleHomeSection(section)} accessibilityRole="button" accessibilityLabel={hidden ? `${HOME_SECTION_TITLES[section]} bölümünü göster` : `${HOME_SECTION_TITLES[section]} bölümünü gizle`} style={styles.homeLayoutIconButton}>
+                    <Pressable onPress={() => toggleHomeSection(section)} accessibilityRole="button" accessibilityLabel={hidden ? `${getHomeSectionTitle(section)} bölümünü göster` : `${getHomeSectionTitle(section)} bölümünü gizle`} style={styles.homeLayoutIconButton}>
                       <Feather name={hidden ? 'eye-off' : 'eye'} size={18} color={colors.accent} />
                     </Pressable>
                   </View>
