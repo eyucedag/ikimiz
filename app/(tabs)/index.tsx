@@ -7,6 +7,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { Button, Card, EmptyState, Screen, SectionHeader } from '@/src/components/ui';
 import { MoodSummaryCard } from '@/src/components/MoodSummaryCard';
 import { DynamicSky } from '@/src/components/DynamicSky';
+import { CoupleFlower } from '@/src/components/CoupleFlower';
 import { categories, getCategoryColor, getCategoryRoute } from '@/src/constants/categories';
 import { auroraIcons } from '@/src/constants/auroraAssets';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
@@ -425,7 +426,7 @@ export default function TodayScreen() {
           </Pressable>
         </View>
       </View>
-      <DynamicSky treeContent={couple.isPaired ? (
+      <DynamicSky sceneContent={couple.isPaired && couple.couple?.id ? <CoupleFlower coupleId={couple.couple.id} /> : null} treeContent={couple.isPaired ? (
         <View style={styles.treeControls}>
           <Pressable
             onPress={() => direction.sharing ? direction.stop() : void direction.start()}
