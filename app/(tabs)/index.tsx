@@ -212,6 +212,9 @@ export default function TodayScreen() {
     if (section.startsWith('category:')) {
       const category = HOME_CATEGORY_ITEMS.find((item) => item.slug === section.slice('category:'.length));
       if (!category) return null;
+      if (category.slug === 'gunun-sarkisi') return renderHomeSection('song');
+      if (category.slug === 'ekrana-not') return renderHomeSection('partner-note');
+      if (category.slug === 'ruh-halim') return renderHomeSection('mood');
       const categoryTone = getCategoryColor(category.slug);
       let categoryDescription = category.description;
       if (category.slug === 'gunun-sarkisi' && todaySong) categoryDescription = `${todaySong.title} · ${todaySong.artist}`;
