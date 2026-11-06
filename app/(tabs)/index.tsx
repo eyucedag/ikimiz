@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ActivityIndicator, Alert, Image, Linking, Modal, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
+import { ActivityIndicator, Alert, FlatList, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -61,7 +60,7 @@ export default function TodayScreen() {
   const { upcoming, refreshNotifications } = useAppState();
   const { width, height } = useWindowDimensions();
   const [refreshing, setRefreshing] = useState(false);
-  const [isHomeReordering, setIsHomeReordering] = useState(false);
+  const [homeLayoutVisible, setHomeLayoutVisible] = useState(false);
   const [homeOrder, setHomeOrder] = useState<HomeSection[]>(DEFAULT_HOME_ORDER);
   const [homeCategoryOrder, setHomeCategoryOrder] = useState<string[]>(DEFAULT_HOME_CATEGORY_ORDER);
   const [hiddenHomeSections, setHiddenHomeSections] = useState<HomeSection[]>([]);
@@ -173,6 +172,21 @@ export default function TodayScreen() {
     }
   };
 
+  const moveHomeCategory = (index: number, direction: -1 | 1) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= homeCategoryOrder.length) return;
+    const next = [...homeCategoryOrder];
+    [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+    persistHomeLayout(homeOrder, hiddenHomeSections, next);
+  };
+
+  const toggleHomeSection = (section: HomeSection) => {
+    const hidden = hiddenHomeSections.includes(section)
+      ? hiddenHomeSections.filter((item) => item !== section)
+      : [...hiddenHomeSections, section];
+    persistHomeLayout(homeOrder, hidden);
+  };
+
   const sendKissFromHome = async () => {
     if (sendingKiss) return;
     if (!user?.id || !couple.partner?.id || !couple.couple?.id) {
@@ -190,14 +204,12 @@ export default function TodayScreen() {
     }
   };
 
-  const renderCategoryCard = (category: Category, drag?: () => void) => {
+  const renderCategoryCard = (category: Category) => {
     const categoryTone = getCategoryColor(category.slug);
     return (
       <Card
         key={category.slug}
         onPress={() => router.push(getCategoryRoute(category.slug))}
-        onLongPress={drag}
-        delayLongPress={350}
         accessibilityLabel={`${category.title}. ${category.description}`}
         style={styles.homeCategoryCard}
       >
@@ -215,11 +227,11 @@ export default function TodayScreen() {
     );
   };
 
-  const renderHomeSection = (section: HomeSection, drag?: () => void): React.ReactNode => {
+  const renderHomeSection = (section: HomeSection): React.ReactNode => {
     switch (section) {
       case 'categories': return null;
       case 'song': return (<>
-      <Card onLongPress={drag} delayLongPress={350} style={[styles.section, styles.songCard, { borderColor: songColor.color, borderWidth: 1 }]}>
+      <Card style={[styles.section, styles.songCard, { borderColor: songColor.color, borderWidth: 1 }]}>
         <Pressable onPress={() => router.push('/song-of-the-day')} accessibilityRole="button" accessibilityLabel="Günün Şarkısını aç" style={styles.songHeading}>
           <View style={[styles.songIcon, { backgroundColor: songColor.tint }]}><Feather name="music" size={21} color={songColor.color} /></View>
           <View style={styles.upcomingCopy}>
@@ -247,7 +259,7 @@ export default function TodayScreen() {
       </>);
       case 'partner-note': return (<>
       {/* Partnerinden Not */}
-      <Card onLongPress={drag} delayLongPress={350} style={[styles.section, styles.compactCard, styles.noteCard, { borderColor: noteColor.color, borderWidth: 1 }]}>
+      <Card style={[styles.section, styles.compactCard, styles.noteCard, { borderColor: noteColor.color, borderWidth: 1 }]}>
         {couple.loading ? (
           <View style={styles.noteHeader}><Text style={styles.noteHeaderTitle}>Partnerinden Not</Text><ActivityIndicator color={noteColor.color} /></View>
         ) : couple.isPaired ? (
@@ -305,7 +317,7 @@ export default function TodayScreen() {
       </>);
       case 'upcoming': return (<>
       {/* Yaklaşanlar */}
-      <Card onLongPress={drag} delayLongPress={350} style={[styles.section, styles.compactCard, { borderColor: calendarColor.color, borderWidth: 1 }]}>
+      <Card style={[styles.section, styles.compactCard, { borderColor: calendarColor.color, borderWidth: 1 }]}>
         <SectionHeader title="Yaklaşanlar" compact />
         {upcoming.length === 0 ? (
           <Pressable onPress={() => router.push('/calendar')} accessibilityRole="button" accessibilityLabel="Takvimi aç" style={styles.upcomingCompact}>
@@ -333,7 +345,6 @@ export default function TodayScreen() {
         loading={moods.loading || couple.loading}
         error={moods.error}
         onPress={() => router.push('/mood')}
-        onLongPress={drag}
       />;
       default: return null;
     }
@@ -401,12 +412,12 @@ export default function TodayScreen() {
     }
   };
 
-  const renderCategorySlug = (slug: string, drag: () => void) => {
-    if (slug === 'gunun-sarkisi') return renderHomeSection('song', drag);
-    if (slug === 'ekrana-not') return renderHomeSection('partner-note', drag);
-    if (slug === 'ruh-halim') return renderHomeSection('mood', drag);
+  const renderCategorySlug = (slug: string) => {
+    if (slug === 'gunun-sarkisi') return renderHomeSection('song');
+    if (slug === 'ekrana-not') return renderHomeSection('partner-note');
+    if (slug === 'ruh-halim') return renderHomeSection('mood');
     const category = HOME_CATEGORY_ITEMS.find((item) => item.slug === slug);
-    return category ? renderCategoryCard(category, drag) : null;
+    return category ? renderCategoryCard(category) : null;
   };
 
   const listHeader = (
@@ -417,8 +428,8 @@ export default function TodayScreen() {
           <Pressable onPress={() => void sendKissFromHome()} accessibilityRole="button" accessibilityLabel="Partnerinize öpücük gönder" style={styles.kissTopButton} disabled={sendingKiss}>
             {sendingKiss ? <ActivityIndicator color={colors.copper} size="small" /> : <Text style={styles.kissTopEmoji}>💋</Text>}
           </Pressable>
-          <Pressable onPress={() => setIsHomeReordering((current) => !current)} accessibilityRole="button" accessibilityLabel={isHomeReordering ? 'Ana ekran düzenlemesini bitir' : 'Ana ekran kartlarını sürükleyerek düzenle'} style={[styles.layoutEditButton, isHomeReordering && styles.layoutEditButtonActive]}>
-            <Feather name={isHomeReordering ? 'check' : 'sliders'} size={17} color={isHomeReordering ? colors.white : colors.text} />
+          <Pressable onPress={() => setHomeLayoutVisible(true)} accessibilityRole="button" accessibilityLabel="Ana ekran kartlarını düzenle" style={styles.layoutEditButton}>
+            <Feather name="sliders" size={17} color={colors.text} />
           </Pressable>
         </View>
       </View>
@@ -462,38 +473,57 @@ export default function TodayScreen() {
         </View>
       </View>
       </DynamicSky>
-      <SectionHeader title="Kategoriler" compact />
-      {isHomeReordering ? <Text style={styles.dragInstructions}>Kartı basılı tutup yeni yerine sürükleyin. Bitirmek için ✓ simgesine dokunun.</Text> : null}
+      {!hiddenHomeSections.includes('categories') ? <SectionHeader title="Kategoriler" compact /> : null}
     </View>
   );
 
   return (
       <Screen inTabs scroll={false}>
-      <DraggableFlatList
-        containerStyle={styles.draggableContainer}
-        style={styles.draggableList}
-        data={homeCategoryOrder}
+      <FlatList
+        style={styles.homeList}
+        data={hiddenHomeSections.includes('categories') ? [] : homeCategoryOrder}
         keyExtractor={(slug) => slug}
-        onDragEnd={({ data }) => persistHomeLayout(homeOrder, hiddenHomeSections, data)}
-        renderItem={({ item: slug, drag, isActive }) => (
-          <ScaleDecorator activeScale={1}>
-            <View style={[styles.draggableHomeItem, isActive && styles.draggableHomeItemActive]}>
-              {renderCategorySlug(slug, drag)}
-              {isHomeReordering ? (
-                <Pressable onLongPress={drag} delayLongPress={250} style={styles.dragOverlay} accessibilityRole="button" accessibilityLabel="Kartı basılı tutup sürükleyin">
-                  <View style={styles.dragHandle}><Feather name="menu" size={18} color={colors.accent} /></View>
-                </Pressable>
-              ) : null}
-            </View>
-          </ScaleDecorator>
-        )}
+        renderItem={({ item: slug }) => <View style={styles.draggableHomeItem}>{renderCategorySlug(slug)}</View>}
         ListHeaderComponent={listHeader}
-        ListFooterComponent={homeOrder.includes('upcoming') ? <View style={styles.responsiveContent}>{renderHomeSection('upcoming')}</View> : undefined}
+        ListFooterComponent={!hiddenHomeSections.includes('upcoming') && homeOrder.includes('upcoming') ? <View style={styles.responsiveContent}>{renderHomeSection('upcoming')}</View> : undefined}
         contentContainerStyle={styles.draggableListContent}
         refreshing={refreshing}
         onRefresh={onRefresh}
         showsVerticalScrollIndicator={false}
       />
+      <Modal visible={homeLayoutVisible} transparent animationType="fade" onRequestClose={() => setHomeLayoutVisible(false)}>
+        <View style={styles.layoutBackdrop}>
+          <View style={styles.layoutSheet}>
+            <View style={styles.layoutHeader}>
+              <View><Text style={styles.layoutTitle}>Ana ekranı düzenle</Text><Text style={styles.layoutHint}>Kartları sırala veya bölümleri gösterip gizle.</Text></View>
+              <Pressable onPress={() => setHomeLayoutVisible(false)} accessibilityRole="button" accessibilityLabel="Düzenlemeyi kapat" style={styles.layoutClose}><Feather name="x" size={20} color={colors.text} /></Pressable>
+            </View>
+            <ScrollView style={styles.layoutScroll} showsVerticalScrollIndicator={false}>
+              <View style={styles.layoutGroupRow}>
+                <Text style={styles.layoutGroupTitle}>Kategoriler</Text>
+                <Pressable onPress={() => toggleHomeSection('categories')} accessibilityRole="button" accessibilityLabel={hiddenHomeSections.includes('categories') ? 'Kategorileri göster' : 'Kategorileri gizle'} style={styles.layoutIconButton}>
+                  <Feather name={hiddenHomeSections.includes('categories') ? 'eye-off' : 'eye'} size={18} color={colors.accent} />
+                </Pressable>
+              </View>
+              {homeCategoryOrder.map((slug, index) => {
+                const title = slug === 'gunun-sarkisi' ? 'Günün Şarkısı' : slug === 'ekrana-not' ? 'Partnerinden Not' : slug === 'ruh-halim' ? 'Ruh Halim' : HOME_CATEGORY_ITEMS.find((item) => item.slug === slug)?.title ?? slug;
+                return <View key={slug} style={styles.layoutCategoryRow}>
+                  <Text numberOfLines={1} style={styles.layoutCategoryName}>{title}</Text>
+                  <Pressable onPress={() => moveHomeCategory(index, -1)} disabled={index === 0} accessibilityRole="button" accessibilityLabel={`${title} kategorisini yukarı taşı`} style={[styles.layoutIconButton, index === 0 && styles.layoutIconButtonDisabled]}><Feather name="chevron-up" size={20} color={colors.accent} /></Pressable>
+                  <Pressable onPress={() => moveHomeCategory(index, 1)} disabled={index === homeCategoryOrder.length - 1} accessibilityRole="button" accessibilityLabel={`${title} kategorisini aşağı taşı`} style={[styles.layoutIconButton, index === homeCategoryOrder.length - 1 && styles.layoutIconButtonDisabled]}><Feather name="chevron-down" size={20} color={colors.accent} /></Pressable>
+                </View>;
+              })}
+              <View style={[styles.layoutGroupRow, styles.layoutUpcomingRow]}>
+                <Text style={styles.layoutGroupTitle}>Yaklaşanlar</Text>
+                <Pressable onPress={() => toggleHomeSection('upcoming')} accessibilityRole="button" accessibilityLabel={hiddenHomeSections.includes('upcoming') ? 'Yaklaşanları göster' : 'Yaklaşanları gizle'} style={styles.layoutIconButton}>
+                  <Feather name={hiddenHomeSections.includes('upcoming') ? 'eye-off' : 'eye'} size={18} color={colors.accent} />
+                </Pressable>
+              </View>
+            </ScrollView>
+            <Pressable onPress={() => setHomeLayoutVisible(false)} style={styles.layoutDone}><Text style={styles.layoutDoneText}>Tamam</Text></Pressable>
+          </View>
+        </View>
+      </Modal>
       <Modal visible={photoVisible} transparent animationType="fade" onRequestClose={() => setPhotoVisible(false)}>
         <View style={styles.photoModalBackdrop}>
           <Pressable onPress={() => setPhotoVisible(false)} accessibilityRole="button" accessibilityLabel="Fotoğrafı kapat" style={styles.photoClose}>
@@ -532,14 +562,25 @@ const styles = StyleSheet.create({
   identityText: { flex: 1, minWidth: 0 },
   layoutEditButton: { width: 32, height: 32, flexShrink: 0, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, marginLeft: spacing.xs },
   layoutEditButtonActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  draggableContainer: { width: '100%', flex: 1 },
-  draggableList: { width: '100%', flex: 1 },
+  homeList: { width: '100%', flex: 1 },
   draggableListContent: { width: '100%', paddingBottom: spacing.xxxl },
   draggableHomeItem: { width: '100%', alignSelf: 'stretch' },
-  draggableHomeItemActive: { zIndex: 2, elevation: 8, opacity: 0.94 },
-  dragOverlay: { ...StyleSheet.absoluteFill, zIndex: 5, alignItems: 'flex-end', justifyContent: 'flex-start' },
-  dragHandle: { width: 30, height: 30, margin: spacing.xs, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-  dragInstructions: { color: colors.textSecondary, fontSize: fontSize.xs, marginBottom: spacing.sm, lineHeight: 17 },
+  layoutBackdrop: { flex: 1, justifyContent: 'flex-end', paddingHorizontal: spacing.md, paddingBottom: spacing.md, backgroundColor: 'rgba(20,24,22,0.52)' },
+  layoutSheet: { width: '100%', maxWidth: 560, maxHeight: '82%', alignSelf: 'center', padding: spacing.lg, borderRadius: radius.card, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  layoutHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md, marginBottom: spacing.sm },
+  layoutTitle: { color: colors.text, fontSize: fontSize.lg, fontWeight: '700' },
+  layoutHint: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: spacing.xs },
+  layoutClose: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
+  layoutScroll: { flexShrink: 1 },
+  layoutGroupRow: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  layoutGroupTitle: { color: colors.text, fontSize: fontSize.md, fontWeight: '700' },
+  layoutCategoryRow: { minHeight: 42, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingLeft: spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  layoutCategoryName: { flex: 1, color: colors.textSecondary, fontSize: fontSize.sm },
+  layoutIconButton: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
+  layoutIconButtonDisabled: { opacity: 0.35 },
+  layoutUpcomingRow: { marginTop: spacing.xs },
+  layoutDone: { minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: spacing.md, borderRadius: radius.control, backgroundColor: colors.accent },
+  layoutDoneText: { color: colors.white, fontSize: fontSize.md, fontWeight: '700' },
   treeControls: { width: '100%', alignItems: 'center', gap: 1 },
   directionButton: { minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingHorizontal: spacing.md, marginBottom: 2, borderRadius: 20, backgroundColor: 'rgba(41,47,44,0.82)', borderWidth: 1, borderColor: 'rgba(246,233,215,0.52)', transform: [{ translateY: 14 }] },
   directionLabel: { color: colors.cream, fontSize: fontSize.sm, fontWeight: '700' },
