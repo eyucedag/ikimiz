@@ -8,6 +8,7 @@ import { Button, Card, EmptyState, Screen, SectionHeader } from '@/src/component
 import { MoodSummaryCard } from '@/src/components/MoodSummaryCard';
 import { DynamicSky } from '@/src/components/DynamicSky';
 import { categories, getCategoryColor, getCategoryRoute } from '@/src/constants/categories';
+import { getMoodOption } from '@/src/constants/moods';
 import { auroraIcons } from '@/src/constants/auroraAssets';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAppState } from '@/src/hooks/useAppState';
@@ -22,16 +23,21 @@ import { greeting, relativeTime, todayLabel } from '@/src/utils/date';
 import { useCoupleDirection } from '@/src/hooks/useCoupleDirection';
 import { useAutomaticNearbySteps } from '@/src/hooks/useAutomaticNearbySteps';
 import { kissService } from '@/src/services/kissService';
+import { Category } from '@/src/types';
 
-type HomeSection = 'song' | 'partner-note' | 'mood' | 'upcoming' | `category:${string}`;
-const HOME_CATEGORY_ITEMS = categories.filter((category) => !['ekrana-not', 'gunun-sarkisi', 'opucuk'].includes(category.slug));
-const BASE_HOME_SECTIONS: HomeSection[] = ['song', 'partner-note', 'mood', 'upcoming'];
-const DEFAULT_HOME_ORDER: HomeSection[] = [...BASE_HOME_SECTIONS, ...HOME_CATEGORY_ITEMS.map((category) => `category:${category.slug}` as HomeSection)];
-const HOME_SECTION_TITLES: Record<'song' | 'partner-note' | 'mood' | 'upcoming', string> = {
-  song: 'Günün Şarkısı',
-  'partner-note': 'Partnerinden Not',
-  mood: 'Ruh Halim',
-  upcoming: 'Yaklaşanlar',
+type HomeSection = 'song' | 'partner-note' | 'mood' | 'upcoming' | 'categories' | `category:${string}`;
+const HOME_CATEGORY_ITEMS: Category[] = [
+  ...categories.filter((category) => category.slug !== 'opucuk').map((category) => category.slug === 'ekrana-not' ? { ...category, title: 'Partnerinden Not' } : category),
+  { slug: 'ruh-halim', title: 'Ruh Halim', icon: 'heart', color: '#AD633F', tint: '#F2E7DB', description: 'Bugünkü ruh halinizi partnerinizle paylaşın.' },
+];
+const HOME_GENERAL_CATEGORY_ITEMS = HOME_CATEGORY_ITEMS.filter((category) => !['ekrana-not', 'gunun-sarkisi', 'ruh-halim'].includes(category.slug));
+const BASE_HOME_SECTIONS: HomeSection[] = ['upcoming'];
+const DEFAULT_HOME_ORDER: HomeSection[] = [
+  'category:gunun-sarkisi', 'category:ekrana-not', 'category:ruh-halim', 'upcoming',
+  ...HOME_GENERAL_CATEGORY_ITEMS.map((category) => `category:${category.slug}` as HomeSection),
+];
+const HOME_SECTION_TITLES: Record<'song' | 'partner-note' | 'mood' | 'upcoming' | 'categories', string> = {
+  song: 'Günün Şarkısı', 'partner-note': 'Partnerinden Not', mood: 'Ruh Halim', upcoming: 'Yaklaşanlar', categories: 'Kategoriler',
 };
 const getHomeSectionTitle = (section: HomeSection) => section.startsWith('category:')
   ? HOME_CATEGORY_ITEMS.find((category) => category.slug === section.slice('category:'.length))?.title ?? 'Kategori'
@@ -49,6 +55,8 @@ const HOME_CATEGORY_ICONS: Record<string, typeof auroraIcons.calendar> = {
   'bilinmesi-gerekenler': auroraIcons.importantFacts,
   'gezilen-yerler': auroraIcons.places,
   'birlikte-adimlar': auroraIcons.steps,
+  'ekrana-not': auroraIcons.notebook,
+  'ruh-halim': auroraIcons.importantFacts,
 };
 
 export default function TodayScreen() {
@@ -85,7 +93,10 @@ export default function TodayScreen() {
       try {
         const parsed = JSON.parse(saved) as { order?: unknown; hidden?: unknown };
         const normalize = (value: unknown): HomeSection[] => {
-          if (value === 'quick-access' || value === 'categories') return HOME_CATEGORY_ITEMS.map((category) => `category:${category.slug}` as HomeSection);
+          if (value === 'quick-access' || value === 'categories') return HOME_GENERAL_CATEGORY_ITEMS.map((category) => `category:${category.slug}` as HomeSection);
+          if (value === 'song') return ['category:gunun-sarkisi'];
+          if (value === 'partner-note') return ['category:ekrana-not'];
+          if (value === 'mood') return ['category:ruh-halim'];
           if (typeof value !== 'string') return [];
           if ((BASE_HOME_SECTIONS as string[]).includes(value)) return [value as HomeSection];
           if (value.startsWith('category:') && HOME_CATEGORY_ITEMS.some((category) => category.slug === value.slice('category:'.length))) return [value as HomeSection];
@@ -202,19 +213,29 @@ export default function TodayScreen() {
       const category = HOME_CATEGORY_ITEMS.find((item) => item.slug === section.slice('category:'.length));
       if (!category) return null;
       const categoryTone = getCategoryColor(category.slug);
+      let categoryDescription = category.description;
+      if (category.slug === 'gunun-sarkisi' && todaySong) categoryDescription = `${todaySong.title} · ${todaySong.artist}`;
+      if (category.slug === 'ekrana-not' && latestFromPartner) categoryDescription = `${latestFromPartner.text} · ${relativeTime(latestFromPartner.createdAt)}`;
+      if (category.slug === 'ruh-halim' && (moods.today || moods.partnerToday)) {
+        const myMood = moods.today ? getMoodOption(moods.today.mood).label : 'Henüz seçmediniz';
+        const partnerMood = moods.partnerToday ? getMoodOption(moods.partnerToday.mood).label : 'Henüz paylaşılmadı';
+        categoryDescription = `Siz: ${myMood} · ${couple.partner?.displayName ?? 'Partneriniz'}: ${partnerMood}`;
+      }
       return (
         <Card
           key={section}
-          onPress={() => router.push(getCategoryRoute(category.slug))}
+          onPress={() => router.push(category.slug === 'ekrana-not' ? '/screen-note/history' : getCategoryRoute(category.slug))}
           accessibilityLabel={`${category.title}. ${category.description}`}
           style={styles.homeCategoryCard}
         >
           <View style={[styles.homeCategoryIcon, { backgroundColor: categoryTone.tint }]}>
-            <Image source={HOME_CATEGORY_ICONS[category.slug]} style={styles.homeCategoryIconImage} resizeMode="contain" tintColor={categoryTone.color} />
+            {HOME_CATEGORY_ICONS[category.slug]
+              ? <Image source={HOME_CATEGORY_ICONS[category.slug]} style={styles.homeCategoryIconImage} resizeMode="contain" tintColor={categoryTone.color} />
+              : <Feather name="music" size={22} color={categoryTone.color} />}
           </View>
           <View style={styles.homeCategoryCopy}>
             <Text numberOfLines={1} style={styles.homeCategoryTitle}>{category.title}</Text>
-            <Text numberOfLines={1} style={styles.homeCategoryDescription}>{category.description}</Text>
+            <Text numberOfLines={1} style={styles.homeCategoryDescription}>{categoryDescription}</Text>
           </View>
           <View style={[styles.homeCategoryArrow, { backgroundColor: categoryTone.tint }]}>
             <Feather name="chevron-right" size={16} color={categoryTone.color} />
@@ -465,7 +486,7 @@ export default function TodayScreen() {
                 <Feather name="x" size={20} color={colors.text} />
               </Pressable>
             </View>
-            <Text style={styles.homeLayoutDescription}>Bölümleri gösterip gizleyebilir ve sıralarını değiştirebilirsin. Bu düzen yalnızca senin hesabında saklanır.</Text>
+            <Text style={styles.homeLayoutDescription}>Kartları tek tek gösterip gizleyebilir ve sıralarını değiştirebilirsin. Bu düzen yalnızca senin hesabında saklanır.</Text>
             {homeOrder.map((section, index) => {
               const hidden = hiddenHomeSections.includes(section);
               return (
