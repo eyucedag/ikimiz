@@ -41,11 +41,11 @@ export function CategoryTile({ category, width }: CategoryTileProps) {
 
 const styles = StyleSheet.create({
   tile: { padding: spacing.xs },
-  surface: { minHeight: 112, padding: spacing.md, flexDirection: 'row', alignItems: 'center', borderRadius: radius.card, borderWidth: 1, borderColor: 'rgba(164,175,159,0.35)', backgroundColor: 'rgba(58,67,61,0.96)', overflow: 'hidden', ...shadow },
+  surface: { minHeight: 112, padding: spacing.md, flexDirection: 'row', alignItems: 'center', borderRadius: radius.card, borderWidth: 1, borderColor: 'rgba(105,124,108,0.3)', backgroundColor: colors.card, overflow: 'hidden', ...shadow },
   copy: { zIndex: 1, width: '67%', alignItems: 'flex-start', gap: spacing.xs },
-  icon: { width: 30, height: 30, flexShrink: 0, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(233,154,105,0.13)' },
+  icon: { width: 30, height: 30, flexShrink: 0, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentLight },
   iconImage: { width: 23, height: 23 },
-  title: { fontSize: fontSize.sm, lineHeight: 18, fontWeight: '600', color: colors.cream },
+  title: { fontSize: fontSize.sm, lineHeight: 18, fontWeight: '600', color: colors.text },
   illustration: { position: 'absolute', width: 84, height: 84, right: -5, bottom: -7, opacity: 0.94 },
   pressed: { opacity: 0.85, transform: [{ scale: 0.985 }] },
 });

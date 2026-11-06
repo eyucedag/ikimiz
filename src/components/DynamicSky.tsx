@@ -74,7 +74,7 @@ export function DynamicSky({ children, compact = false }: DynamicSkyProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { width: '100%', maxWidth: 620, minHeight: 190, aspectRatio: 1.95, alignSelf: 'center', borderRadius: 22, overflow: 'hidden', justifyContent: 'flex-start', marginBottom: 18, backgroundColor: colors.background },
+  container: { width: '100%', maxWidth: 620, minHeight: 355, aspectRatio: 1.75, alignSelf: 'center', borderRadius: 22, overflow: 'hidden', justifyContent: 'flex-start', marginBottom: 18, backgroundColor: colors.background },
   compactContainer: { minHeight: 142, aspectRatio: 2.2, marginBottom: spacing.lg },
   image: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
   readabilityScrim: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(32, 35, 33, 0.08)' },

@@ -203,6 +203,15 @@ export default function TodayScreen() {
         ) : null}
       </View>
       {direction.error ? <Text style={styles.directionHint}>{direction.error}</Text> : direction.anySharing ? <Text style={styles.directionHint}>{direction.bothSharing ? 'İkinizin konumu açık.' : 'Konum paylaşımı açık; yön için ikiniz de açın.'}</Text> : null}
+      <MoodSummaryCard
+        today={moods.today}
+        partnerToday={moods.partnerToday}
+        partnerName={couple.partner?.displayName ?? 'Partneriniz'}
+        paired={couple.isPaired}
+        loading={moods.loading || couple.loading}
+        error={moods.error}
+        onPress={() => router.push('/mood')}
+      />
       </DynamicSky>
 
       <Card style={[styles.section, styles.compactCard, styles.songCard, { borderColor: songColor.color, borderWidth: 1 }]}>
@@ -276,16 +285,6 @@ export default function TodayScreen() {
           </>
         )}
       </Card>
-
-      <MoodSummaryCard
-        today={moods.today}
-        partnerToday={moods.partnerToday}
-        partnerName={couple.partner?.displayName ?? 'Partneriniz'}
-        paired={couple.isPaired}
-        loading={moods.loading || couple.loading}
-        error={moods.error}
-        onPress={() => router.push('/mood')}
-      />
 
       {/* Yaklaşanlar */}
       <Card style={[styles.section, styles.compactCard, { borderColor: calendarColor.color, borderWidth: 1 }]}>
@@ -405,6 +404,6 @@ const styles = StyleSheet.create({
   quickItem: { width: '25%', alignItems: 'center', paddingHorizontal: spacing.xs },
   quickIcon: { width: 48, height: 48, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
   quickIconImage: { width: 35, height: 35 },
-  quickTitle: { marginTop: spacing.xs, textAlign: 'center', fontSize: fontSize.xs, color: colors.cream, fontWeight: '500', lineHeight: 15 },
+  quickTitle: { marginTop: spacing.xs, textAlign: 'center', fontSize: fontSize.xs, color: colors.text, fontWeight: '500', lineHeight: 15 },
   pressed: { opacity: 0.8 },
 });
