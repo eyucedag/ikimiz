@@ -470,6 +470,7 @@ export default function TodayScreen() {
   return (
       <Screen inTabs scroll={false}>
       <DraggableFlatList
+        containerStyle={styles.draggableContainer}
         style={styles.draggableList}
         data={homeCategoryOrder}
         keyExtractor={(slug) => slug}
@@ -531,6 +532,7 @@ const styles = StyleSheet.create({
   identityText: { flex: 1, minWidth: 0 },
   layoutEditButton: { width: 32, height: 32, flexShrink: 0, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, marginLeft: spacing.xs },
   layoutEditButtonActive: { backgroundColor: colors.accent, borderColor: colors.accent },
+  draggableContainer: { width: '100%', flex: 1 },
   draggableList: { width: '100%', flex: 1 },
   draggableListContent: { width: '100%', paddingBottom: spacing.xxxl },
   draggableHomeItem: { width: '100%', alignSelf: 'stretch' },
