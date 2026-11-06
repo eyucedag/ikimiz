@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, Alert, Image, Linking, Modal, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
@@ -21,6 +22,15 @@ import { greeting, relativeTime, todayLabel } from '@/src/utils/date';
 import { useCoupleDirection } from '@/src/hooks/useCoupleDirection';
 import { useAutomaticNearbySteps } from '@/src/hooks/useAutomaticNearbySteps';
 
+type HomeSection = 'song' | 'partner-note' | 'upcoming' | 'quick-access';
+const DEFAULT_HOME_ORDER: HomeSection[] = ['song', 'partner-note', 'upcoming', 'quick-access'];
+const HOME_SECTION_TITLES: Record<HomeSection, string> = {
+  song: 'Günün Şarkısı',
+  'partner-note': 'Partnerinden Not',
+  upcoming: 'Yaklaşanlar',
+  'quick-access': 'Hızlı Erişim',
+};
+
 export default function TodayScreen() {
   const noteColor = getCategoryColor('ekrana-not');
   const calendarColor = getCategoryColor('takvim');
@@ -33,12 +43,37 @@ export default function TodayScreen() {
   const { upcoming, refreshNotifications } = useAppState();
   const { width, height } = useWindowDimensions();
   const [refreshing, setRefreshing] = useState(false);
+  const [homeLayoutVisible, setHomeLayoutVisible] = useState(false);
+  const [homeOrder, setHomeOrder] = useState<HomeSection[]>(DEFAULT_HOME_ORDER);
+  const [hiddenHomeSections, setHiddenHomeSections] = useState<HomeSection[]>([]);
+  const [showHomeMood, setShowHomeMood] = useState(true);
   const [photoVisible, setPhotoVisible] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [todaySong, setTodaySong] = useState<{ title: string; artist: string; url: string } | null>(null);
   const direction = useCoupleDirection(couple.couple?.id, user?.id, couple.partner?.id);
   useAutomaticNearbySteps(user?.id, couple.couple?.id, couple.partner?.id);
   const [now, setNow] = useState(Date.now());
+  const homeLayoutStorageKey = user?.id ? `@ikimiz/home-layout:${user.id}` : null;
+
+  useEffect(() => {
+    let cancelled = false;
+    setHomeOrder(DEFAULT_HOME_ORDER);
+    setHiddenHomeSections([]);
+    setShowHomeMood(true);
+    if (!homeLayoutStorageKey) return () => { cancelled = true; };
+    void AsyncStorage.getItem(homeLayoutStorageKey).then((saved) => {
+      if (cancelled || !saved) return;
+      try {
+        const parsed = JSON.parse(saved) as { order?: unknown; hidden?: unknown; showMood?: unknown };
+        const valid = (value: unknown): value is HomeSection => typeof value === 'string' && DEFAULT_HOME_ORDER.includes(value as HomeSection);
+        const savedOrder = Array.isArray(parsed.order) ? parsed.order.filter(valid) : [];
+        setHomeOrder([...savedOrder, ...DEFAULT_HOME_ORDER.filter((section) => !savedOrder.includes(section))]);
+        setHiddenHomeSections(Array.isArray(parsed.hidden) ? parsed.hidden.filter(valid) : []);
+        setShowHomeMood(parsed.showMood !== false);
+      } catch { /* Ignore outdated or invalid local preferences. */ }
+    }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [homeLayoutStorageKey]);
   const songDate = useMemo(() => {
     const date = new Date();
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -101,6 +136,150 @@ export default function TodayScreen() {
     { title: 'Gezilen Yerler', icon: auroraIcons.places, route: '/travel-map' },
     { title: 'Görevler', icon: auroraIcons.tasks, route: '/tasks' },
   ];
+
+  const persistHomeLayout = (order: HomeSection[], hidden: HomeSection[], showMood: boolean) => {
+    setHomeOrder(order);
+    setHiddenHomeSections(hidden);
+    setShowHomeMood(showMood);
+    if (homeLayoutStorageKey) {
+      void AsyncStorage.setItem(homeLayoutStorageKey, JSON.stringify({ order, hidden, showMood }))
+        .catch(() => Alert.alert('Düzen kaydedilemedi', 'Ana ekran düzeni bu cihaza kaydedilemedi.'));
+    }
+  };
+
+  const moveHomeSection = (section: HomeSection, offset: -1 | 1) => {
+    const index = homeOrder.indexOf(section);
+    const target = index + offset;
+    if (index < 0 || target < 0 || target >= homeOrder.length) return;
+    const next = [...homeOrder];
+    [next[index], next[target]] = [next[target], next[index]];
+    persistHomeLayout(next, hiddenHomeSections, showHomeMood);
+  };
+
+  const toggleHomeSection = (section: HomeSection) => {
+    const next = hiddenHomeSections.includes(section)
+      ? hiddenHomeSections.filter((item) => item !== section)
+      : [...hiddenHomeSections, section];
+    persistHomeLayout(homeOrder, next, showHomeMood);
+  };
+
+  const renderHomeSection = (section: HomeSection): React.ReactNode => {
+    switch (section) {
+      case 'song': return (<>
+      <Card style={[styles.section, styles.compactCard, styles.songCard, { borderColor: songColor.color, borderWidth: 1 }]}>
+        <View>
+          <Pressable onPress={() => router.push('/song-of-the-day')} accessibilityRole="button" accessibilityLabel="Günün Şarkısı sayfasını aç" style={styles.upcomingCompact}>
+            <View style={[styles.upcomingIcon, { backgroundColor: songColor.tint }]}><Feather name="music" size={18} color={songColor.color} /></View>
+            <View style={styles.upcomingCopy}>
+              <Text style={styles.upcomingDescription}>Günün Şarkısı</Text>
+              {todaySong ? <>
+                <Text style={styles.songCardTitle} numberOfLines={1}>{todaySong.title}</Text>
+                <Text style={styles.songCardArtist} numberOfLines={1}>{todaySong.artist}</Text>
+              </> : <Text style={styles.upcomingTitle} numberOfLines={1}>Bugün birbirinize bir şarkı seçin.</Text>}
+            </View>
+            <Feather name="chevron-right" size={18} color={songColor.color} />
+          </Pressable>
+          {todaySong?.url ? <Button title="Şarkıyı dinle" icon="play" toneColor={songColor.color} onPress={() => { void listenToTodaySong(); }} compact style={styles.cardActionButton} /> : null}
+        </View>
+      </Card>
+
+
+      </>);
+      case 'partner-note': return (<>
+      {/* Partnerinden Not */}
+      <Card style={[styles.section, styles.compactCard, styles.noteCard, { borderColor: noteColor.color, borderWidth: 1 }]}>
+        {couple.loading ? (
+          <View style={styles.noteHeader}><Text style={styles.noteHeaderTitle}>Partnerinden Not</Text><ActivityIndicator color={noteColor.color} /></View>
+        ) : couple.isPaired ? (
+          <>
+            <View style={styles.noteHeader}>
+              <Text style={styles.noteHeaderTitle}>Partnerinden Not</Text>
+              <View style={styles.noteHeaderActions}>
+                <View style={styles.allNotesAction}>
+                  <Pressable onPress={() => router.push('/screen-note/history')} accessibilityRole="button" accessibilityLabel="Bütün notları gör" style={[styles.allNotesButton, { backgroundColor: noteColor.tint }]}>
+                    <Feather name="list" size={15} color={noteColor.color} />
+                  </Pressable>
+                  <Text style={[styles.allNotesLabel, { color: noteColor.color }]}>Bütün Notlar</Text>
+                </View>
+              </View>
+            </View>
+            {latestFromPartner ? (
+              <View style={[styles.note, { backgroundColor: latestFromPartner.backgroundColor }]}>
+                {latestFromPartner.emoji ? <Text style={styles.noteEmoji}>{latestFromPartner.emoji}</Text> : null}
+                <Text style={styles.noteText} numberOfLines={2}>{latestFromPartner.text}</Text>
+                <Text style={styles.noteMeta}>
+                  {couple.partner?.displayName} · {relativeTime(latestFromPartner.createdAt)}
+                </Text>
+              </View>
+            ) : (
+              <Text style={styles.muted}>{couple.partner?.displayName} henüz bir not bırakmadı.</Text>
+            )}
+            <Button title="Not Yaz" icon="edit-3" toneColor={noteColor.color} onPress={() => router.push('/screen-note/compose')} compact style={styles.cardActionButton} />
+          </>
+        ) : (
+          <>
+            <View style={styles.noteHeader}><Text style={styles.noteHeaderTitle}>Partnerinden Not</Text></View>
+            <View style={styles.connectRow}>
+              <View style={[styles.connectIcon, { backgroundColor: noteColor.tint }]}>
+                <Feather name="link" size={20} color={noteColor.color} />
+              </View>
+              <Text style={styles.connectText}>
+                {couple.pendingInvitation
+                  ? `Davet kodunuz ${couple.pendingInvitation.code} partnerinizin onayını bekliyor.`
+                  : 'Partnerinizle bağlandığınızda bıraktığı notlar burada görünür.'}
+              </Text>
+            </View>
+            {couple.pendingInvitation ? (
+              <Button title="Davet Durumunu Gör" toneColor={noteColor.color} onPress={() => router.push('/couple/invite')} style={styles.cardActionButton} />
+            ) : (
+              <View style={styles.buttonRow}>
+                <Button title="Davet Et" icon="send" toneColor={noteColor.color} onPress={() => router.push('/couple/invite')} style={styles.flex} />
+                <Button title="Kodum Var" variant="secondary" toneColor={noteColor.color} onPress={() => router.push('/couple/accept')} style={styles.flex} />
+              </View>
+            )}
+          </>
+        )}
+      </Card>
+
+
+      </>);
+      case 'upcoming': return (<>
+      {/* Yaklaşanlar */}
+      <Card style={[styles.section, styles.compactCard, { borderColor: calendarColor.color, borderWidth: 1 }]}>
+        <SectionHeader title="Yaklaşanlar" compact />
+        {upcoming.length === 0 ? (
+          <Pressable onPress={() => router.push('/calendar')} accessibilityRole="button" accessibilityLabel="Takvimi aç" style={styles.upcomingCompact}>
+            <View style={[styles.upcomingIcon, { backgroundColor: calendarColor.tint }]}><Feather name="sun" size={18} color={calendarColor.color} /></View>
+            <View style={styles.upcomingCopy}><Text style={styles.upcomingTitle}>Önünüz açık</Text><Text style={styles.upcomingDescription} numberOfLines={1}>Yeni planlar burada görünecek.</Text></View>
+            <Feather name="chevron-right" size={18} color={calendarColor.color} />
+          </Pressable>
+        ) : (
+          upcoming.slice(0, 2).map((item) => (
+            <View key={item.id} style={styles.upcomingRow}>
+              <Text style={styles.upcomingTitle}>{item.title}</Text>
+              <Text style={styles.muted}>{item.subtitle}</Text>
+            </View>
+          ))
+        )}
+      </Card>
+
+
+      </>);
+      case 'quick-access': return (<>
+      <SectionHeader title="Hızlı Erişim" actionLabel="Tümü" onAction={() => router.push('/categories')} />
+      <View style={styles.quickGrid}>
+        {quickAccess.map((item) => (
+          <Pressable key={item.title} onPress={() => router.push(item.route)} accessibilityRole="button" accessibilityLabel={item.title} style={({ pressed }) => [styles.quickItem, pressed && styles.pressed]}>
+            <View style={styles.quickIcon}><Image source={item.icon} style={styles.quickIconImage} resizeMode="contain" tintColor={colors.copper} /></View>
+            <Text numberOfLines={2} style={styles.quickTitle}>{item.title}</Text>
+          </Pressable>
+        ))}
+      </View>
+
+      </>);
+      default: return null;
+    }
+  };
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -165,7 +344,7 @@ export default function TodayScreen() {
   };
 
   return (
-    <Screen inTabs scroll={height < 780} refreshing={refreshing} onRefresh={onRefresh}>
+      <Screen inTabs scroll={height < 780} refreshing={refreshing} onRefresh={onRefresh}>
       <View style={styles.responsiveContent}>
       <DynamicSky treeContent={couple.isPaired ? (
         <View style={styles.treeControls}>
@@ -186,7 +365,7 @@ export default function TodayScreen() {
           <Text style={styles.directionHintOverlay} numberOfLines={1}>
             {direction.error || (direction.bothSharing ? 'İkinizin konumu açık.' : direction.sharing ? 'Konumunuz açık; partneriniz de açınca yönü göreceksiniz.' : direction.anySharing ? 'Partnerinizin konumu açık; yön için siz de açın.' : ' ')}
           </Text>
-          <MoodSummaryCard
+          {showHomeMood ? <MoodSummaryCard
             today={moods.today}
             partnerToday={moods.partnerToday}
             partnerName={couple.partner?.displayName ?? 'Partneriniz'}
@@ -196,7 +375,7 @@ export default function TodayScreen() {
             onPress={() => router.push('/mood')}
             compact
             overlay
-          />
+          /> : null}
         </View>
       ) : null}>
       <View style={styles.header}>
@@ -217,110 +396,59 @@ export default function TodayScreen() {
             {togetherDuration ? <View style={styles.durationPill}><Text style={styles.duration}>{togetherDuration}</Text></View> : couple.isPaired ? <Text style={styles.durationMissing}>Birlikte olduğunuz zamanı profilden ekleyin</Text> : null}
           </View>
         </View>
-
+        <Pressable onPress={() => setHomeLayoutVisible(true)} accessibilityRole="button" accessibilityLabel="Ana ekranı düzenle" style={styles.layoutEditButton}>
+          <Feather name="sliders" size={18} color={colors.cream} />
+        </Pressable>
       </View>
       </DynamicSky>
 
-      <Card style={[styles.section, styles.compactCard, styles.songCard, { borderColor: songColor.color, borderWidth: 1 }]}>
-        <View>
-          <Pressable onPress={() => router.push('/song-of-the-day')} accessibilityRole="button" accessibilityLabel="Günün Şarkısı sayfasını aç" style={styles.upcomingCompact}>
-            <View style={[styles.upcomingIcon, { backgroundColor: songColor.tint }]}><Feather name="music" size={18} color={songColor.color} /></View>
-            <View style={styles.upcomingCopy}>
-              <Text style={styles.upcomingDescription}>Günün Şarkısı</Text>
-              {todaySong ? <>
-                <Text style={styles.songCardTitle} numberOfLines={1}>{todaySong.title}</Text>
-                <Text style={styles.songCardArtist} numberOfLines={1}>{todaySong.artist}</Text>
-              </> : <Text style={styles.upcomingTitle} numberOfLines={1}>Bugün birbirinize bir şarkı seçin.</Text>}
+      {homeOrder.filter((section) => !hiddenHomeSections.includes(section)).map((section) => (
+        <React.Fragment key={section}>{renderHomeSection(section)}</React.Fragment>
+      ))}
+      <Modal visible={homeLayoutVisible} transparent animationType="slide" onRequestClose={() => setHomeLayoutVisible(false)}>
+        <View style={styles.homeLayoutBackdrop}>
+          <View style={styles.homeLayoutSheet}>
+            <View style={styles.homeLayoutHeader}>
+              <Text style={styles.homeLayoutTitle}>Ana ekranı düzenle</Text>
+              <Pressable onPress={() => setHomeLayoutVisible(false)} accessibilityRole="button" accessibilityLabel="Düzenlemeyi kapat" style={styles.homeLayoutClose}>
+                <Feather name="x" size={20} color={colors.text} />
+              </Pressable>
             </View>
-            <Feather name="chevron-right" size={18} color={songColor.color} />
-          </Pressable>
-          {todaySong?.url ? <Button title="Şarkıyı dinle" icon="play" toneColor={songColor.color} onPress={() => { void listenToTodaySong(); }} compact style={styles.cardActionButton} /> : null}
-        </View>
-      </Card>
-
-      {/* Partnerinden Not */}
-      <Card style={[styles.section, styles.compactCard, styles.noteCard, { borderColor: noteColor.color, borderWidth: 1 }]}>
-        {couple.loading ? (
-          <View style={styles.noteHeader}><Text style={styles.noteHeaderTitle}>Partnerinden Not</Text><ActivityIndicator color={noteColor.color} /></View>
-        ) : couple.isPaired ? (
-          <>
-            <View style={styles.noteHeader}>
-              <Text style={styles.noteHeaderTitle}>Partnerinden Not</Text>
-              <View style={styles.noteHeaderActions}>
-                <View style={styles.allNotesAction}>
-                  <Pressable onPress={() => router.push('/screen-note/history')} accessibilityRole="button" accessibilityLabel="Bütün notları gör" style={[styles.allNotesButton, { backgroundColor: noteColor.tint }]}>
-                    <Feather name="list" size={15} color={noteColor.color} />
-                  </Pressable>
-                  <Text style={[styles.allNotesLabel, { color: noteColor.color }]}>Bütün Notlar</Text>
+            <Text style={styles.homeLayoutDescription}>Bölümleri gösterip gizleyebilir ve sıralarını değiştirebilirsin. Bu düzen yalnızca senin hesabında saklanır.</Text>
+            <View style={styles.homeLayoutRow}>
+              <Text style={styles.homeLayoutRowTitle}>Ruh Halim · Manzara</Text>
+              <Pressable onPress={() => persistHomeLayout(homeOrder, hiddenHomeSections, !showHomeMood)} accessibilityRole="button" accessibilityLabel={showHomeMood ? 'Ruh Halini gizle' : 'Ruh Halini göster'} style={styles.homeLayoutIconButton}>
+                <Feather name={showHomeMood ? 'eye' : 'eye-off'} size={18} color={colors.accent} />
+              </Pressable>
+            </View>
+            {homeOrder.map((section, index) => {
+              const hidden = hiddenHomeSections.includes(section);
+              return (
+                <View key={section} style={[styles.homeLayoutRow, hidden && styles.homeLayoutRowHidden]}>
+                  <Text style={[styles.homeLayoutRowTitle, hidden && styles.homeLayoutTextHidden]}>{HOME_SECTION_TITLES[section]}</Text>
+                  <View style={styles.homeLayoutActions}>
+                    <Pressable onPress={() => moveHomeSection(section, -1)} disabled={index === 0} accessibilityRole="button" accessibilityLabel={`${HOME_SECTION_TITLES[section]} bölümünü yukarı taşı`} style={styles.homeLayoutIconButton}>
+                      <Feather name="chevron-up" size={19} color={index === 0 ? colors.textTertiary : colors.accent} />
+                    </Pressable>
+                    <Pressable onPress={() => moveHomeSection(section, 1)} disabled={index === homeOrder.length - 1} accessibilityRole="button" accessibilityLabel={`${HOME_SECTION_TITLES[section]} bölümünü aşağı taşı`} style={styles.homeLayoutIconButton}>
+                      <Feather name="chevron-down" size={19} color={index === homeOrder.length - 1 ? colors.textTertiary : colors.accent} />
+                    </Pressable>
+                    <Pressable onPress={() => toggleHomeSection(section)} accessibilityRole="button" accessibilityLabel={hidden ? `${HOME_SECTION_TITLES[section]} bölümünü göster` : `${HOME_SECTION_TITLES[section]} bölümünü gizle`} style={styles.homeLayoutIconButton}>
+                      <Feather name={hidden ? 'eye-off' : 'eye'} size={18} color={colors.accent} />
+                    </Pressable>
+                  </View>
                 </View>
-              </View>
+              );
+            })}
+            <View style={styles.homeLayoutFooter}>
+              <Pressable onPress={() => persistHomeLayout(DEFAULT_HOME_ORDER, [], true)} accessibilityRole="button" style={styles.homeLayoutReset}>
+                <Text style={styles.homeLayoutResetText}>Varsayılana dön</Text>
+              </Pressable>
+              <Button title="Tamam" compact onPress={() => setHomeLayoutVisible(false)} style={styles.homeLayoutDone} />
             </View>
-            {latestFromPartner ? (
-              <View style={[styles.note, { backgroundColor: latestFromPartner.backgroundColor }]}>
-                {latestFromPartner.emoji ? <Text style={styles.noteEmoji}>{latestFromPartner.emoji}</Text> : null}
-                <Text style={styles.noteText} numberOfLines={2}>{latestFromPartner.text}</Text>
-                <Text style={styles.noteMeta}>
-                  {couple.partner?.displayName} · {relativeTime(latestFromPartner.createdAt)}
-                </Text>
-              </View>
-            ) : (
-              <Text style={styles.muted}>{couple.partner?.displayName} henüz bir not bırakmadı.</Text>
-            )}
-            <Button title="Not Yaz" icon="edit-3" toneColor={noteColor.color} onPress={() => router.push('/screen-note/compose')} compact style={styles.cardActionButton} />
-          </>
-        ) : (
-          <>
-            <View style={styles.noteHeader}><Text style={styles.noteHeaderTitle}>Partnerinden Not</Text></View>
-            <View style={styles.connectRow}>
-              <View style={[styles.connectIcon, { backgroundColor: noteColor.tint }]}>
-                <Feather name="link" size={20} color={noteColor.color} />
-              </View>
-              <Text style={styles.connectText}>
-                {couple.pendingInvitation
-                  ? `Davet kodunuz ${couple.pendingInvitation.code} partnerinizin onayını bekliyor.`
-                  : 'Partnerinizle bağlandığınızda bıraktığı notlar burada görünür.'}
-              </Text>
-            </View>
-            {couple.pendingInvitation ? (
-              <Button title="Davet Durumunu Gör" toneColor={noteColor.color} onPress={() => router.push('/couple/invite')} style={styles.cardActionButton} />
-            ) : (
-              <View style={styles.buttonRow}>
-                <Button title="Davet Et" icon="send" toneColor={noteColor.color} onPress={() => router.push('/couple/invite')} style={styles.flex} />
-                <Button title="Kodum Var" variant="secondary" toneColor={noteColor.color} onPress={() => router.push('/couple/accept')} style={styles.flex} />
-              </View>
-            )}
-          </>
-        )}
-      </Card>
-
-      {/* Yaklaşanlar */}
-      <Card style={[styles.section, styles.compactCard, { borderColor: calendarColor.color, borderWidth: 1 }]}>
-        <SectionHeader title="Yaklaşanlar" compact />
-        {upcoming.length === 0 ? (
-          <Pressable onPress={() => router.push('/calendar')} accessibilityRole="button" accessibilityLabel="Takvimi aç" style={styles.upcomingCompact}>
-            <View style={[styles.upcomingIcon, { backgroundColor: calendarColor.tint }]}><Feather name="sun" size={18} color={calendarColor.color} /></View>
-            <View style={styles.upcomingCopy}><Text style={styles.upcomingTitle}>Önünüz açık</Text><Text style={styles.upcomingDescription} numberOfLines={1}>Yeni planlar burada görünecek.</Text></View>
-            <Feather name="chevron-right" size={18} color={calendarColor.color} />
-          </Pressable>
-        ) : (
-          upcoming.slice(0, 2).map((item) => (
-            <View key={item.id} style={styles.upcomingRow}>
-              <Text style={styles.upcomingTitle}>{item.title}</Text>
-              <Text style={styles.muted}>{item.subtitle}</Text>
-            </View>
-          ))
-        )}
-      </Card>
-
-      <SectionHeader title="Hızlı Erişim" actionLabel="Tümü" onAction={() => router.push('/categories')} />
-      <View style={styles.quickGrid}>
-        {quickAccess.map((item) => (
-          <Pressable key={item.title} onPress={() => router.push(item.route)} accessibilityRole="button" accessibilityLabel={item.title} style={({ pressed }) => [styles.quickItem, pressed && styles.pressed]}>
-            <View style={styles.quickIcon}><Image source={item.icon} style={styles.quickIconImage} resizeMode="contain" tintColor={colors.copper} /></View>
-            <Text numberOfLines={2} style={styles.quickTitle}>{item.title}</Text>
-          </Pressable>
-        ))}
-      </View>
+          </View>
+        </View>
+      </Modal>
       <Modal visible={photoVisible} transparent animationType="fade" onRequestClose={() => setPhotoVisible(false)}>
         <View style={styles.photoModalBackdrop}>
           <Pressable onPress={() => setPhotoVisible(false)} accessibilityRole="button" accessibilityLabel="Fotoğrafı kapat" style={styles.photoClose}>
@@ -353,11 +481,11 @@ const styles = StyleSheet.create({
   header: { marginTop: spacing.xs, marginBottom: spacing.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   identityRow: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   identityText: { flex: 1, minWidth: 0 },
+  layoutEditButton: { width: 38, height: 38, flexShrink: 0, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(41,47,44,0.68)', borderWidth: 1, borderColor: 'rgba(246,233,215,0.4)', marginLeft: spacing.xs },
   treeControls: { width: '100%', alignItems: 'center', gap: 1 },
   directionButton: { minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingHorizontal: spacing.md, marginBottom: 2, borderRadius: 20, backgroundColor: 'rgba(41,47,44,0.82)', borderWidth: 1, borderColor: 'rgba(246,233,215,0.52)', transform: [{ translateY: 14 }] },
   directionLabel: { color: colors.cream, fontSize: fontSize.sm, fontWeight: '700' },
   directionHintOverlay: { width: '100%', height: 15, lineHeight: 12, maxWidth: '100%', marginBottom: 3, textAlign: 'center', color: colors.cream, fontSize: 10, textShadowColor: 'rgba(8,45,37,0.96)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3, transform: [{ translateY: 14 }] },
-  directionHint: { color: colors.cream, fontSize: fontSize.xs, marginLeft: 68, marginTop: -spacing.lg, marginBottom: spacing.sm },
   couplePhoto: { width: 54, height: 54, borderRadius: 27, borderWidth: 2, borderColor: colors.copper },
   photoPlaceholder: { width: 54, height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(41,47,44,0.78)', borderWidth: 1.5, borderColor: colors.copper },
   photoModalBackdrop: { flex: 1, backgroundColor: 'rgba(8,22,19,0.96)', alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
@@ -415,5 +543,21 @@ const styles = StyleSheet.create({
   quickIcon: { width: 48, height: 48, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
   quickIconImage: { width: 35, height: 35 },
   quickTitle: { marginTop: spacing.xs, textAlign: 'center', fontSize: fontSize.xs, color: colors.text, fontWeight: '500', lineHeight: 15 },
+  homeLayoutBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(10,20,18,0.58)', paddingHorizontal: spacing.md, paddingBottom: spacing.md },
+  homeLayoutSheet: { width: '100%', maxWidth: 540, alignSelf: 'center', borderRadius: radius.card, padding: spacing.md, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  homeLayoutHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.xs },
+  homeLayoutTitle: { color: colors.text, fontSize: fontSize.lg, fontWeight: '700' },
+  homeLayoutClose: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 17, backgroundColor: colors.beige },
+  homeLayoutDescription: { color: colors.textSecondary, fontSize: fontSize.xs, lineHeight: 17, marginBottom: spacing.sm },
+  homeLayoutRow: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingVertical: 4 },
+  homeLayoutRowHidden: { opacity: 0.62 },
+  homeLayoutRowTitle: { flex: 1, color: colors.text, fontSize: fontSize.sm, fontWeight: '600' },
+  homeLayoutTextHidden: { color: colors.textSecondary },
+  homeLayoutActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  homeLayoutIconButton: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 17, backgroundColor: colors.beige },
+  homeLayoutFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.sm },
+  homeLayoutReset: { minHeight: 40, justifyContent: 'center', paddingHorizontal: spacing.xs },
+  homeLayoutResetText: { color: colors.accent, fontSize: fontSize.sm, fontWeight: '700' },
+  homeLayoutDone: { minWidth: 112 },
   pressed: { opacity: 0.8 },
 });
