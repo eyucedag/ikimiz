@@ -137,7 +137,7 @@ export default function TodayScreen() {
     const hours = Math.floor((elapsed % 86400) / 3600);
     const minutes = Math.floor((elapsed % 3600) / 60);
     const seconds = elapsed % 60;
-    return `${days} gün ${hours} saat ${minutes} dakika ${seconds} saniye`;
+    return { compact: `${days} gün · ${hours} sa · ${minutes} dk · ${seconds} sn`, full: `${days} gün ${hours} saat ${minutes} dakika ${seconds} saniye` };
   }, [couple.couple?.relationshipStartedAt, now]);
 
   useFocusEffect(useCallback(() => {
@@ -416,7 +416,10 @@ export default function TodayScreen() {
   const listHeader = (
     <View style={styles.responsiveContent}>
       <View style={styles.homeTopBar}>
-        <Text style={styles.homeTopTitle} accessibilityRole="header">İkimiz</Text>
+        <View style={styles.homeTopTitleGroup}>
+          <Text style={styles.homeTopTitle} accessibilityRole="header">İkimiz</Text>
+          {togetherDuration ? <View style={styles.durationTopPill} accessibilityLabel={togetherDuration.full}><Text style={styles.durationTopText} numberOfLines={1} adjustsFontSizeToFit>{togetherDuration.compact}</Text></View> : null}
+        </View>
         <View style={styles.homeTopActions}>
           <Pressable onPress={() => void sendKissFromHome()} accessibilityRole="button" accessibilityLabel="Partnerinize öpücük gönder" style={styles.kissTopButton} disabled={sendingKiss}>
             {sendingKiss ? <ActivityIndicator color={colors.copper} size="small" /> : <Text style={styles.kissTopEmoji}>💋</Text>}
@@ -461,7 +464,6 @@ export default function TodayScreen() {
           <View style={styles.identityText}>
             <Text style={styles.subtitle}>{greeting(new Date(now))}, {user?.displayName}</Text>
             <Text style={styles.dateLabel}>{todayLabel(new Date(now))}</Text>
-            {togetherDuration ? <View style={styles.durationPill}><Text style={styles.duration}>{togetherDuration}</Text></View> : couple.isPaired ? <Text style={styles.durationMissing}>Birlikte olduğunuz zamanı profilden ekleyin</Text> : null}
           </View>
         </View>
       </View>
@@ -534,10 +536,13 @@ export default function TodayScreen() {
 const styles = StyleSheet.create({
   responsiveContent: { width: '100%', maxWidth: 650, alignSelf: 'stretch' },
   homeTopBar: { minHeight: 38, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.xs },
+  homeTopTitleGroup: { minWidth: 0, flexShrink: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   homeTopActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   kissTopButton: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
   kissTopEmoji: { fontSize: 17, lineHeight: 21 },
   homeTopTitle: { color: colors.text, fontFamily: 'serif', fontSize: fontSize.xxl, fontWeight: '600' },
+  durationTopPill: { minWidth: 0, maxWidth: 250, flexShrink: 1, paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.pill, backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border },
+  durationTopText: { color: colors.textSecondary, fontSize: 9, fontWeight: '700' },
   header: { marginTop: spacing.xs, marginBottom: spacing.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   identityRow: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   identityText: { flex: 1, minWidth: 0 },
