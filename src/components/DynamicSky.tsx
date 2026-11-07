@@ -22,11 +22,11 @@ const skyImages: Record<SkyPhase, number> = {
 };
 const forestOverlay = require('../../assets/aurora/sky/forest_overlay.png');
 
-interface DynamicSkyProps { children: React.ReactNode; compact?: boolean; treeContent?: React.ReactNode; sceneContent?: React.ReactNode }
+interface DynamicSkyProps { children: React.ReactNode; compact?: boolean; treeContent?: React.ReactNode; sideContent?: React.ReactNode }
 
-export function DynamicSky({ children, compact = false, treeContent, sceneContent }: DynamicSkyProps) {
+export function DynamicSky({ children, compact = false, treeContent, sideContent }: DynamicSkyProps) {
   const { width: windowWidth } = useWindowDimensions();
-  const sceneWidth = Math.min(620, Math.max(260, windowWidth - 36));
+  const sceneWidth = Math.min(sideContent ? 500 : 620, Math.max(sideContent ? 190 : 260, windowWidth - 36 - (sideContent ? 86 : 0)));
   const skyHeight = compact
     ? Math.min(210, Math.max(150, sceneWidth * 0.38))
     : Math.min(350, Math.max(228, sceneWidth / 1.58 + 4));
@@ -68,20 +68,23 @@ export function DynamicSky({ children, compact = false, treeContent, sceneConten
   }, [phase, transitionOpacity]);
 
   return (
-    <View style={[styles.container, { height: skyHeight }, compact && styles.compactContainer]}>
+    <View style={[styles.sceneRow, { width: Math.min(710, windowWidth - 36, sceneWidth + (sideContent ? 92 : 0)) }]}>
+    <View style={[styles.container, { height: skyHeight, width: sideContent ? sceneWidth : '100%' }, compact && styles.compactContainer]}>
       <Image source={skyImages[phase]} resizeMode="cover" style={styles.image} accessibilityIgnoresInvertColors />
       {transitionFrom ? <Animated.Image pointerEvents="none" source={skyImages[transitionFrom]} resizeMode="cover" style={[styles.image, { opacity: transitionOpacity }]} /> : null}
       <View pointerEvents="none" style={styles.readabilityScrim} />
       <Image pointerEvents="none" source={forestOverlay} resizeMode="cover" style={[styles.image, styles.forestOverlay]} accessibilityIgnoresInvertColors />
       <View style={[styles.content, compact && styles.compactContent]}>{children}</View>
       {treeContent ? <View style={styles.treeContent}>{treeContent}</View> : null}
-      {sceneContent ? <View pointerEvents="box-none" style={styles.sceneContent}>{sceneContent}</View> : null}
+    </View>
+    {sideContent ? <View style={[styles.sideContent, { height: skyHeight }]}>{sideContent}</View> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { width: '100%', maxWidth: 620, alignSelf: 'center', borderRadius: 22, overflow: 'hidden', justifyContent: 'flex-start', marginBottom: 18, backgroundColor: colors.background },
+  sceneRow: { maxWidth: 710, alignSelf: 'center', flexDirection: 'row', alignItems: 'stretch', marginBottom: 18 },
+  container: { maxWidth: 620, alignSelf: 'center', borderRadius: 22, overflow: 'hidden', justifyContent: 'flex-start', backgroundColor: colors.background },
   compactContainer: { marginBottom: spacing.lg },
   image: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
   readabilityScrim: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(32, 35, 33, 0.08)' },
@@ -89,5 +92,5 @@ const styles = StyleSheet.create({
   content: { width: '100%', zIndex: 1, padding: 14, paddingBottom: 8 },
   compactContent: { padding: 14, paddingBottom: 24 },
   treeContent: { position: 'absolute', zIndex: 2, left: 14, right: 14, bottom: 8 },
-  sceneContent: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 3 },
+  sideContent: { flex: 1, minWidth: 72, maxWidth: 86, marginLeft: 6, justifyContent: 'center', alignItems: 'center' },
 });

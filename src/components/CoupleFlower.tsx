@@ -66,21 +66,24 @@ export function CoupleFlower({ coupleId }: { coupleId: string }) {
   const status = health < 20 ? 'Susadı' : health < 55 ? 'Biraz kuruyor' : 'Birlikte büyüyor';
 
   return (
-    <View style={styles.root} pointerEvents="box-none">
+    <View style={styles.root}>
       <Text style={styles.status}>{status}</Text>
       <View style={styles.plantArea}>
-        <View style={styles.stem} />
-        <Animated.View style={[styles.leaf, styles.leafLeftLow, { backgroundColor: leafColor, transform: [{ rotate: animatedHealth.interpolate({ inputRange: [0, 100], outputRange: ['-58deg', '-28deg'] }) }] }]} />
-        <Animated.View style={[styles.leaf, styles.leafRightLow, { backgroundColor: leafColor, transform: [{ rotate: animatedHealth.interpolate({ inputRange: [0, 100], outputRange: ['62deg', '28deg'] }) }] }]} />
-        <Animated.View style={[styles.leaf, styles.leafLeftHigh, { backgroundColor: leafColor, opacity: animatedHealth.interpolate({ inputRange: [0, 100], outputRange: [0.6, 1] }), transform: [{ rotate: animatedHealth.interpolate({ inputRange: [0, 100], outputRange: ['-66deg', '-35deg'] }) }] }]} />
-        <Animated.View style={[styles.leaf, styles.leafRightHigh, { backgroundColor: leafColor, opacity: animatedHealth.interpolate({ inputRange: [0, 100], outputRange: [0.6, 1] }), transform: [{ rotate: animatedHealth.interpolate({ inputRange: [0, 100], outputRange: ['67deg', '34deg'] }) }] }]} />
-        <Animated.View style={[styles.blossom, { opacity: flowerOpacity, transform: [{ scale: animatedHealth.interpolate({ inputRange: [0, 100], outputRange: [0.72, 1] }) }] }]}>
-          <View style={[styles.petal, styles.petalTop]} /><View style={[styles.petal, styles.petalRight]} /><View style={[styles.petal, styles.petalBottom]} /><View style={[styles.petal, styles.petalLeft]} />
-          <View style={styles.flowerCenter} />
-        </Animated.View>
-        <View style={styles.potRim} /><View style={styles.pot} />
+        <View style={styles.potRim} />
+        <View style={styles.pot} />
+        <View style={styles.shelf} />
+        <View style={styles.shelfBracket} />
+        <View style={styles.shelfBracketRight} />
+        <View style={[styles.vine, styles.vineLeft]} />
+        <View style={[styles.vine, styles.vineCenter]} />
+        <View style={[styles.vine, styles.vineRight]} />
+        <Animated.Text style={[styles.heartLeaf, styles.leaf1, { color: leafColor, opacity: flowerOpacity }]}>♥</Animated.Text>
+        <Animated.Text style={[styles.heartLeaf, styles.leaf2, { color: leafColor, opacity: flowerOpacity }]}>♥</Animated.Text>
+        <Animated.Text style={[styles.heartLeaf, styles.leaf3, { color: leafColor, opacity: flowerOpacity }]}>♥</Animated.Text>
+        <Animated.Text style={[styles.heartLeaf, styles.leaf4, { color: leafColor, opacity: flowerOpacity }]}>♥</Animated.Text>
+        <Animated.Text style={[styles.heartLeaf, styles.leaf5, { color: leafColor, opacity: flowerOpacity }]}>♥</Animated.Text>
+        <Animated.Text style={[styles.heartLeaf, styles.leaf6, { color: leafColor, opacity: flowerOpacity }]}>♥</Animated.Text>
       </View>
-      <View style={styles.shelf}><View style={styles.shelfBracket} /><View style={[styles.shelfBracket, styles.shelfBracketRight]} /></View>
       <Pressable onPress={() => { void water(); }} disabled={loading || watering} accessibilityRole="button" accessibilityLabel="Ortak çiçeği sula" style={({ pressed }) => [styles.waterButton, pressed && styles.pressed, (loading || watering) && styles.disabled]}>
         {loading || watering ? <ActivityIndicator size="small" color={colors.white} /> : <><Feather name="droplet" size={13} color={colors.white} /><Text style={styles.waterText}>Sula</Text></>}
       </Pressable>
@@ -89,28 +92,26 @@ export function CoupleFlower({ coupleId }: { coupleId: string }) {
 }
 
 const styles = StyleSheet.create({
-  root: { position: 'absolute', right: 8, top: '39%', width: 78, alignItems: 'center', zIndex: 5 },
-  status: { color: '#FFF9EB', fontSize: 9, lineHeight: 12, fontWeight: '700', textShadowColor: 'rgba(29,45,32,0.85)', textShadowRadius: 3, marginBottom: 2 },
-  plantArea: { width: 58, height: 79, alignItems: 'center', justifyContent: 'flex-end' },
-  stem: { position: 'absolute', bottom: 20, width: 3, height: 50, borderRadius: 2, backgroundColor: '#64804F' },
-  leaf: { position: 'absolute', width: 20, height: 10, borderRadius: 10 },
-  leafLeftLow: { left: 11, bottom: 34 },
-  leafRightLow: { right: 10, bottom: 40 },
-  leafLeftHigh: { left: 13, bottom: 49, width: 17, height: 9 },
-  leafRightHigh: { right: 13, bottom: 54, width: 17, height: 9 },
-  blossom: { position: 'absolute', top: 2, alignSelf: 'center', width: 24, height: 24 },
-  petal: { position: 'absolute', width: 10, height: 10, borderRadius: 6, backgroundColor: '#D987A7' },
-  petalTop: { top: 0, left: 7 },
-  petalRight: { top: 7, right: 0 },
-  petalBottom: { bottom: 0, left: 7 },
-  petalLeft: { top: 7, left: 0 },
-  flowerCenter: { position: 'absolute', top: 8, left: 8, width: 8, height: 8, borderRadius: 4, backgroundColor: '#F3C96F' },
-  potRim: { position: 'absolute', bottom: 21, width: 39, height: 6, borderRadius: 3, backgroundColor: '#D58B63', borderWidth: 1, borderColor: 'rgba(255,242,221,0.65)' },
-  pot: { position: 'absolute', bottom: 2, width: 32, height: 21, borderBottomLeftRadius: 9, borderBottomRightRadius: 9, backgroundColor: '#B96849', borderWidth: 1, borderTopWidth: 0, borderColor: 'rgba(255,242,221,0.5)' },
-  shelf: { width: 76, height: 6, borderRadius: 3, backgroundColor: '#987052', borderWidth: 1, borderColor: 'rgba(255,238,205,0.75)', shadowColor: '#18271F', shadowOpacity: 0.3, shadowRadius: 3, elevation: 3 },
-  shelfBracket: { position: 'absolute', top: 4, left: 13, width: 4, height: 7, backgroundColor: '#846348', borderBottomLeftRadius: 2, borderBottomRightRadius: 2 },
-  shelfBracketRight: { left: undefined, right: 13 },
-  waterButton: { minWidth: 58, height: 28, marginTop: 4, paddingHorizontal: 9, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, backgroundColor: 'rgba(67,111,80,0.92)', borderWidth: 1, borderColor: 'rgba(255,249,235,0.8)' },
+  root: { width: '100%', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 2 },
+  status: { color: colors.textSecondary, fontSize: 9, lineHeight: 12, fontWeight: '700', marginBottom: 3, textAlign: 'center' },
+  plantArea: { width: '100%', height: 148, alignItems: 'center', position: 'relative' },
+  potRim: { position: 'absolute', top: 25, width: 35, height: 6, borderRadius: 3, backgroundColor: '#D58B63', borderWidth: 1, borderColor: '#EBD2B6', zIndex: 4 },
+  pot: { position: 'absolute', top: 8, width: 29, height: 19, borderBottomLeftRadius: 8, borderBottomRightRadius: 8, backgroundColor: '#B96849', borderWidth: 1, borderTopWidth: 0, borderColor: '#EBD2B6', zIndex: 4 },
+  shelf: { position: 'absolute', top: 35, width: '94%', height: 6, borderRadius: 3, backgroundColor: '#987052', borderWidth: 1, borderColor: 'rgba(255,238,205,0.85)', shadowColor: '#18271F', shadowOpacity: 0.26, shadowRadius: 3, elevation: 3, zIndex: 3 },
+  shelfBracket: { position: 'absolute', top: 40, left: '20%', width: 4, height: 9, backgroundColor: '#846348', borderBottomLeftRadius: 2, borderBottomRightRadius: 2, zIndex: 2 },
+  shelfBracketRight: { position: 'absolute', top: 40, right: '20%', width: 4, height: 9, backgroundColor: '#846348', borderBottomLeftRadius: 2, borderBottomRightRadius: 2, zIndex: 2 },
+  vine: { position: 'absolute', top: 39, width: 2, height: 82, borderRadius: 1, backgroundColor: '#65834E', opacity: 0.9 },
+  vineLeft: { left: '31%', transform: [{ rotate: '8deg' }] },
+  vineCenter: { left: '50%', height: 100 },
+  vineRight: { right: '29%', transform: [{ rotate: '-8deg' }] },
+  heartLeaf: { position: 'absolute', fontSize: 17, lineHeight: 21, fontWeight: '700', textShadowColor: 'rgba(20,55,38,0.2)', textShadowRadius: 2 },
+  leaf1: { left: '19%', top: 58, transform: [{ rotate: '-24deg' }] },
+  leaf2: { left: '42%', top: 68, transform: [{ rotate: '20deg' }] },
+  leaf3: { right: '18%', top: 82, transform: [{ rotate: '18deg' }] },
+  leaf4: { left: '22%', top: 99, transform: [{ rotate: '18deg' }] },
+  leaf5: { left: '46%', top: 114, transform: [{ rotate: '-18deg' }] },
+  leaf6: { right: '22%', top: 119, transform: [{ rotate: '-18deg' }] },
+  waterButton: { minWidth: 58, height: 28, marginTop: 2, paddingHorizontal: 9, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, backgroundColor: colors.copper, borderWidth: 1, borderColor: 'rgba(255,249,235,0.8)' },
   waterText: { color: colors.white, fontSize: 11, fontWeight: '700' },
   pressed: { opacity: 0.75, transform: [{ scale: 0.96 }] },
   disabled: { opacity: 0.75 },

@@ -426,7 +426,7 @@ export default function TodayScreen() {
           </Pressable>
         </View>
       </View>
-      <DynamicSky sceneContent={couple.isPaired && couple.couple?.id ? <CoupleFlower coupleId={couple.couple.id} /> : null} treeContent={couple.isPaired ? (
+      <DynamicSky sideContent={couple.isPaired && couple.couple?.id ? <CoupleFlower coupleId={couple.couple.id} /> : null} treeContent={couple.isPaired ? (
         <View style={styles.treeControls}>
           <Pressable
             onPress={() => direction.sharing ? direction.stop() : void direction.start()}
