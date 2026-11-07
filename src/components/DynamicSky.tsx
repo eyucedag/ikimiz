@@ -26,7 +26,8 @@ interface DynamicSkyProps { children: React.ReactNode; compact?: boolean; treeCo
 
 export function DynamicSky({ children, compact = false, treeContent, sideContent }: DynamicSkyProps) {
   const { width: windowWidth } = useWindowDimensions();
-  const sceneWidth = Math.min(sideContent ? 500 : 620, Math.max(sideContent ? 190 : 260, windowWidth - 36 - (sideContent ? 86 : 0)));
+  const sideWidth = sideContent ? Math.min(110, Math.max(76, windowWidth * 0.27)) : 0;
+  const sceneWidth = Math.min(sideContent ? 500 : 620, Math.max(sideContent ? 176 : 260, windowWidth - 36 - (sideContent ? sideWidth + 6 : 0)));
   const skyHeight = compact
     ? Math.min(210, Math.max(150, sceneWidth * 0.38))
     : Math.min(350, Math.max(228, sceneWidth / 1.58 + 4));
@@ -68,7 +69,7 @@ export function DynamicSky({ children, compact = false, treeContent, sideContent
   }, [phase, transitionOpacity]);
 
   return (
-    <View style={[styles.sceneRow, { width: Math.min(710, windowWidth - 36, sceneWidth + (sideContent ? 92 : 0)) }]}>
+    <View style={[styles.sceneRow, { width: Math.min(710, windowWidth - 36, sceneWidth + (sideContent ? sideWidth + 6 : 0)) }]}>
     <View style={[styles.container, { height: skyHeight, width: sideContent ? sceneWidth : '100%' }, compact && styles.compactContainer]}>
       <Image source={skyImages[phase]} resizeMode="cover" style={styles.image} accessibilityIgnoresInvertColors />
       {transitionFrom ? <Animated.Image pointerEvents="none" source={skyImages[transitionFrom]} resizeMode="cover" style={[styles.image, { opacity: transitionOpacity }]} /> : null}
@@ -77,7 +78,7 @@ export function DynamicSky({ children, compact = false, treeContent, sideContent
       <View style={[styles.content, compact && styles.compactContent]}>{children}</View>
       {treeContent ? <View style={styles.treeContent}>{treeContent}</View> : null}
     </View>
-    {sideContent ? <View style={[styles.sideContent, { height: skyHeight }]}>{sideContent}</View> : null}
+    {sideContent ? <View style={[styles.sideContent, { height: skyHeight, width: sideWidth }]}>{sideContent}</View> : null}
     </View>
   );
 }
@@ -92,5 +93,5 @@ const styles = StyleSheet.create({
   content: { width: '100%', zIndex: 1, padding: 14, paddingBottom: 8 },
   compactContent: { padding: 14, paddingBottom: 24 },
   treeContent: { position: 'absolute', zIndex: 2, left: 14, right: 14, bottom: 8 },
-  sideContent: { flex: 1, minWidth: 72, maxWidth: 86, marginLeft: 6, justifyContent: 'center', alignItems: 'center' },
+  sideContent: { flexShrink: 0, marginLeft: 6, justifyContent: 'center', alignItems: 'center' },
 });
