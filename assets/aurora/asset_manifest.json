@@ -50,5 +50,19 @@
     "bilinmesi_gerekenler",
     "gezilen_yerler",
     "birlikte_adimlar"
-  ]
+  ],
+  "relationshipPlantVariants": {
+    "hanging": [
+      "couple-flower-lush.png",
+      "couple-flower-dry.png"
+    ],
+    "cactus": [
+      "couple-cactus.png",
+      "couple-cactus-dry.png"
+    ],
+    "violet": [
+      "couple-violet.png",
+      "couple-violet-dry.png"
+    ]
+  }
 }
