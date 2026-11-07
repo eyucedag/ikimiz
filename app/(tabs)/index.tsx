@@ -9,7 +9,7 @@ import { MoodSummaryCard } from '@/src/components/MoodSummaryCard';
 import { DynamicSky } from '@/src/components/DynamicSky';
 import { CoupleFlower } from '@/src/components/CoupleFlower';
 import { categories, getCategoryColor, getCategoryRoute } from '@/src/constants/categories';
-import { auroraIcons } from '@/src/constants/auroraAssets';
+import { auroraCategoryIllustrations, auroraIcons } from '@/src/constants/auroraAssets';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAppState } from '@/src/hooks/useAppState';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -203,17 +203,26 @@ export default function TodayScreen() {
         key={category.slug}
         onPress={() => router.push(getCategoryRoute(category.slug))}
         accessibilityLabel={`${category.title}. ${category.description}`}
-        style={styles.homeCategoryCard}
+        style={[styles.section, styles.richCategoryCard, { borderColor: categoryTone.color }]}
       >
-        <View style={[styles.homeCategoryIcon, { backgroundColor: categoryTone.tint }]}>
-          <Image source={HOME_CATEGORY_ICONS[category.slug] ?? auroraIcons.calendar} style={styles.homeCategoryIconImage} resizeMode="contain" tintColor={categoryTone.color} />
-        </View>
-        <View style={styles.homeCategoryCopy}>
+        <View style={styles.richCategoryHeader}>
+          <View style={[styles.homeCategoryIcon, { backgroundColor: categoryTone.tint }]}>
+            <Image source={HOME_CATEGORY_ICONS[category.slug] ?? auroraIcons.calendar} style={styles.homeCategoryIconImage} resizeMode="contain" tintColor={categoryTone.color} />
+          </View>
           <Text numberOfLines={1} style={styles.homeCategoryTitle}>{category.title}</Text>
-          <Text numberOfLines={1} style={styles.homeCategoryDescription}>{category.description}</Text>
+          <View style={[styles.homeCategoryArrow, { backgroundColor: categoryTone.tint }]}>
+            <Feather name="chevron-right" size={16} color={categoryTone.color} />
+          </View>
         </View>
-        <View style={[styles.homeCategoryArrow, { backgroundColor: categoryTone.tint }]}>
-          <Feather name="chevron-right" size={16} color={categoryTone.color} />
+        <View style={[styles.richCategoryPreview, { backgroundColor: categoryTone.tint }]}>
+          <Text numberOfLines={2} style={styles.homeCategoryDescription}>{category.description}</Text>
+          {auroraCategoryIllustrations[category.slug] ? (
+            <Image source={auroraCategoryIllustrations[category.slug]} style={styles.richCategoryIllustration} resizeMode="contain" />
+          ) : null}
+        </View>
+        <View style={[styles.richCategoryAction, { backgroundColor: categoryTone.color }]}>
+          <Feather name="arrow-right" size={16} color={colors.cream} />
+          <Text style={styles.richCategoryActionText}>Bölümü aç</Text>
         </View>
       </Card>
     );
@@ -626,7 +635,12 @@ const styles = StyleSheet.create({
   songCardTitle: { fontSize: fontSize.xl, color: colors.text, fontWeight: '700', lineHeight: 24 },
   songCardArtist: { color: colors.textSecondary, fontSize: fontSize.md, fontWeight: '500', marginTop: spacing.xs },
   homeCategoryList: { gap: spacing.sm, marginBottom: spacing.md },
-  homeCategoryCard: { minHeight: 72, width: '100%', flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm, marginBottom: spacing.md },
+  richCategoryCard: { paddingVertical: spacing.sm, borderWidth: 1 },
+  richCategoryHeader: { minHeight: 42, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  richCategoryPreview: { minHeight: 82, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: radius.control, overflow: 'hidden' },
+  richCategoryIllustration: { width: 82, height: 74, flexShrink: 0 },
+  richCategoryAction: { minHeight: 38, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs, marginTop: spacing.sm, borderRadius: radius.control },
+  richCategoryActionText: { color: colors.cream, fontSize: fontSize.sm, fontWeight: '700' },
   homeCategoryIcon: { width: 42, height: 42, flexShrink: 0, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   homeCategoryIconImage: { width: 28, height: 28 },
   homeCategoryCopy: { flex: 1, minWidth: 0 },
