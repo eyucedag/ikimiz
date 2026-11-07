@@ -14,8 +14,8 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
   const landscapeTablet = tablet && windowWidth > windowHeight;
   const artworkWidth = landscapeTablet ? 154 : tablet ? 128 : Math.min(110, Math.max(76, windowWidth * 0.27));
   const artworkHeight = artworkWidth * 4 / 3;
-  const booksHeight = artworkWidth * 392 / 512;
-  const plantAreaHeight = artworkHeight + booksHeight - 3;
+  const booksHeight = artworkHeight * 392 / (512 * 4 / 3);
+  const plantAreaHeight = artworkHeight + 40;
   const [flower, setFlower] = useState<CoupleFlowerState | null>(null);
   const [loading, setLoading] = useState(true);
   const [watering, setWatering] = useState(false);
@@ -107,7 +107,7 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
             <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.plantImage, { height: artworkHeight, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
           </>
         ) : (
-          <View style={[styles.shelvedPlantClip, { height: artworkHeight * 0.58 }]} pointerEvents="none">
+          <View style={[styles.shelvedPlantClip, { height: artworkHeight * 0.54 }]} pointerEvents="none">
             <Image source={plantAssets[plantType].dry} resizeMode="contain" style={[styles.shelvedPlantImage, { height: artworkHeight }]} accessibilityIgnoresInvertColors />
             <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.shelvedPlantImage, { height: artworkHeight, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
           </View>
