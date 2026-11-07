@@ -31,14 +31,17 @@ export function DynamicSky({ children, compact = false, treeContent, sideContent
   const skyHeight = compact
     ? Math.min(210, Math.max(150, sceneWidth * 0.38))
     : Math.min(350, Math.max(228, sceneWidth / 1.58 + 4));
-  // Keep the source's 16:9 artwork ratio and anchor it to the right so the
-  // sun/moon at the edge remains visible when the flower column narrows the scene.
+  // Preserve the artwork's 16:9 ratio and frame its sun/moon in the open
+  // upper-right area, away from the greeting on narrow phone layouts.
   const skyImageHeight = Math.max(skyHeight, sceneWidth * 9 / 16);
+  const skyImageWidth = skyImageHeight * 16 / 9;
+  const visibleFraction = Math.min(1, sceneWidth / skyImageWidth);
+  const cropStart = Math.max(0, Math.min(1 - visibleFraction, 0.77 - 0.82 * visibleFraction));
   const skyImageStyle = {
-    width: skyImageHeight * 16 / 9,
+    width: skyImageWidth,
     height: skyImageHeight,
-    left: undefined,
-    right: 0,
+    left: -skyImageWidth * cropStart,
+    right: undefined,
     top: (skyHeight - skyImageHeight) / 2,
   };
   const [phase, setPhase] = useState<SkyPhase>(() => getSkyPhase(new Date()));
