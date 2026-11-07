@@ -15,11 +15,7 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
   const artworkWidth = landscapeTablet ? 154 : tablet ? 128 : Math.min(110, Math.max(76, windowWidth * 0.27));
   const artworkHeight = artworkWidth * 4 / 3;
   const booksHeight = artworkHeight * 392 / (512 * 4 / 3);
-  const upperShelfTop = artworkHeight * 0.52;
-  const hangingPlantTop = upperShelfTop - artworkHeight * 0.405;
-  // Keep the vines tucked above the book shelf so the two shelf rows stay distinct.
-  const hangingPlantClipHeight = upperShelfTop + artworkHeight * 0.22;
-  const plantAreaHeight = upperShelfTop + 5 + booksHeight;
+  const plantAreaHeight = artworkHeight + 40;
   const [flower, setFlower] = useState<CoupleFlowerState | null>(null);
   const [loading, setLoading] = useState(true);
   const [watering, setWatering] = useState(false);
@@ -85,12 +81,12 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
     cactus: { dry: require('../../assets/aurora/illustrations/couple-cactus-shelves-dry.png'), lush: require('../../assets/aurora/illustrations/couple-cactus-shelves.png'), label: 'Kaktüs' },
     violet: { dry: require('../../assets/aurora/illustrations/couple-violet-shelves-dry.png'), lush: require('../../assets/aurora/illustrations/couple-violet-shelves.png'), label: 'Menekşe' },
   };
-  const plantCutouts: Record<CouplePlantType, { dry: number; lush: number }> = {
-    hanging: { dry: plantAssets.hanging.dry, lush: plantAssets.hanging.lush },
-    cactus: { dry: require('../../assets/aurora/illustrations/couple-cactus-dry.png'), lush: require('../../assets/aurora/illustrations/couple-cactus.png') },
-    violet: { dry: require('../../assets/aurora/illustrations/couple-violet-dry.png'), lush: require('../../assets/aurora/illustrations/couple-violet.png') },
+  const plantPreviews: Record<CouplePlantType, number> = {
+    hanging: require('../../assets/aurora/illustrations/couple-flower-shelves-preview.png'),
+    cactus: plantAssets.cactus.lush,
+    violet: plantAssets.violet.lush,
   };
-  const booksSource = require('../../assets/aurora/illustrations/couple-flower-books-clean.png');
+  const booksSource = require('../../assets/aurora/illustrations/couple-flower-books.png');
   const choosePlant = async (nextType: CouplePlantType) => {
     if (changingPlant || nextType === plantType) { setPlantPickerVisible(false); return; }
     setChangingPlant(true);
@@ -111,27 +107,17 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
       </Pressable>
       <View style={[styles.plantArea, { height: plantAreaHeight }]}>
         {plantType === 'hanging' ? (
-          <View style={[styles.hangingPlantClip, { height: hangingPlantClipHeight }]} pointerEvents="none">
-            <Image source={plantCutouts[plantType].dry} resizeMode="stretch" style={[styles.plantImage, { top: hangingPlantTop, left: '4%', width: '92%', height: artworkHeight }]} accessibilityIgnoresInvertColors />
-            <Animated.Image source={plantCutouts[plantType].lush} resizeMode="stretch" style={[styles.plantImage, { top: hangingPlantTop, left: '4%', width: '92%', height: artworkHeight, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
+          <View style={[styles.hangingPlantClip, { height: artworkHeight * 0.8 }]} pointerEvents="none">
+            <Image source={plantAssets[plantType].dry} resizeMode="contain" style={[styles.plantImage, { top: 6, height: artworkHeight }]} accessibilityIgnoresInvertColors />
+            <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.plantImage, { top: 6, height: artworkHeight, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
           </View>
         ) : (
-          <View style={styles.plantCutoutClip} pointerEvents="none">
-            <Image source={plantCutouts[plantType].dry} resizeMode="contain" style={[styles.plantCutoutImage, { height: upperShelfTop + 7 }]} accessibilityIgnoresInvertColors />
-            <Animated.Image source={plantCutouts[plantType].lush} resizeMode="contain" style={[styles.plantCutoutImage, { height: upperShelfTop + 7, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
+          <View style={[styles.shelvedPlantClip, { top: 8, height: artworkHeight * 0.64 }]} pointerEvents="none">
+            <Image source={plantAssets[plantType].dry} resizeMode="contain" style={[styles.shelvedPlantImage, { height: artworkHeight }]} accessibilityIgnoresInvertColors />
+            <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.shelvedPlantImage, { height: artworkHeight, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
           </View>
         )}
-        <Image source={booksSource} resizeMode="contain" style={[styles.lowerBooks, { height: booksHeight, bottom: booksHeight * 0.04 + artworkWidth * 0.1 }]} accessibilityIgnoresInvertColors />
-        <View pointerEvents="none" style={[styles.lowerShelf, { bottom: booksHeight * 0.04, height: artworkWidth * 0.1 }]}>
-          <View style={styles.upperShelfTopFace} />
-          <View style={styles.upperShelfFront} />
-          <View style={styles.upperShelfShadow} />
-        </View>
-        <View pointerEvents="none" style={[styles.upperShelf, { top: upperShelfTop, height: artworkWidth * 0.1 }]}>
-          <View style={styles.upperShelfTopFace} />
-          <View style={styles.upperShelfFront} />
-          <View style={styles.upperShelfShadow} />
-        </View>
+        <Image source={booksSource} resizeMode="contain" style={[styles.lowerBooks, { height: booksHeight }]} accessibilityIgnoresInvertColors />
         <Pressable onPress={() => router.push('/books')} accessibilityRole="button" accessibilityLabel="Okuyacağımız kitaplar listesini aç" style={plantType === 'hanging' ? styles.lowerBooksTap : styles.shelfBooksTap} />
       </View>
       <Pressable onPress={() => { void water(); }} disabled={loading || watering} accessibilityRole="button" accessibilityLabel="Ortak bitkiyi sula" style={({ pressed }) => [styles.waterButton, pressed && styles.pressed, (loading || watering) && styles.disabled]}>
@@ -144,7 +130,7 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
             <View style={styles.pickerHeader}><View><Text style={styles.pickerTitle}>Ortak bitkinizi seçin</Text><Text style={styles.pickerSubtitle}>Seçiminiz ikiniz için de güncellenir.</Text></View><Pressable onPress={() => setPlantPickerVisible(false)} accessibilityRole="button" accessibilityLabel="Kapat"><Feather name="x" size={21} color={colors.text} /></Pressable></View>
             <View style={styles.optionRow}>
               {(['hanging', 'cactus', 'violet'] as CouplePlantType[]).map((option) => <Pressable key={option} onPress={() => { void choosePlant(option); }} disabled={changingPlant} accessibilityRole="button" accessibilityState={{ selected: plantType === option }} style={[styles.plantOption, plantType === option && styles.plantOptionSelected]}>
-                <Image source={plantAssets[option].lush} style={styles.optionImage} resizeMode="contain" />
+                <Image source={plantPreviews[option]} style={styles.optionImage} resizeMode="contain" />
                 <Text style={[styles.optionLabel, plantType === option && styles.optionLabelSelected]} numberOfLines={1}>{plantAssets[option].label}</Text>
                 {plantType === option ? <Feather name="check-circle" size={15} color={colors.copper} /> : null}
               </Pressable>)}
@@ -164,15 +150,10 @@ const styles = StyleSheet.create({
   plantArea: { width: '100%', position: 'relative', alignItems: 'center' },
   hangingPlantClip: { position: 'absolute', top: 0, width: '100%', overflow: 'hidden' },
   plantImage: { position: 'absolute', top: 0, width: '100%' },
-  plantCutoutClip: { position: 'absolute', top: 0, width: '100%', height: '100%', alignItems: 'center', overflow: 'hidden' },
-  plantCutoutImage: { position: 'absolute', top: 0, width: '100%' },
-  upperShelf: { position: 'absolute', left: '4.2%', right: '4.2%', zIndex: 2, borderRadius: 3, backgroundColor: '#A66B3F', shadowColor: '#442817', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.22, shadowRadius: 2, elevation: 2 },
-  upperShelfTopFace: { position: 'absolute', top: 0, left: 0, right: 0, height: '22%', borderTopLeftRadius: 3, borderTopRightRadius: 3, backgroundColor: '#D2A176' },
-  upperShelfFront: { position: 'absolute', top: '22%', left: 0, right: 0, bottom: '18%', backgroundColor: '#A66B3F' },
-  upperShelfShadow: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '18%', borderBottomLeftRadius: 3, borderBottomRightRadius: 3, backgroundColor: '#71462E' },
-  lowerShelf: { position: 'absolute', left: '4.2%', right: '4.2%', zIndex: 2, borderRadius: 3, backgroundColor: '#A66B3F', shadowColor: '#442817', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.22, shadowRadius: 2, elevation: 2 },
+  shelvedPlantClip: { position: 'absolute', top: 0, width: '100%', overflow: 'hidden' },
+  shelvedPlantImage: { position: 'absolute', top: 0, width: '100%' },
   lowerBooksTap: { position: 'absolute', width: '100%', height: 58, bottom: -2, zIndex: 3 },
-  lowerBooks: { position: 'absolute', width: '100%' },
+  lowerBooks: { position: 'absolute', width: '100%', bottom: 0 },
   shelfBooksTap: { position: 'absolute', right: 0, bottom: 0, width: '100%', height: '44%', zIndex: 3 },
   waterButton: { minWidth: 58, height: 28, marginTop: 2, paddingHorizontal: 9, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, backgroundColor: colors.copper, borderWidth: 1, borderColor: 'rgba(255,249,235,0.8)' },
   waterText: { color: colors.white, fontSize: 11, fontWeight: '700' },
