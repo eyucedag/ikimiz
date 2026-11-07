@@ -77,15 +77,24 @@ export function CoupleFlower({ coupleId }: { coupleId: string }) {
     <View style={styles.root}>
       <Text style={styles.status}>{status}</Text>
       <View style={styles.plantArea}>
+        {/* Stems begin inside the pot, then bend as they fall over the shelf. */}
+        <View style={[styles.vine, styles.vineLeftUpper]} />
+        <View style={[styles.vine, styles.vineLeftMiddle]} />
+        <View style={[styles.vine, styles.vineLeftLower]} />
+        <View style={[styles.vine, styles.vineCenterUpper]} />
+        <View style={[styles.vine, styles.vineCenterLower]} />
+        <View style={[styles.vine, styles.vineRightUpper]} />
+        <View style={[styles.vine, styles.vineRightMiddle]} />
+        <View style={[styles.vine, styles.vineRightLower]} />
         <View style={styles.pot} />
         <View style={styles.potSoil} />
         <View style={styles.potRim} />
         <View style={styles.shelf} />
         <View style={styles.shelfBracket} />
         <View style={styles.shelfBracketRight} />
-        <View style={[styles.vine, styles.vineLeft]} />
-        <View style={[styles.vine, styles.vineCenter]} />
-        <View style={[styles.vine, styles.vineRight]} />
+        <View style={[styles.shoot, styles.shootLeft]} />
+        <View style={[styles.shoot, styles.shootCenter]} />
+        <View style={[styles.shoot, styles.shootRight]} />
         {heart(styles.leaf1, 'leaf1')}{heart(styles.leaf2, 'leaf2')}{heart(styles.leaf3, 'leaf3')}
         {heart(styles.leaf4, 'leaf4')}{heart(styles.leaf5, 'leaf5')}{heart(styles.leaf6, 'leaf6')}
         {heart(styles.leaf7, 'leaf7')}{heart(styles.leaf8, 'leaf8')}
@@ -100,28 +109,37 @@ export function CoupleFlower({ coupleId }: { coupleId: string }) {
 const styles = StyleSheet.create({
   root: { width: '100%', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 2 },
   status: { color: colors.textSecondary, fontSize: 9, lineHeight: 12, fontWeight: '700', marginBottom: 3, textAlign: 'center' },
-  plantArea: { width: '100%', height: 172, alignItems: 'center', position: 'relative' },
+  plantArea: { width: '100%', height: 170, alignItems: 'center', position: 'relative' },
   pot: { position: 'absolute', top: 5, width: 38, height: 25, borderBottomLeftRadius: 10, borderBottomRightRadius: 10, backgroundColor: '#B96849', borderWidth: 1, borderTopWidth: 0, borderColor: '#EBD2B6', zIndex: 4 },
   potSoil: { position: 'absolute', top: 4, width: 34, height: 5, borderRadius: 3, backgroundColor: '#574236', zIndex: 5 },
   potRim: { position: 'absolute', top: 25, width: 46, height: 7, borderRadius: 4, backgroundColor: '#D58B63', borderWidth: 1, borderColor: '#EBD2B6', zIndex: 5 },
   shelf: { position: 'absolute', top: 32, width: '96%', height: 7, borderRadius: 3, backgroundColor: '#987052', borderWidth: 1, borderColor: 'rgba(255,238,205,0.9)', shadowColor: '#18271F', shadowOpacity: 0.26, shadowRadius: 3, elevation: 3, zIndex: 3 },
   shelfBracket: { position: 'absolute', top: 38, left: '19%', width: 5, height: 9, backgroundColor: '#846348', borderBottomLeftRadius: 2, borderBottomRightRadius: 2, zIndex: 2 },
   shelfBracketRight: { position: 'absolute', top: 38, right: '19%', width: 5, height: 9, backgroundColor: '#846348', borderBottomLeftRadius: 2, borderBottomRightRadius: 2, zIndex: 2 },
-  vine: { position: 'absolute', top: 38, width: 2, height: 114, borderRadius: 1, backgroundColor: '#65834E', opacity: 0.92 },
-  vineLeft: { left: '31%', transform: [{ rotate: '9deg' }] },
-  vineCenter: { left: '50%', height: 130 },
-  vineRight: { right: '29%', transform: [{ rotate: '-8deg' }] },
+  vine: { position: 'absolute', width: 2, borderRadius: 1, backgroundColor: '#65834E', opacity: 0.92 },
+  vineLeftUpper: { top: 4, left: '32%', height: 61, transform: [{ rotate: '-8deg' }] },
+  vineLeftMiddle: { top: 57, left: '34%', height: 54, transform: [{ rotate: '17deg' }] },
+  vineLeftLower: { top: 102, left: '31%', height: 54, transform: [{ rotate: '-15deg' }] },
+  vineCenterUpper: { top: 3, left: '49%', height: 71, transform: [{ rotate: '-4deg' }] },
+  vineCenterLower: { top: 65, left: '51%', height: 92, transform: [{ rotate: '5deg' }] },
+  vineRightUpper: { top: 5, right: '31%', height: 63, transform: [{ rotate: '10deg' }] },
+  vineRightMiddle: { top: 60, right: '29%', height: 53, transform: [{ rotate: '-15deg' }] },
+  vineRightLower: { top: 105, right: '27%', height: 49, transform: [{ rotate: '12deg' }] },
+  shoot: { position: 'absolute', top: -3, width: 2, height: 12, borderRadius: 1, backgroundColor: '#65834E', zIndex: 6 },
+  shootLeft: { left: '37%', transform: [{ rotate: '-15deg' }] },
+  shootCenter: { left: '50%', height: 15 },
+  shootRight: { right: '37%', transform: [{ rotate: '15deg' }] },
   heartLeaf: { position: 'absolute', width: 22, height: 22 },
   heartDiamond: { position: 'absolute', top: 7, left: 6, width: 11, height: 11, borderRadius: 1, transform: [{ rotate: '45deg' }] },
   heartLobe: { position: 'absolute', top: 4, width: 11, height: 11, borderRadius: 6 },
   heartLobeLeft: { left: 1 },
   heartLobeRight: { right: 1 },
-  leaf1: { left: '15%', top: 57, transform: [{ rotate: '-22deg' }] },
-  leaf2: { left: '43%', top: 64, transform: [{ rotate: '18deg' }] },
-  leaf3: { right: '11%', top: 74, transform: [{ rotate: '20deg' }] },
-  leaf4: { left: '24%', top: 87, transform: [{ rotate: '20deg' }] },
-  leaf5: { right: '31%', top: 96, transform: [{ rotate: '-20deg' }] },
-  leaf6: { left: '14%', top: 116, transform: [{ rotate: '-18deg' }] },
+  leaf1: { left: '15%', top: 51, transform: [{ rotate: '-22deg' }] },
+  leaf2: { left: '43%', top: 61, transform: [{ rotate: '18deg' }] },
+  leaf3: { right: '11%', top: 70, transform: [{ rotate: '20deg' }] },
+  leaf4: { left: '24%', top: 85, transform: [{ rotate: '20deg' }] },
+  leaf5: { right: '31%', top: 94, transform: [{ rotate: '-20deg' }] },
+  leaf6: { left: '14%', top: 111, transform: [{ rotate: '-18deg' }] },
   leaf7: { left: '43%', top: 127, transform: [{ rotate: '20deg' }] },
   leaf8: { right: '14%', top: 123, transform: [{ rotate: '20deg' }] },
   waterButton: { minWidth: 58, height: 28, marginTop: 2, paddingHorizontal: 9, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, backgroundColor: colors.copper, borderWidth: 1, borderColor: 'rgba(255,249,235,0.8)' },
