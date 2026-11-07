@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Animated, AppState, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, AppState, Image, Modal, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { colors } from '@/src/constants/theme';
@@ -9,6 +9,13 @@ import { supabase } from '@/src/lib/supabase';
 
 export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partnerId?: string }) {
   const router = useRouter();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const tablet = Math.min(windowWidth, windowHeight) >= 600;
+  const landscapeTablet = tablet && windowWidth > windowHeight;
+  const artworkWidth = landscapeTablet ? 154 : tablet ? 128 : Math.min(110, Math.max(76, windowWidth * 0.27));
+  const artworkHeight = artworkWidth * 4 / 3;
+  const booksHeight = artworkWidth * 392 / 512;
+  const plantAreaHeight = artworkHeight + booksHeight - 3;
   const [flower, setFlower] = useState<CoupleFlowerState | null>(null);
   const [loading, setLoading] = useState(true);
   const [watering, setWatering] = useState(false);
@@ -93,19 +100,19 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
       <Pressable onPress={() => setPlantPickerVisible(true)} accessibilityRole="button" accessibilityLabel={`Bitki seçili: ${plantAssets[plantType].label}. Değiştirmek için dokunun.`} style={styles.statusButton}>
         <Text style={styles.status}>{status}</Text><Feather name="edit-2" size={9} color={colors.textSecondary} />
       </Pressable>
-      <View style={styles.plantArea}>
+      <View style={[styles.plantArea, { height: plantAreaHeight }]}>
         {plantType === 'hanging' ? (
           <>
-            <Image source={plantAssets[plantType].dry} resizeMode="contain" style={styles.plantImage} accessibilityIgnoresInvertColors />
-            <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.plantImage, { opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
+            <Image source={plantAssets[plantType].dry} resizeMode="contain" style={[styles.plantImage, { height: artworkHeight }]} accessibilityIgnoresInvertColors />
+            <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.plantImage, { height: artworkHeight, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
           </>
         ) : (
-          <View style={styles.shelvedPlantClip} pointerEvents="none">
-            <Image source={plantAssets[plantType].dry} resizeMode="contain" style={styles.shelvedPlantImage} accessibilityIgnoresInvertColors />
-            <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.shelvedPlantImage, { opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
+          <View style={[styles.shelvedPlantClip, { height: artworkHeight * 0.58 }]} pointerEvents="none">
+            <Image source={plantAssets[plantType].dry} resizeMode="contain" style={[styles.shelvedPlantImage, { height: artworkHeight }]} accessibilityIgnoresInvertColors />
+            <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.shelvedPlantImage, { height: artworkHeight, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
           </View>
         )}
-        <Image source={booksSource} resizeMode="contain" style={styles.lowerBooks} accessibilityIgnoresInvertColors />
+        <Image source={booksSource} resizeMode="contain" style={[styles.lowerBooks, { height: booksHeight }]} accessibilityIgnoresInvertColors />
         <Pressable onPress={() => router.push('/books')} accessibilityRole="button" accessibilityLabel="Okuyacağımız kitaplar listesini aç" style={plantType === 'hanging' ? styles.lowerBooksTap : styles.shelfBooksTap} />
       </View>
       <Pressable onPress={() => { void water(); }} disabled={loading || watering} accessibilityRole="button" accessibilityLabel="Ortak bitkiyi sula" style={({ pressed }) => [styles.waterButton, pressed && styles.pressed, (loading || watering) && styles.disabled]}>
@@ -135,12 +142,12 @@ const styles = StyleSheet.create({
   root: { width: '100%', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 2 },
   statusButton: { flexDirection: 'row', alignItems: 'center', gap: 3, marginBottom: 3 },
   status: { color: colors.textSecondary, fontSize: 9, lineHeight: 12, fontWeight: '700', textAlign: 'center' },
-  plantArea: { width: '100%', height: 140, position: 'relative', alignItems: 'center' },
-  plantImage: { position: 'absolute', width: '100%', height: '100%' },
-  shelvedPlantClip: { position: 'absolute', top: 0, width: '100%', height: '61%', overflow: 'hidden' },
-  shelvedPlantImage: { position: 'absolute', top: 0, width: '100%', height: '164%' },
+  plantArea: { width: '100%', position: 'relative', alignItems: 'center' },
+  plantImage: { position: 'absolute', top: 0, width: '100%' },
+  shelvedPlantClip: { position: 'absolute', top: 0, width: '100%', overflow: 'hidden' },
+  shelvedPlantImage: { position: 'absolute', top: 0, width: '100%' },
   lowerBooksTap: { position: 'absolute', width: '100%', height: 58, bottom: -2, zIndex: 3 },
-  lowerBooks: { position: 'absolute', width: '100%', height: 88, bottom: 0 },
+  lowerBooks: { position: 'absolute', width: '100%', bottom: 0 },
   shelfBooksTap: { position: 'absolute', right: 0, bottom: 0, width: '100%', height: '44%', zIndex: 3 },
   waterButton: { minWidth: 58, height: 28, marginTop: 2, paddingHorizontal: 9, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, backgroundColor: colors.copper, borderWidth: 1, borderColor: 'rgba(255,249,235,0.8)' },
   waterText: { color: colors.white, fontSize: 11, fontWeight: '700' },

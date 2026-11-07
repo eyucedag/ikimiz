@@ -37,7 +37,7 @@ export function DynamicSky({ children, compact = false, treeContent, sideContent
     ? Math.min(landscapeTablet ? 300 : 240, Math.max(150, sceneWidth * (landscapeTablet ? 0.30 : 0.34)))
     : landscapeTablet
       ? Math.min(560, Math.max(320, sceneWidth * 9 / 16))
-      : Math.min(tablet ? 390 : 350, Math.max(228, sceneWidth / 1.58 + 4));
+      : Math.min(tablet ? 390 : 350, Math.max(sideContent && !tablet ? 270 : 228, sceneWidth / 1.58 + 4));
   // Preserve the artwork's 16:9 ratio and frame its sun/moon in the open
   // upper-right area, away from the greeting on narrow phone layouts.
   const skyImageHeight = Math.max(skyHeight, sceneWidth * 9 / 16);
