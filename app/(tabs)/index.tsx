@@ -444,8 +444,13 @@ export default function TodayScreen() {
         ) : (
           upcoming.slice(0, 3).map((item) => (
             <Pressable key={`${item.kind ?? 'event'}-${item.id}`} onPress={() => router.push(item.kind === 'special' ? '/special-dates' : { pathname: '/calendar', params: { date: item.date.slice(0, 10) } })} accessibilityRole="button" accessibilityLabel={`${item.title}, ${item.kind === 'special' ? 'özel günler' : 'takvim'} sayfasını aç`} style={styles.upcomingRow}>
-              <Text style={styles.upcomingTitle}>{item.title}</Text>
-              <Text style={styles.muted}>{item.subtitle}</Text>
+              <View style={[styles.upcomingIcon, { backgroundColor: calendarColor.tint }]}>
+                <Feather name={item.kind === 'special' ? 'gift' : 'calendar'} size={17} color={calendarColor.color} />
+              </View>
+              <View style={styles.upcomingCopy}>
+                <Text style={styles.upcomingTitle} numberOfLines={1}>{item.title}</Text>
+                <Text style={styles.muted} numberOfLines={2}>{item.subtitle}</Text>
+              </View>
             </Pressable>
           ))
         )}
@@ -746,7 +751,7 @@ const styles = StyleSheet.create({
   connectText: { flex: 1, fontSize: fontSize.sm, color: colors.textSecondary, lineHeight: 19 },
   buttonRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg },
   flex: { flex: 1 },
-  upcomingRow: { paddingVertical: spacing.xs },
+  upcomingRow: { paddingVertical: spacing.xs, minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   upcomingCompact: { minHeight: 42, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   upcomingIcon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   upcomingCopy: { flex: 1 },
