@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, AppState, Image, Modal, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { colors } from '@/src/constants/theme';
 import { coupleFlowerService, CoupleFlowerState, CouplePlantType, flowerHealthNow } from '@/src/services/coupleFlowerService';
@@ -21,9 +21,11 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
   const [watering, setWatering] = useState(false);
   const [plantPickerVisible, setPlantPickerVisible] = useState(false);
   const [changingPlant, setChangingPlant] = useState(false);
+  const [wateringAnimationVisible, setWateringAnimationVisible] = useState(false);
   const [now, setNow] = useState(Date.now());
   const health = flower ? flowerHealthNow(flower, now) : 72;
   const animatedHealth = useRef(new Animated.Value(health)).current;
+  const wateringProgress = useRef(new Animated.Value(0)).current;
   const lushOpacity = animatedHealth.interpolate({ inputRange: [0, 42, 100], outputRange: [0, 0.42, 1] });
 
   const refresh = useCallback(async () => {
@@ -74,6 +76,16 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
     }
   };
 
+  const waterFromPlant = () => {
+    if (loading || watering || wateringAnimationVisible) return;
+    setWateringAnimationVisible(true);
+    wateringProgress.setValue(0);
+    Animated.timing(wateringProgress, { toValue: 1, duration: 1400, useNativeDriver: true }).start(({ finished }) => {
+      if (finished) setWateringAnimationVisible(false);
+    });
+    void water();
+  };
+
   const status = health < 20 ? 'Susadı' : health < 55 ? 'Biraz kuruyor' : 'Birlikte büyüyor';
   const plantType = flower?.plantType ?? 'hanging';
   const shelvedPlantClipHeight = artworkHeight * (plantType === 'cactus' ? 0.56 : 0.53);
@@ -119,11 +131,16 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
             <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.shelvedPlantImage, { height: artworkHeight, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
           </View>
         )}
+        <Pressable onPress={waterFromPlant} disabled={loading || watering || wateringAnimationVisible} accessibilityRole="button" accessibilityLabel="Bitkiye dokunup sula" style={[styles.plantWaterTap, { height: artworkHeight * (plantType === 'hanging' ? 0.96 : 0.56), top: plantType === 'hanging' ? 0 : 8 }]} />
+        {wateringAnimationVisible ? (
+          <Animated.View pointerEvents="none" style={[styles.wateringCan, { top: artworkHeight * 0.24, transform: [{ translateY: wateringProgress.interpolate({ inputRange: [0, 0.25, 0.8, 1], outputRange: [5, -3, -3, 5] }) }, { rotate: wateringProgress.interpolate({ inputRange: [0, 0.2, 0.8, 1], outputRange: ['0deg', '-28deg', '-28deg', '0deg'] }) }] }]}>
+            <MaterialCommunityIcons name="watering-can" size={30} color={colors.copper} />
+            <Animated.View style={[styles.waterDrop, { opacity: wateringProgress.interpolate({ inputRange: [0, 0.18, 0.78, 1], outputRange: [0, 1, 1, 0] }), transform: [{ translateY: wateringProgress.interpolate({ inputRange: [0, 0.2, 0.8, 1], outputRange: [-2, 0, 12, 15] }) }] }]} />
+            <Animated.View style={[styles.waterDrop, styles.waterDropSecond, { opacity: wateringProgress.interpolate({ inputRange: [0, 0.28, 0.78, 1], outputRange: [0, 1, 1, 0] }), transform: [{ translateY: wateringProgress.interpolate({ inputRange: [0, 0.25, 0.8, 1], outputRange: [-2, 0, 10, 14] }) }] }]} />
+          </Animated.View>
+        ) : null}
         <Pressable onPress={() => router.push('/books')} accessibilityRole="button" accessibilityLabel="Okuyacağımız kitaplar listesini aç" style={plantType === 'hanging' ? styles.lowerBooksTap : styles.shelfBooksTap} />
       </View>
-      <Pressable onPress={() => { void water(); }} disabled={loading || watering} accessibilityRole="button" accessibilityLabel="Ortak bitkiyi sula" style={({ pressed }) => [styles.waterButton, pressed && styles.pressed, (loading || watering) && styles.disabled]}>
-        {loading || watering ? <ActivityIndicator size="small" color={colors.white} /> : <><Feather name="droplet" size={13} color={colors.white} /><Text style={styles.waterText}>Sula</Text></>}
-      </Pressable>
       <Modal visible={plantPickerVisible} transparent animationType="fade" onRequestClose={() => setPlantPickerVisible(false)}>
         <View style={styles.modalBackdrop}>
           <Pressable onPress={() => setPlantPickerVisible(false)} style={StyleSheet.absoluteFill} accessibilityRole="button" accessibilityLabel="Bitki seçimini kapat" />
@@ -153,11 +170,13 @@ const styles = StyleSheet.create({
   plantImage: { position: 'absolute', top: 0, width: '100%' },
   shelvedPlantClip: { position: 'absolute', top: 0, width: '100%', overflow: 'hidden' },
   shelvedPlantImage: { position: 'absolute', top: 0, width: '100%' },
+  plantWaterTap: { position: 'absolute', left: 0, right: 0, zIndex: 2 },
+  wateringCan: { position: 'absolute', right: '5%', zIndex: 3, alignItems: 'center' },
+  waterDrop: { position: 'absolute', top: 23, left: 3, width: 5, height: 8, borderRadius: 4, backgroundColor: '#77BDE5' },
+  waterDropSecond: { left: 12, top: 27 },
   lowerBooksTap: { position: 'absolute', width: '100%', height: 58, bottom: -2, zIndex: 3 },
   lowerBooks: { position: 'absolute', width: '100%', bottom: 0 },
   shelfBooksTap: { position: 'absolute', right: 0, bottom: 0, width: '100%', height: '44%', zIndex: 3 },
-  waterButton: { minWidth: 58, height: 28, marginTop: 2, paddingHorizontal: 9, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, backgroundColor: colors.copper, borderWidth: 1, borderColor: 'rgba(255,249,235,0.8)' },
-  waterText: { color: colors.white, fontSize: 11, fontWeight: '700' },
   pressed: { opacity: 0.75, transform: [{ scale: 0.96 }] },
   disabled: { opacity: 0.75 },
   modalBackdrop: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 22, backgroundColor: 'rgba(20,24,22,0.52)' },
