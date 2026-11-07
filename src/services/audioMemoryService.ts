@@ -24,9 +24,9 @@ const mapMemory = (row: Record<string, unknown>, audioUrl: string): AudioMemory 
 const storage = supabase.storage.from('couple-audio-memories');
 
 export const audioMemoryService = {
-  async list(coupleId: string): Promise<AudioMemory[]> {
+  async list(coupleId: string, limit = 500): Promise<AudioMemory[]> {
     const { data, error } = await supabase.from('couple_audio_memories').select('*')
-      .eq('couple_id', coupleId).order('created_at', { ascending: false });
+      .eq('couple_id', coupleId).order('created_at', { ascending: false }).limit(limit);
     if (error) throw new Error(error.code === '42P01' || error.code === 'PGRST205'
       ? 'Sesli Anılar kurulumu eksik. Supabase SQL Editor’da 20261105_shared_audio_memories.sql kodunu çalıştırın.'
       : `Sesli anılar yüklenemedi: ${error.message}`);

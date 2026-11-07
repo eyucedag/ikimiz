@@ -9,7 +9,7 @@ import { MoodSummaryCard } from '@/src/components/MoodSummaryCard';
 import { DynamicSky } from '@/src/components/DynamicSky';
 import { CoupleFlower } from '@/src/components/CoupleFlower';
 import { categories, getCategoryColor, getCategoryRoute } from '@/src/constants/categories';
-import { auroraCategoryIllustrations, auroraIcons } from '@/src/constants/auroraAssets';
+import { auroraIcons } from '@/src/constants/auroraAssets';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAppState } from '@/src/hooks/useAppState';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -23,9 +23,19 @@ import { greeting, relativeTime, todayLabel } from '@/src/utils/date';
 import { useCoupleDirection } from '@/src/hooks/useCoupleDirection';
 import { useAutomaticNearbySteps } from '@/src/hooks/useAutomaticNearbySteps';
 import { kissService } from '@/src/services/kissService';
+import { galleryService, GalleryPhoto } from '@/src/services/galleryService';
+import { listService, SharedList } from '@/src/services/listService';
+import { notebookService, NotebookNote } from '@/src/services/notebookService';
+import { documentService, CoupleDocument, CoupleDocumentLink } from '@/src/services/documentService';
+import { audioMemoryService, AudioMemory } from '@/src/services/audioMemoryService';
+import { taskService, giftService, factService, Task, GiftIdea, PartnerFact } from '@/src/services/coupleCategoryService';
+import { travelService, TravelPlace } from '@/src/services/travelService';
+import { presenceService, CoupleSteps } from '@/src/services/presenceService';
 import { Category } from '@/src/types';
 
 type HomeSection = 'song' | 'partner-note' | 'mood' | 'upcoming' | 'categories';
+type HomePreviewData = { gallery: GalleryPhoto[]; lists: SharedList[]; notes: NotebookNote[]; documents: CoupleDocument[]; links: CoupleDocumentLink[]; audio: AudioMemory[]; tasks: Task[]; gifts: GiftIdea[]; facts: PartnerFact[]; places: TravelPlace[]; steps: CoupleSteps[] };
+const EMPTY_HOME_PREVIEWS: HomePreviewData = { gallery: [], lists: [], notes: [], documents: [], links: [], audio: [], tasks: [], gifts: [], facts: [], places: [], steps: [] };
 const HOME_CATEGORY_ITEMS: Category[] = [
   ...categories.filter((category) => category.slug !== 'opucuk').map((category) => category.slug === 'ekrana-not' ? { ...category, title: 'Partnerinden Not' } : category),
   { slug: 'ruh-halim', title: 'Ruh Halim', icon: 'heart', color: '#AD633F', tint: '#F2E7DB', description: 'Bugünkü ruh halinizi partnerinizle paylaşın.' },
@@ -67,6 +77,7 @@ export default function TodayScreen() {
   const [photoVisible, setPhotoVisible] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [todaySong, setTodaySong] = useState<{ title: string; artist: string; url: string } | null>(null);
+  const [homePreviews, setHomePreviews] = useState<HomePreviewData>(EMPTY_HOME_PREVIEWS);
   const [sendingKiss, setSendingKiss] = useState(false);
   const direction = useCoupleDirection(couple.couple?.id, user?.id, couple.partner?.id);
   useAutomaticNearbySteps(user?.id, couple.couple?.id, couple.partner?.id);
@@ -113,7 +124,24 @@ export default function TodayScreen() {
     } catch { /* Keep the home screen usable if the song cannot be fetched. */ }
   }, [couple.couple?.id, songDate]);
 
-  useFocusEffect(useCallback(() => { void refreshTodaySong(); }, [refreshTodaySong]));
+  const refreshHomePreviews = useCallback(async () => {
+    const coupleId = couple.couple?.id;
+    if (!coupleId) { setHomePreviews(EMPTY_HOME_PREVIEWS); return; }
+    const safe = async <T,>(request: Promise<T>): Promise<T> => {
+      try { return await request; } catch { return [] as T; }
+    };
+    const today = new Date();
+    const localDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const [gallery, lists, notes, documents, links, audio, tasks, gifts, facts, places, steps] = await Promise.all([
+      safe(galleryService.list(coupleId, 4)), safe(listService.list(coupleId)), safe(notebookService.list(coupleId, 1)),
+      safe(documentService.list(coupleId, 1)), safe(documentService.listLinks(coupleId, 1)), safe(audioMemoryService.list(coupleId, 1)),
+      safe(taskService.list(coupleId)), safe(giftService.list()), safe(factService.list(coupleId)),
+      safe(travelService.list(coupleId)), safe(presenceService.steps(coupleId, localDate)),
+    ]);
+    setHomePreviews({ gallery, lists, notes, documents, links, audio, tasks, gifts, facts, places, steps });
+  }, [couple.couple?.id]);
+
+  useFocusEffect(useCallback(() => { void refreshTodaySong(); void refreshHomePreviews(); }, [refreshTodaySong, refreshHomePreviews]));
 
   useEffect(() => {
     const coupleId = couple.couple?.id;
@@ -196,6 +224,63 @@ export default function TodayScreen() {
     }
   };
 
+  const renderCategoryPreview = (category: Category, toneColor: string) => {
+    const labelStyle = [styles.previewMainText, { color: toneColor }];
+    const detailStyle = styles.previewDetailText;
+    const empty = (message: string) => <Text numberOfLines={2} style={styles.homeCategoryDescription}>{message}</Text>;
+    switch (category.slug) {
+      case 'galeri':
+        return homePreviews.gallery.length ? <View style={styles.galleryPreviewStrip}>{homePreviews.gallery.slice(0, 4).map((photo) => <Image key={photo.id} source={{ uri: photo.imageUrl }} style={styles.galleryPreviewPhoto} resizeMode="cover" />)}</View> : empty('İlk ortak fotoğrafınızı ekleyin.');
+      case 'listeler': {
+        const list = homePreviews.lists[0];
+        return list ? <View style={styles.previewCopy}><Text style={labelStyle} numberOfLines={1}>{list.title}</Text><Text style={detailStyle}>{list.checkedCount}/{list.itemCount} madde tamamlandı · {homePreviews.lists.length} liste</Text></View> : empty('Birlikte kullanacağınız ilk listeyi oluşturun.');
+      }
+      case 'notlar': {
+        const note = homePreviews.notes[0];
+        return note ? <View style={styles.previewCopy}><Text style={labelStyle} numberOfLines={1}>{note.title}</Text><Text style={detailStyle} numberOfLines={2}>{note.body.replace(/<[^>]*>/g, ' ').trim()}</Text></View> : empty('Önemli bilgilerinizi ortak not defterinize ekleyin.');
+      }
+      case 'onemli-belgeler': {
+        const file = homePreviews.documents[0]; const link = homePreviews.links[0];
+        return file || link ? <View style={styles.previewCopy}><Text style={labelStyle} numberOfLines={1}>{file?.displayName ?? link?.displayName}</Text><Text style={detailStyle}>Son eklenen ortak doküman veya bağlantı</Text></View> : empty('Dosya veya bağlantılarınızı burada saklayın.');
+      }
+      case 'sesli-anilar': {
+        const memory = homePreviews.audio[0];
+        return memory ? <View style={styles.previewCopy}><Text style={labelStyle} numberOfLines={1}>{memory.title || 'Sesli anı'}</Text><Text style={detailStyle}>{Math.floor(memory.durationSeconds / 60)} dk {memory.durationSeconds % 60} sn · Son ses kaydı</Text></View> : empty('Birbirinize ilk sesli anınızı bırakın.');
+      }
+      case 'gorevler': {
+        const task = homePreviews.tasks.find((item) => !item.completed_at);
+        return task ? <View style={styles.previewCopy}><Text style={labelStyle} numberOfLines={1}>□  {task.title}</Text><Text style={detailStyle}>{homePreviews.tasks.filter((item) => !item.completed_at).length} bekleyen görev</Text></View> : empty(homePreviews.tasks.length ? 'Bütün görevler tamamlandı. Harikasınız!' : 'Birlikte tamamlayacağınız ilk işi ekleyin.');
+      }
+      case 'hediye-radari': {
+        const gift = homePreviews.gifts[0];
+        return gift ? <View style={styles.previewCopy}><Text style={labelStyle} numberOfLines={1}>{gift.title}</Text><Text style={detailStyle}>{homePreviews.gifts.length} gizli hediye fikri{gift.price ? ` · ${gift.price.toLocaleString('tr-TR')} ₺` : ''}</Text></View> : empty('Aklınıza gelen hediye fikirlerini kaydedin.');
+      }
+      case 'bilinmesi-gerekenler': {
+        const fact = homePreviews.facts[0];
+        return fact ? <View style={styles.previewCopy}><Text style={labelStyle} numberOfLines={1}>{fact.label}</Text><Text style={detailStyle} numberOfLines={2}>{fact.value || `${homePreviews.facts.length} önemli bilgi kayıtlı`}</Text></View> : empty('Birbiriniz için önemli bilgileri kaydedin.');
+      }
+      case 'gezilen-yerler': {
+        const place = homePreviews.places[0];
+        return place ? <View style={styles.previewCopy}><Text style={labelStyle} numberOfLines={1}>{place.city}, {place.country}</Text><Text style={detailStyle}>{homePreviews.places.length} birlikte keşfedilen yer</Text></View> : empty('Birlikte gittiğiniz ilk yeri haritaya ekleyin.');
+      }
+      case 'birlikte-adimlar': {
+        const total = homePreviews.steps.reduce((sum, row) => sum + row.steps, 0);
+        return homePreviews.steps.length ? <View style={styles.previewCopy}><Text style={labelStyle}>{total.toLocaleString('tr-TR')} adım</Text><Text style={detailStyle}>Bugün birlikte atılan adımlar</Text></View> : empty('Bugünkü ortak adımlarınız burada görünür.');
+      }
+      case 'takvim':
+      case 'yaklasanlar': {
+        const nextItem = upcoming.find((item) => category.slug === 'takvim' ? item.kind !== 'special' : true);
+        return nextItem ? <View style={styles.previewCopy}><Text style={labelStyle} numberOfLines={1}>{nextItem.title}</Text><Text style={detailStyle}>{nextItem.subtitle}</Text></View> : empty('Henüz yaklaşan plan yok. Yeni etkinliklerinizi burada göreceksiniz.');
+      }
+      case 'ozel-gunler': {
+        const nextSpecial = upcoming.find((item) => item.kind === 'special');
+        return nextSpecial ? <View style={styles.previewCopy}><Text style={labelStyle} numberOfLines={1}>{nextSpecial.title}</Text><Text style={detailStyle}>{nextSpecial.subtitle}</Text></View> : empty('Size özel tarihleri birlikte biriktirin.');
+      }
+      default:
+        return <Text numberOfLines={2} style={styles.homeCategoryDescription}>{category.description}</Text>;
+    }
+  };
+
   const renderCategoryCard = (category: Category) => {
     const categoryTone = getCategoryColor(category.slug);
     return (
@@ -215,10 +300,7 @@ export default function TodayScreen() {
           </View>
         </View>
         <View style={[styles.richCategoryPreview, { backgroundColor: categoryTone.tint }]}>
-          <Text numberOfLines={2} style={styles.homeCategoryDescription}>{category.description}</Text>
-          {auroraCategoryIllustrations[category.slug] ? (
-            <Image source={auroraCategoryIllustrations[category.slug]} style={styles.richCategoryIllustration} resizeMode="contain" />
-          ) : null}
+          {renderCategoryPreview(category, categoryTone.color)}
         </View>
         <View style={[styles.richCategoryAction, { backgroundColor: categoryTone.color }]}>
           <Feather name="arrow-right" size={16} color={colors.cream} />
@@ -354,7 +436,7 @@ export default function TodayScreen() {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      await Promise.all([couple.refresh(), refreshNotes(), moods.refresh(), refreshNotifications(), refreshTodaySong()]);
+      await Promise.all([couple.refresh(), refreshNotes(), moods.refresh(), refreshNotifications(), refreshTodaySong(), refreshHomePreviews()]);
     } finally {
       setRefreshing(false);
     }
@@ -638,7 +720,11 @@ const styles = StyleSheet.create({
   richCategoryCard: { paddingVertical: spacing.sm, borderWidth: 1 },
   richCategoryHeader: { minHeight: 42, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   richCategoryPreview: { minHeight: 82, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: radius.control, overflow: 'hidden' },
-  richCategoryIllustration: { width: 82, height: 74, flexShrink: 0 },
+  previewCopy: { flex: 1, minWidth: 0, justifyContent: 'center', gap: 4 },
+  previewMainText: { fontSize: fontSize.md, fontWeight: '700' },
+  previewDetailText: { color: colors.textSecondary, fontSize: fontSize.xs, lineHeight: 16 },
+  galleryPreviewStrip: { flex: 1, flexDirection: 'row', gap: spacing.xs, justifyContent: 'flex-start' },
+  galleryPreviewPhoto: { width: 58, height: 58, borderRadius: radius.control, borderWidth: 1, borderColor: colors.card },
   richCategoryAction: { minHeight: 38, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs, marginTop: spacing.sm, borderRadius: radius.control },
   richCategoryActionText: { color: colors.cream, fontSize: fontSize.sm, fontWeight: '700' },
   homeCategoryIcon: { width: 42, height: 42, flexShrink: 0, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },

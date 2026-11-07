@@ -20,9 +20,9 @@ const mapPhoto = (row: Record<string, unknown>, imageUrl: string): GalleryPhoto 
 });
 
 export const galleryService = {
-  async list(coupleId: string): Promise<GalleryPhoto[]> {
+  async list(coupleId: string, limit = 500): Promise<GalleryPhoto[]> {
     const { data, error } = await supabase.from('couple_gallery_photos').select('*')
-      .eq('couple_id', coupleId).order('created_at', { ascending: false });
+      .eq('couple_id', coupleId).order('created_at', { ascending: false }).limit(limit);
     if (error) throw new Error(error.code === '42P01' || error.code === 'PGRST205'
       ? 'Galeri kurulumu eksik. Supabase SQL Editor’da 20261105_shared_gallery.sql kodunu çalıştırın.'
       : `Galeri yüklenemedi: ${error.message}`);

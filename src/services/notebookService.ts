@@ -15,9 +15,9 @@ const mapNote = (row: Record<string, unknown>): NotebookNote => ({
 });
 
 export const notebookService = {
-  async list(coupleId: string): Promise<NotebookNote[]> {
+  async list(coupleId: string, limit = 500): Promise<NotebookNote[]> {
     const { data, error } = await supabase.from('notes').select('id, owner_id, title, body, updated_at, created_at')
-      .eq('couple_id', coupleId).eq('visibility', 'shared').eq('is_deleted', false).order('updated_at', { ascending: false });
+      .eq('couple_id', coupleId).eq('visibility', 'shared').eq('is_deleted', false).order('updated_at', { ascending: false }).limit(limit);
     if (error) throw new Error(error.code === '42P01' || error.code === 'PGRST205'
       ? 'Not Defteri için Supabase’de notes tablosu bulunamadı. Önce ana şema kurulumunu çalıştırın.'
       : 'Not Defteri yüklenemedi. Bağlantınızı kontrol edin.');

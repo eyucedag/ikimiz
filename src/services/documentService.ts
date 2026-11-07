@@ -28,9 +28,9 @@ const mapDocument = (row: Record<string, unknown>): CoupleDocument => ({
 });
 
 export const documentService = {
-  async list(coupleId: string): Promise<CoupleDocument[]> {
+  async list(coupleId: string, limit = 500): Promise<CoupleDocument[]> {
     const { data, error } = await supabase.from('couple_documents').select('*')
-      .eq('couple_id', coupleId).order('created_at', { ascending: false });
+      .eq('couple_id', coupleId).order('created_at', { ascending: false }).limit(limit);
     if (error) throw new Error(error.code === '42P01' || error.code === 'PGRST205'
       ? 'Dokümanlar kurulumu eksik. Supabase SQL Editor’da 20261105_shared_documents.sql kodunu çalıştırın.'
       : 'Belgeler yüklenemedi. Bağlantınızı kontrol edin.');
@@ -42,9 +42,9 @@ export const documentService = {
     }));
   },
 
-  async listLinks(coupleId: string): Promise<CoupleDocumentLink[]> {
+  async listLinks(coupleId: string, limit = 500): Promise<CoupleDocumentLink[]> {
     const { data, error } = await supabase.from('couple_document_links').select('*')
-      .eq('couple_id', coupleId).order('created_at', { ascending: false });
+      .eq('couple_id', coupleId).order('created_at', { ascending: false }).limit(limit);
     if (error) throw new Error(error.code === '42P01' || error.code === 'PGRST205'
       ? 'Doküman bağlantıları için gerekli SQL kurulumu eksik. Supabase SQL Editor’da 20261105_shared_document_links.sql kodunu çalıştırın.'
       : `Bağlantılar yüklenemedi: ${error.message}`);
