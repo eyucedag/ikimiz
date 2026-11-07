@@ -19,7 +19,7 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
   const [flower, setFlower] = useState<CoupleFlowerState | null>(null);
   const [loading, setLoading] = useState(true);
   const [watering, setWatering] = useState(false);
-  const [plantPickerVisible, setPlantPickerVisible] = useState(false);
+  const [plantMenuMode, setPlantMenuMode] = useState<'actions' | 'picker' | null>(null);
   const [changingPlant, setChangingPlant] = useState(false);
   const [wateringAnimationVisible, setWateringAnimationVisible] = useState(false);
   const [now, setNow] = useState(Date.now());
@@ -94,19 +94,14 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
     cactus: { dry: require('../../assets/aurora/illustrations/couple-cactus-shelves-dry.png'), lush: require('../../assets/aurora/illustrations/couple-cactus-shelves.png'), label: 'Kaktüs' },
     violet: { dry: require('../../assets/aurora/illustrations/couple-violet-shelves-dry.png'), lush: require('../../assets/aurora/illustrations/couple-violet-shelves.png'), label: 'Menekşe' },
   };
-  const plantPreviews: Record<CouplePlantType, number> = {
-    hanging: require('../../assets/aurora/illustrations/couple-flower-shelves-preview.png'),
-    cactus: plantAssets.cactus.lush,
-    violet: plantAssets.violet.lush,
-  };
   const booksSource = require('../../assets/aurora/illustrations/couple-flower-books-shelf.png');
   const choosePlant = async (nextType: CouplePlantType) => {
-    if (changingPlant || nextType === plantType) { setPlantPickerVisible(false); return; }
+    if (changingPlant || nextType === plantType) { setPlantMenuMode(null); return; }
     setChangingPlant(true);
     try {
       setFlower(await coupleFlowerService.setPlant(coupleId, nextType));
       setNow(Date.now());
-      setPlantPickerVisible(false);
+      setPlantMenuMode(null);
       if (partnerId) void notificationService.notifyPartner({ partnerId, coupleId, title: 'Ortak bitki değiştirildi', body: `Birlikte büyüttüğünüz bitki ${plantAssets[nextType].label.toLocaleLowerCase('tr-TR')} olarak değiştirildi.` });
     } catch (error) {
       Alert.alert('Bitki değiştirilemedi', error instanceof Error ? error.message : 'Bağlantınızı kontrol edip yeniden deneyin.');
@@ -115,7 +110,7 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
 
   return (
     <View style={styles.root}>
-      <Pressable onPress={() => setPlantPickerVisible(true)} accessibilityRole="button" accessibilityLabel={`Bitki seçili: ${plantAssets[plantType].label}. Değiştirmek için dokunun.`} style={styles.statusButton}>
+      <Pressable onPress={() => setPlantMenuMode('actions')} accessibilityRole="button" accessibilityLabel={`Bitki seçili: ${plantAssets[plantType].label}. İşlemleri aç.`} style={styles.statusButton}>
         <Text style={styles.status}>{status}</Text><Feather name="edit-2" size={9} color={colors.textSecondary} />
       </Pressable>
       <View style={[styles.plantArea, { height: plantAreaHeight }]}>
@@ -131,7 +126,7 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
             <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.shelvedPlantImage, { height: artworkHeight, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
           </View>
         )}
-        <Pressable onPress={waterFromPlant} disabled={loading || watering || wateringAnimationVisible} accessibilityRole="button" accessibilityLabel="Bitkiye dokunup sula" style={[styles.plantWaterTap, { height: artworkHeight * (plantType === 'hanging' ? 0.96 : 0.56), top: plantType === 'hanging' ? 0 : 8 }]} />
+        <Pressable onPress={() => setPlantMenuMode('actions')} disabled={loading || watering || wateringAnimationVisible} accessibilityRole="button" accessibilityLabel="Bitki işlemlerini aç" style={[styles.plantWaterTap, { height: artworkHeight * (plantType === 'hanging' ? 0.96 : 0.56), top: plantType === 'hanging' ? 0 : 8 }]} />
         {wateringAnimationVisible ? (
           <Animated.View pointerEvents="none" style={[styles.wateringCan, { top: artworkHeight * 0.24, transform: [{ translateY: wateringProgress.interpolate({ inputRange: [0, 0.25, 0.8, 1], outputRange: [5, -3, -3, 5] }) }, { rotate: wateringProgress.interpolate({ inputRange: [0, 0.2, 0.8, 1], outputRange: ['0deg', '-28deg', '-28deg', '0deg'] }) }] }]}>
             <MaterialCommunityIcons name="watering-can" size={30} color={colors.copper} />
@@ -141,18 +136,24 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
         ) : null}
         <Pressable onPress={() => router.push('/books')} accessibilityRole="button" accessibilityLabel="Okuyacağımız kitaplar listesini aç" style={plantType === 'hanging' ? styles.lowerBooksTap : styles.shelfBooksTap} />
       </View>
-      <Modal visible={plantPickerVisible} transparent animationType="fade" onRequestClose={() => setPlantPickerVisible(false)}>
+      <Modal visible={plantMenuMode !== null} transparent animationType="fade" onRequestClose={() => setPlantMenuMode(null)}>
         <View style={styles.modalBackdrop}>
-          <Pressable onPress={() => setPlantPickerVisible(false)} style={StyleSheet.absoluteFill} accessibilityRole="button" accessibilityLabel="Bitki seçimini kapat" />
+          <Pressable onPress={() => setPlantMenuMode(null)} style={StyleSheet.absoluteFill} accessibilityRole="button" accessibilityLabel="Bitki menüsünü kapat" />
           <View style={styles.pickerSheet}>
-            <View style={styles.pickerHeader}><View><Text style={styles.pickerTitle}>Ortak bitkinizi seçin</Text><Text style={styles.pickerSubtitle}>Seçiminiz ikiniz için de güncellenir.</Text></View><Pressable onPress={() => setPlantPickerVisible(false)} accessibilityRole="button" accessibilityLabel="Kapat"><Feather name="x" size={21} color={colors.text} /></Pressable></View>
-            <View style={styles.optionRow}>
-              {(['hanging', 'cactus', 'violet'] as CouplePlantType[]).map((option) => <Pressable key={option} onPress={() => { void choosePlant(option); }} disabled={changingPlant} accessibilityRole="button" accessibilityState={{ selected: plantType === option }} style={[styles.plantOption, plantType === option && styles.plantOptionSelected]}>
-                <Image source={plantPreviews[option]} style={styles.optionImage} resizeMode="contain" />
-                <Text style={[styles.optionLabel, plantType === option && styles.optionLabelSelected]} numberOfLines={1}>{plantAssets[option].label}</Text>
-                {plantType === option ? <Feather name="check-circle" size={15} color={colors.copper} /> : null}
-              </Pressable>)}
-            </View>
+            <View style={styles.pickerHeader}><View><Text style={styles.pickerTitle}>{plantMenuMode === 'actions' ? 'Bitki' : 'Ortak bitkinizi seçin'}</Text><Text style={styles.pickerSubtitle}>{plantMenuMode === 'actions' ? 'Ne yapmak istersiniz?' : 'Seçiminiz ikiniz için de güncellenir.'}</Text></View><Pressable onPress={() => setPlantMenuMode(null)} accessibilityRole="button" accessibilityLabel="Kapat"><Feather name="x" size={21} color={colors.text} /></Pressable></View>
+            {plantMenuMode === 'actions' ? (
+              <View style={styles.actionList}>
+                <Pressable onPress={() => { setPlantMenuMode(null); waterFromPlant(); }} disabled={loading || watering} accessibilityRole="button" style={styles.menuAction}><Feather name="droplet" size={19} color={colors.copper} /><Text style={styles.menuActionText}>Sula</Text></Pressable>
+                <Pressable onPress={() => setPlantMenuMode('picker')} accessibilityRole="button" style={styles.menuAction}><Feather name="refresh-cw" size={18} color={colors.copper} /><Text style={styles.menuActionText}>Bitki seç</Text></Pressable>
+              </View>
+            ) : (
+              <View style={styles.optionList}>
+                {(['hanging', 'violet', 'cactus'] as CouplePlantType[]).map((option) => <Pressable key={option} onPress={() => { void choosePlant(option); }} disabled={changingPlant} accessibilityRole="button" accessibilityState={{ selected: plantType === option }} style={[styles.plantOption, plantType === option && styles.plantOptionSelected]}>
+                  <Text style={[styles.optionLabel, plantType === option && styles.optionLabelSelected]}>{plantAssets[option].label}</Text>
+                  {plantType === option ? <Feather name="check-circle" size={17} color={colors.copper} /> : null}
+                </Pressable>)}
+              </View>
+            )}
             {changingPlant ? <ActivityIndicator color={colors.copper} style={styles.pickerLoading} /> : null}
           </View>
         </View>
@@ -184,11 +185,13 @@ const styles = StyleSheet.create({
   pickerHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 14 },
   pickerTitle: { color: colors.text, fontSize: 18, fontWeight: '700' },
   pickerSubtitle: { color: colors.textSecondary, fontSize: 12, marginTop: 3 },
-  optionRow: { flexDirection: 'row', gap: 8 },
-  plantOption: { flex: 1, minWidth: 0, minHeight: 142, alignItems: 'center', justifyContent: 'center', padding: 8, borderRadius: 15, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.background },
+  plantOption: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, borderRadius: 14, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.background },
   plantOptionSelected: { borderColor: colors.copper, backgroundColor: '#F6E9D7' },
-  optionImage: { width: '100%', height: 90 },
-  optionLabel: { color: colors.textSecondary, fontSize: 11, fontWeight: '600', textAlign: 'center', marginTop: 4 },
+  actionList: { gap: 9 },
+  menuAction: { minHeight: 50, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.background },
+  menuActionText: { color: colors.text, fontSize: 15, fontWeight: '700' },
+  optionList: { gap: 8 },
+  optionLabel: { color: colors.textSecondary, fontSize: 15, fontWeight: '600', textAlign: 'left' },
   optionLabelSelected: { color: colors.copper },
   pickerLoading: { marginTop: 12 },
 });
