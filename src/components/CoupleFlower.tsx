@@ -76,6 +76,7 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
 
   const status = health < 20 ? 'Susadı' : health < 55 ? 'Biraz kuruyor' : 'Birlikte büyüyor';
   const plantType = flower?.plantType ?? 'hanging';
+  const shelvedPlantClipHeight = artworkHeight * (plantType === 'cactus' ? 0.56 : 0.53);
   const plantAssets: Record<CouplePlantType, { dry: number; lush: number; label: string }> = {
     hanging: { dry: require('../../assets/aurora/illustrations/couple-flower-dry.png'), lush: require('../../assets/aurora/illustrations/couple-flower-lush.png'), label: 'Kalbe karşı kalp' },
     cactus: { dry: require('../../assets/aurora/illustrations/couple-cactus-shelves-dry.png'), lush: require('../../assets/aurora/illustrations/couple-cactus-shelves.png'), label: 'Kaktüs' },
@@ -112,7 +113,7 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
             <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.plantImage, { top: 6, height: artworkHeight, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
           </View>
         ) : (
-          <View style={[styles.shelvedPlantClip, { top: 8, height: artworkHeight * 0.56 }]} pointerEvents="none">
+          <View style={[styles.shelvedPlantClip, { top: 8, height: shelvedPlantClipHeight }]} pointerEvents="none">
             <Image source={plantAssets[plantType].dry} resizeMode="contain" style={[styles.shelvedPlantImage, { height: artworkHeight }]} accessibilityIgnoresInvertColors />
             <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.shelvedPlantImage, { height: artworkHeight, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
           </View>
