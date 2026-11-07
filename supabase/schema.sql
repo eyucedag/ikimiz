@@ -269,7 +269,7 @@ create table if not exists public.daily_songs (
   title       text not null,
   artist      text not null,
   url         text not null check (url ~* '^https?://'),
-  unique (couple_id, song_date)
+  unique (couple_id, song_date, owner_id)
 );
 
 -- =====================================================================
@@ -714,7 +714,7 @@ create policy daily_songs_select on public.daily_songs for select to authenticat
 drop policy if exists daily_songs_insert on public.daily_songs;
 create policy daily_songs_insert on public.daily_songs for insert to authenticated with check (owner_id = auth.uid() and public.is_couple_member(couple_id));
 drop policy if exists daily_songs_update on public.daily_songs;
-create policy daily_songs_update on public.daily_songs for update to authenticated using (public.is_couple_member(couple_id)) with check (public.is_couple_member(couple_id));
+create policy daily_songs_update on public.daily_songs for update to authenticated using (owner_id = auth.uid() and public.is_couple_member(couple_id)) with check (owner_id = auth.uid() and public.is_couple_member(couple_id));
 drop policy if exists daily_songs_delete on public.daily_songs;
 create policy daily_songs_delete on public.daily_songs for delete to authenticated using (owner_id = auth.uid() and public.is_couple_member(couple_id));
 grant select, insert, update, delete on public.daily_songs to authenticated;

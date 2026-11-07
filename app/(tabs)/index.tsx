@@ -18,7 +18,7 @@ import { useScreenNotes } from '@/src/hooks/useScreenNotes';
 import { useMoods } from '@/src/hooks/useMoods';
 import { supabase } from '@/src/lib/supabase';
 import { notificationService } from '@/src/services/notificationService';
-import { songOfTheDayService } from '@/src/services/songOfTheDayService';
+import { DailySong, songOfTheDayService } from '@/src/services/songOfTheDayService';
 import { greeting, relativeTime, todayLabel } from '@/src/utils/date';
 import { useCoupleDirection } from '@/src/hooks/useCoupleDirection';
 import { useAutomaticNearbySteps } from '@/src/hooks/useAutomaticNearbySteps';
@@ -76,7 +76,7 @@ export default function TodayScreen() {
   const [hiddenHomeCategories, setHiddenHomeCategories] = useState<string[]>([]);
   const [photoVisible, setPhotoVisible] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [todaySong, setTodaySong] = useState<{ title: string; artist: string; url: string } | null>(null);
+  const [todaySongs, setTodaySongs] = useState<DailySong[]>([]);
   const [homePreviews, setHomePreviews] = useState<HomePreviewData>(EMPTY_HOME_PREVIEWS);
   const [sendingKiss, setSendingKiss] = useState(false);
   const direction = useCoupleDirection(couple.couple?.id, user?.id, couple.partner?.id);
@@ -117,10 +117,10 @@ export default function TodayScreen() {
 
   const refreshTodaySong = useCallback(async () => {
     const coupleId = couple.couple?.id;
-    if (!coupleId) { setTodaySong(null); return; }
+    if (!coupleId) { setTodaySongs([]); return; }
     try {
-      const song = await songOfTheDayService.get(coupleId, songDate);
-      setTodaySong(song ? { title: song.title, artist: song.artist, url: song.url } : null);
+      const songs = await songOfTheDayService.list(coupleId, songDate);
+      setTodaySongs(songs);
     } catch { /* Keep the home screen usable if the song cannot be fetched. */ }
   }, [couple.couple?.id, songDate]);
 
@@ -319,21 +319,26 @@ export default function TodayScreen() {
           <View style={[styles.songIcon, { backgroundColor: songColor.tint }]}><Feather name="music" size={21} color={songColor.color} /></View>
           <View style={styles.upcomingCopy}>
             <Text style={[styles.songEyebrow, { color: songColor.color }]}>Günün Şarkısı</Text>
-            <Text style={styles.songPrompt} numberOfLines={1}>{todaySong ? 'Bugün sizin için seçildi' : 'Bugün birbirinize bir şarkı seçin'}</Text>
+            <Text style={styles.songPrompt} numberOfLines={1}>{todaySongs.length === 2 ? 'İkinizin de şarkısı hazır' : todaySongs.length === 1 ? 'Bir şarkı seçildi, sıra sende' : 'Bugün birbirinize bir şarkı seçin'}</Text>
           </View>
           <Feather name="chevron-right" size={19} color={songColor.color} />
         </Pressable>
-        {todaySong ? (
-          <View style={[styles.songDetails, { backgroundColor: songColor.tint }]}>
-            <Text style={styles.songCardTitle} numberOfLines={2}>{todaySong.title}</Text>
-            <Text style={styles.songCardArtist} numberOfLines={1}>{todaySong.artist}</Text>
+        {todaySongs.map((dailySong) => (
+          <View key={dailySong.id} style={[styles.songDetails, { backgroundColor: songColor.tint }]}>
+            <View style={styles.songPreviewCopy}>
+              <Text style={styles.songCardTitle} numberOfLines={1}>{dailySong.title}</Text>
+              <Text style={styles.songCardArtist} numberOfLines={1}>{dailySong.artist} · {dailySong.ownerId === user?.id ? 'Senin seçimin' : couple.partner?.displayName ?? 'Partnerinin seçimi'}</Text>
+            </View>
+            <Pressable onPress={() => { void listenToTodaySong(dailySong.url); }} accessibilityRole="button" accessibilityLabel={`${dailySong.title} şarkısını dinle`} style={styles.songPreviewPlay}>
+              <Feather name="play" size={15} color={songColor.color} />
+            </Pressable>
           </View>
-        ) : null}
+        ))}
         <Button
-          title={todaySong?.url ? 'Şarkıyı dinle' : 'Şarkı seç'}
-          icon={todaySong?.url ? 'play' : 'music'}
+          title="Şarkıları yönet"
+          icon="music"
           toneColor={songColor.color}
-          onPress={() => todaySong?.url ? void listenToTodaySong() : router.push('/song-of-the-day')}
+          onPress={() => router.push('/song-of-the-day')}
           style={styles.cardActionButton}
         />
       </Card>
@@ -442,9 +447,9 @@ export default function TodayScreen() {
     }
   };
 
-  const listenToTodaySong = async () => {
-    if (!todaySong?.url) return;
-    try { await Linking.openURL(todaySong.url); }
+  const listenToTodaySong = async (url: string) => {
+    if (!url) return;
+    try { await Linking.openURL(url); }
     catch { Alert.alert('Bağlantı açılamadı', 'Şarkı bağlantısını kontrol edip yeniden deneyin.'); }
   };
 
@@ -681,7 +686,9 @@ const styles = StyleSheet.create({
   songIcon: { width: 40, height: 40, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   songEyebrow: { fontSize: fontSize.sm, fontWeight: '700' },
   songPrompt: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 2 },
-  songDetails: { marginTop: spacing.sm, marginBottom: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.control },
+  songDetails: { minHeight: 58, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm, marginBottom: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.control },
+  songPreviewCopy: { flex: 1, minWidth: 0 },
+  songPreviewPlay: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
   cardActionButton: { width: '100%', marginTop: spacing.sm, minHeight: 42, paddingVertical: spacing.xs },
   noteCard: { paddingBottom: spacing.xs },
   noteHeader: { minHeight: 27, flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },

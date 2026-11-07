@@ -19,15 +19,25 @@ const mapSong = (row: Record<string, unknown>): DailySong => ({
 });
 
 function serviceError(error: { code?: string } | null, fallback: string) {
+  if (error?.code === '42P10') return 'Günün Şarkısı güncellemesi eksik. Supabase SQL Editor’da 20261107_shared_daily_song_per_partner.sql dosyasını çalıştırın.';
   return error?.code === '42P01' || error?.code === 'PGRST205'
     ? 'Günün Şarkısı tablosu hazır değil. Supabase SQL Editor’da 20261105_shared_song_of_the_day.sql dosyasını çalıştırın.'
     : fallback;
 }
 
 export const songOfTheDayService = {
-  async get(coupleId: string, date: string): Promise<DailySong | null> {
+  async list(coupleId: string, date: string): Promise<DailySong[]> {
     const { data, error } = await supabase.from('daily_songs').select('*')
-      .eq('couple_id', coupleId).eq('song_date', date).maybeSingle();
+      .eq('couple_id', coupleId).eq('song_date', date).order('created_at');
+    if (error) throw new Error(serviceError(error, 'Günün şarkısı yüklenemedi. Bağlantınızı kontrol edin.'));
+    return ((data ?? []) as Record<string, unknown>[]).map(mapSong);
+  },
+
+  /** Backward-compatible helper for screens that only need one preview. */
+  async get(coupleId: string, date: string, ownerId?: string): Promise<DailySong | null> {
+    let query = supabase.from('daily_songs').select('*').eq('couple_id', coupleId).eq('song_date', date);
+    if (ownerId) query = query.eq('owner_id', ownerId);
+    const { data, error } = await query.order('created_at', { ascending: false }).limit(1).maybeSingle();
     if (error) throw new Error(serviceError(error, 'Günün şarkısı yüklenemedi. Bağlantınızı kontrol edin.'));
     return data ? mapSong(data as Record<string, unknown>) : null;
   },
@@ -40,12 +50,12 @@ export const songOfTheDayService = {
     if (!/^https?:\/\//i.test(url)) throw new Error('Spotify, YouTube veya başka bir müzik bağlantısını https:// ile girin.');
     const { data, error } = await supabase.from('daily_songs').upsert({
       owner_id: input.ownerId, couple_id: input.coupleId, song_date: input.date, title, artist, url,
-    }, { onConflict: 'couple_id,song_date' }).select('*').single();
+    }, { onConflict: 'couple_id,song_date,owner_id' }).select('*').single();
     if (error || !data) throw new Error(serviceError(error, 'Şarkı kaydedilemedi. Eşleşmenizi ve bağlantınızı kontrol edin.'));
     const song = mapSong(data as Record<string, unknown>);
     await notificationService.notifyPartner({
       partnerId: input.partnerId, coupleId: input.coupleId,
-      title: 'Günün şarkısı güncellendi', body: `${song.title} · ${song.artist}`,
+      title: 'Günün şarkısı eklendi', body: `${song.title} · ${song.artist}`,
     });
     return song;
   },

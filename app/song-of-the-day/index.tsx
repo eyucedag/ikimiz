@@ -22,7 +22,7 @@ export default function SongOfTheDayScreen() {
   const { user } = useAuth();
   const couple = useCouple();
   const categoryColor = getCategoryColor('gunun-sarkisi');
-  const [song, setSong] = useState<DailySong | null>(null);
+  const [songs, setSongs] = useState<DailySong[]>([]);
   const [title, setTitle] = useState('');
   const [artist, setArtist] = useState('');
   const [url, setUrl] = useState('');
@@ -74,18 +74,19 @@ export default function SongOfTheDayScreen() {
     if (!couple.couple?.id) return;
     setLoading(true);
     try {
-      const current = await songOfTheDayService.get(couple.couple.id, date);
-      setSong(current);
-      setTitle(current?.title ?? '');
-      setArtist(current?.artist ?? '');
-      setUrl(current?.url ?? '');
+      const current = await songOfTheDayService.list(couple.couple.id, date);
+      setSongs(current);
+      const mine = current.find((item) => item.ownerId === user?.id);
+      setTitle(mine?.title ?? '');
+      setArtist(mine?.artist ?? '');
+      setUrl(mine?.url ?? '');
       setError('');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Günün şarkısı yüklenemedi.');
     } finally {
       setLoading(false);
     }
-  }, [couple.couple?.id, date]);
+  }, [couple.couple?.id, date, user?.id]);
 
   useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
 
@@ -107,7 +108,7 @@ export default function SongOfTheDayScreen() {
         ownerId: user.id, partnerId: couple.partner.id, coupleId: couple.couple.id,
         date, title, artist, url,
       });
-      setSong(next);
+      setSongs((current) => [...current.filter((item) => item.ownerId !== user.id), next].sort((a, b) => a.createdAt.localeCompare(b.createdAt)));
       setTitle(next.title); setArtist(next.artist); setUrl(next.url);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Şarkı kaydedilemedi.');
@@ -116,11 +117,13 @@ export default function SongOfTheDayScreen() {
     }
   };
 
-  const listen = async () => {
-    if (!song?.url) return;
-    try { await Linking.openURL(song.url); }
+  const listen = async (songUrl: string) => {
+    if (!songUrl) return;
+    try { await Linking.openURL(songUrl); }
     catch { Alert.alert('Bağlantı açılamadı', 'Şarkı bağlantısını kontrol edip yeniden deneyin.'); }
   };
+
+  const mySong = songs.find((item) => item.ownerId === user?.id) ?? null;
 
   if (couple.loading) return <Screen title="Günün Şarkısı" toneColor={categoryColor.color}><CoupleLoading /></Screen>;
 
@@ -132,24 +135,27 @@ export default function SongOfTheDayScreen() {
           <View style={styles.headingText}><Text style={styles.headingTitle}>Bugünün şarkısı</Text><Text style={styles.date}>{todayLabel()}</Text></View>
         </View>
 
-        {song ? <Card style={[styles.songCard, { borderColor: categoryColor.color }]}>
-          <View style={[styles.albumArt, { backgroundColor: categoryColor.tint }]}><Feather name="music" size={30} color={categoryColor.color} /></View>
-          <Text style={styles.songTitle}>{song.title}</Text>
-          <Text style={styles.artist}>{song.artist}</Text>
-          <Button title="Şarkıyı dinle" icon="play" toneColor={categoryColor.color} onPress={() => { void listen(); }} compact style={styles.listenButton} />
-        </Card> : <Card style={[styles.emptyCard, { borderColor: categoryColor.color }]}>
-          <EmptyState compact icon="headphones" title="Bugünün şarkısı henüz seçilmedi" description="Bir şarkı seçip partnerinle paylaşın." toneColor={categoryColor.color} toneTint={categoryColor.tint} />
+        {songs.length ? songs.map((dailySong) => <Card key={dailySong.id} style={[styles.songCard, styles.sharedSongCard, { borderColor: categoryColor.color }]}>
+          <View style={[styles.albumArt, styles.smallAlbumArt, { backgroundColor: categoryColor.tint }]}><Feather name="music" size={22} color={categoryColor.color} /></View>
+          <View style={styles.sharedSongCopy}>
+            <Text style={styles.songOwner}>{dailySong.ownerId === user?.id ? 'Senin seçimin' : `${couple.partner?.displayName ?? 'Partnerinin'} seçimi`}</Text>
+            <Text style={[styles.songTitle, styles.sharedSongTitle]} numberOfLines={2}>{dailySong.title}</Text>
+            <Text style={styles.artist} numberOfLines={1}>{dailySong.artist}</Text>
+          </View>
+          <Button title="Dinle" icon="play" toneColor={categoryColor.color} onPress={() => { void listen(dailySong.url); }} compact style={styles.listenButton} />
+        </Card>) : <Card style={[styles.emptyCard, { borderColor: categoryColor.color }]}>
+          <EmptyState compact icon="headphones" title="Bugünün şarkısı henüz seçilmedi" description="İkiniz de kendinize ait bir şarkı ekleyebilirsiniz." toneColor={categoryColor.color} toneTint={categoryColor.tint} />
         </Card>}
 
         <Card style={[styles.form, { borderColor: categoryColor.color }]}>
-          <Text style={[styles.formTitle, { color: categoryColor.color }]}>{song ? 'Şarkıyı değiştir' : 'Bugünün şarkısını seç'}</Text>
+          <Text style={[styles.formTitle, { color: categoryColor.color }]}>{mySong ? 'Kendi şarkını düzenle' : 'Kendi şarkını ekle'}</Text>
           <Input label="Şarkı" compact placeholder="…" value={title} onChangeText={changeTitle} />
           <Input label="Sanatçı" compact placeholder="…" value={artist} onChangeText={changeArtist} />
           <Input label="Dinleme bağlantısı" compact placeholder="…" value={url} onChangeText={changeUrl} autoCapitalize="none" keyboardType="url" autoCorrect={false} />
           <Text style={styles.hint}>Spotify, YouTube, Apple Music veya SoundCloud bağlantısı yapıştırınca şarkı bilgileri otomatik doldurulur.</Text>
           {metadataStatus ? <Text style={styles.metadataStatus}>{metadataStatus}</Text> : null}
           {error ? <Text style={styles.error}>{error}</Text> : null}
-          <Button title={song ? 'Günün şarkısını güncelle' : 'Günün şarkısını paylaş'} icon="music" toneColor={categoryColor.color} onPress={() => { void save(); }} loading={saving} disabled={!title.trim() || !artist.trim() || !url.trim()} compact />
+          <Button title={mySong ? 'Şarkımı güncelle' : 'Şarkımı ekle'} icon="music" toneColor={categoryColor.color} onPress={() => { void save(); }} loading={saving} disabled={!title.trim() || !artist.trim() || !url.trim()} compact />
         </Card>
       </>}
     </Screen>
@@ -164,9 +170,14 @@ const styles = StyleSheet.create({
   date: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 2, textTransform: 'capitalize' },
   songCard: { alignItems: 'center', borderWidth: 1, padding: spacing.md, marginBottom: spacing.md },
   albumArt: { width: 76, height: 76, borderRadius: radius.card, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.md },
+  sharedSongCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm },
+  smallAlbumArt: { width: 48, height: 48, marginBottom: 0, borderRadius: radius.control },
+  sharedSongCopy: { flex: 1, minWidth: 0 },
+  sharedSongTitle: { fontSize: fontSize.md, textAlign: 'left', lineHeight: 20 },
+  songOwner: { color: colors.textSecondary, fontSize: fontSize.xs, fontWeight: '600', marginBottom: 2 },
   songTitle: { color: colors.text, fontSize: fontSize.xl, fontWeight: '700', textAlign: 'center' },
   artist: { color: colors.textSecondary, fontSize: fontSize.md, marginTop: spacing.xs },
-  listenButton: { minWidth: 170, marginTop: spacing.md },
+  listenButton: { minWidth: 76, marginTop: 0 },
   emptyCard: { borderWidth: 1, marginBottom: spacing.md },
   form: { borderWidth: 1, padding: spacing.md },
   formTitle: { fontSize: fontSize.md, fontWeight: '700', marginBottom: spacing.md },
