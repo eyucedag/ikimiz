@@ -102,14 +102,15 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
       </Pressable>
       <View style={[styles.plantArea, { height: plantAreaHeight }]}>
         {plantType === 'hanging' ? (
-          <>
-            <Image source={plantAssets[plantType].dry} resizeMode="contain" style={[styles.plantImage, { height: artworkHeight }]} accessibilityIgnoresInvertColors />
-            <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.plantImage, { height: artworkHeight, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
-          </>
+          <View style={[styles.hangingPlantClip, { height: artworkHeight - 16 }]} pointerEvents="none">
+            <Image source={plantAssets[plantType].dry} resizeMode="contain" style={[styles.plantImage, { top: 6, height: artworkHeight }]} accessibilityIgnoresInvertColors />
+            <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.plantImage, { top: 6, height: artworkHeight, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
+          </View>
         ) : (
-          <View style={[styles.shelvedPlantClip, { height: artworkHeight * 0.54 }]} pointerEvents="none">
+          <View style={[styles.shelvedPlantClip, { top: 8, height: artworkHeight * 0.51 }]} pointerEvents="none">
             <Image source={plantAssets[plantType].dry} resizeMode="contain" style={[styles.shelvedPlantImage, { height: artworkHeight }]} accessibilityIgnoresInvertColors />
             <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.shelvedPlantImage, { height: artworkHeight, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
+            <View pointerEvents="none" style={styles.shelfEdgeFinish} />
           </View>
         )}
         <Image source={booksSource} resizeMode="contain" style={[styles.lowerBooks, { height: booksHeight }]} accessibilityIgnoresInvertColors />
@@ -143,9 +144,11 @@ const styles = StyleSheet.create({
   statusButton: { flexDirection: 'row', alignItems: 'center', gap: 3, marginBottom: 3 },
   status: { color: colors.textSecondary, fontSize: 9, lineHeight: 12, fontWeight: '700', textAlign: 'center' },
   plantArea: { width: '100%', position: 'relative', alignItems: 'center' },
+  hangingPlantClip: { position: 'absolute', top: 0, width: '100%', overflow: 'hidden' },
   plantImage: { position: 'absolute', top: 0, width: '100%' },
   shelvedPlantClip: { position: 'absolute', top: 0, width: '100%', overflow: 'hidden' },
   shelvedPlantImage: { position: 'absolute', top: 0, width: '100%' },
+  shelfEdgeFinish: { position: 'absolute', left: '2%', right: '2%', bottom: 0, height: 4, borderRadius: 2, backgroundColor: '#A86E43' },
   lowerBooksTap: { position: 'absolute', width: '100%', height: 58, bottom: -2, zIndex: 3 },
   lowerBooks: { position: 'absolute', width: '100%', bottom: 0 },
   shelfBooksTap: { position: 'absolute', right: 0, bottom: 0, width: '100%', height: '44%', zIndex: 3 },
