@@ -54,15 +54,16 @@
   "relationshipPlantVariants": {
     "hanging": [
       "couple-flower-lush.png",
-      "couple-flower-dry.png"
+      "couple-flower-dry.png",
+      "couple-flower-books.png"
     ],
     "cactus": [
-      "couple-cactus.png",
-      "couple-cactus-dry.png"
+      "couple-cactus-shelves.png",
+      "couple-cactus-shelves-dry.png"
     ],
     "violet": [
-      "couple-violet.png",
-      "couple-violet-dry.png"
+      "couple-violet-shelves.png",
+      "couple-violet-shelves-dry.png"
     ]
   }
 }

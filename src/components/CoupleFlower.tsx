@@ -69,8 +69,8 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
   const plantType = flower?.plantType ?? 'hanging';
   const plantAssets: Record<CouplePlantType, { dry: number; lush: number; label: string }> = {
     hanging: { dry: require('../../assets/aurora/illustrations/couple-flower-dry.png'), lush: require('../../assets/aurora/illustrations/couple-flower-lush.png'), label: 'Kalbe karşı kalp' },
-    cactus: { dry: require('../../assets/aurora/illustrations/couple-cactus-dry.png'), lush: require('../../assets/aurora/illustrations/couple-cactus.png'), label: 'Kaktüs' },
-    violet: { dry: require('../../assets/aurora/illustrations/couple-violet-dry.png'), lush: require('../../assets/aurora/illustrations/couple-violet.png'), label: 'Menekşe' },
+    cactus: { dry: require('../../assets/aurora/illustrations/couple-cactus-shelves-dry.png'), lush: require('../../assets/aurora/illustrations/couple-cactus-shelves.png'), label: 'Kaktüs' },
+    violet: { dry: require('../../assets/aurora/illustrations/couple-violet-shelves-dry.png'), lush: require('../../assets/aurora/illustrations/couple-violet-shelves.png'), label: 'Menekşe' },
   };
   const choosePlant = async (nextType: CouplePlantType) => {
     if (changingPlant || nextType === plantType) { setPlantPickerVisible(false); return; }
@@ -91,6 +91,7 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
         <Text style={styles.status}>{status}</Text><Feather name="edit-2" size={9} color={colors.textSecondary} />
       </Pressable>
       <View style={styles.plantArea}>
+        {plantType === 'hanging' ? <Image source={require('../../assets/aurora/illustrations/couple-flower-books.png')} resizeMode="contain" style={styles.lowerBooks} accessibilityIgnoresInvertColors /> : null}
         <Image source={plantAssets[plantType].dry} resizeMode="contain" style={styles.plantImage} accessibilityIgnoresInvertColors />
         <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.plantImage, { opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
       </View>
@@ -121,8 +122,9 @@ const styles = StyleSheet.create({
   root: { width: '100%', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 2 },
   statusButton: { flexDirection: 'row', alignItems: 'center', gap: 3, marginBottom: 3 },
   status: { color: colors.textSecondary, fontSize: 9, lineHeight: 12, fontWeight: '700', textAlign: 'center' },
-  plantArea: { width: '86%', height: 140, position: 'relative', alignItems: 'center' },
+  plantArea: { width: '100%', height: 140, position: 'relative', alignItems: 'center' },
   plantImage: { position: 'absolute', width: '100%', height: '100%' },
+  lowerBooks: { position: 'absolute', width: '100%', height: 58, bottom: -2 },
   waterButton: { minWidth: 58, height: 28, marginTop: 2, paddingHorizontal: 9, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, backgroundColor: colors.copper, borderWidth: 1, borderColor: 'rgba(255,249,235,0.8)' },
   waterText: { color: colors.white, fontSize: 11, fontWeight: '700' },
   pressed: { opacity: 0.75, transform: [{ scale: 0.96 }] },
