@@ -86,7 +86,7 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
     cactus: plantAssets.cactus.lush,
     violet: plantAssets.violet.lush,
   };
-  const booksSource = require('../../assets/aurora/illustrations/couple-flower-books.png');
+  const booksSource = require('../../assets/aurora/illustrations/couple-flower-books-shelf.png');
   const choosePlant = async (nextType: CouplePlantType) => {
     if (changingPlant || nextType === plantType) { setPlantPickerVisible(false); return; }
     setChangingPlant(true);
@@ -112,7 +112,7 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
             <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.plantImage, { top: 6, height: artworkHeight, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
           </View>
         ) : (
-          <View style={[styles.shelvedPlantClip, { top: 8, height: artworkHeight * 0.64 }]} pointerEvents="none">
+          <View style={[styles.shelvedPlantClip, { top: 8, height: artworkHeight * 0.56 }]} pointerEvents="none">
             <Image source={plantAssets[plantType].dry} resizeMode="contain" style={[styles.shelvedPlantImage, { height: artworkHeight }]} accessibilityIgnoresInvertColors />
             <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.shelvedPlantImage, { height: artworkHeight, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
           </View>
