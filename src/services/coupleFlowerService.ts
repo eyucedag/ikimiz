@@ -32,7 +32,8 @@ function setupError(message: string): Error {
 
 export function flowerHealthNow(state: CoupleFlowerState, now = Date.now()): number {
   const elapsedDays = Math.max(0, (now - new Date(state.updatedAt).getTime()) / 86_400_000);
-  return Math.max(0, Math.min(100, state.health - Math.floor(elapsedDays * 12)));
+  const decayPerDay = state.plantType === 'cactus' ? 1 : state.plantType === 'violet' ? 6 : 9;
+  return Math.max(0, Math.min(100, state.health - Math.floor(elapsedDays * decayPerDay)));
 }
 
 export const coupleFlowerService = {

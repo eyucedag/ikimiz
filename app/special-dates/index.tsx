@@ -16,9 +16,9 @@ const kinds: { value: ImportantDateKind; label: string }[] = [
   { value: 'birthday', label: 'Doğum günü' },
   { value: 'other', label: 'Diğer' },
 ];
-const today = () => new Date().toISOString().slice(0, 10);
 const toDate = (value: string) => { const [y, m, d] = value.split('-').map(Number); return new Date(y, m - 1, d); };
 const toKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+const today = () => toKey(new Date());
 const dateLabel = (value: string) => {
   const date = /^\d{4}-\d{2}-\d{2}$/.test(value) ? toDate(value) : new Date(value);
   if (!Number.isFinite(date.getTime())) return 'Tarih belirtilmemiş';

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, Alert, FlatList, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Button, Card, EmptyState, Screen, SectionHeader } from '@/src/components/ui';
@@ -23,6 +24,29 @@ import { greeting, relativeTime, todayLabel } from '@/src/utils/date';
 import { useCoupleDirection } from '@/src/hooks/useCoupleDirection';
 import { useAutomaticNearbySteps } from '@/src/hooks/useAutomaticNearbySteps';
 import { kissService } from '@/src/services/kissService';
+
+async function readPhotoBytes(uri: string): Promise<ArrayBuffer> {
+  try {
+    const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    const clean = base64.replace(/[^A-Za-z0-9+/=]/g, '');
+    const bytes = new Uint8Array(Math.floor(clean.length * 3 / 4) - (clean.endsWith('==') ? 2 : clean.endsWith('=') ? 1 : 0));
+    let offset = 0;
+    for (let i = 0; i < clean.length; i += 4) {
+      const a = alphabet.indexOf(clean[i]); const b = alphabet.indexOf(clean[i + 1]);
+      const c = alphabet.indexOf(clean[i + 2]); const d = alphabet.indexOf(clean[i + 3]);
+      if (a < 0 || b < 0) continue;
+      bytes[offset++] = (a << 2) | (b >> 4);
+      if (c >= 0 && clean[i + 2] !== '=') bytes[offset++] = ((b & 15) << 4) | (c >> 2);
+      if (d >= 0 && clean[i + 3] !== '=') bytes[offset++] = ((c & 3) << 6) | d;
+    }
+    return bytes.buffer;
+  } catch {
+    const response = await fetch(uri);
+    if (!response.ok) throw new Error('Seçilen fotoğraf telefondan okunamadı. Başka bir fotoğraf deneyin.');
+    return response.arrayBuffer();
+  }
+}
 import { galleryService, GalleryPhoto } from '@/src/services/galleryService';
 import { listService, SharedList } from '@/src/services/listService';
 import { notebookService, NotebookNote } from '@/src/services/notebookService';
@@ -476,9 +500,7 @@ export default function TodayScreen() {
       }
       setUploadingPhoto(true);
       const mimeType = asset.mimeType === 'image/png' || asset.mimeType === 'image/webp' ? asset.mimeType : 'image/jpeg';
-      const response = await fetch(asset.uri);
-      if (!response.ok) throw new Error('Seçilen fotoğraf okunamadı.');
-      const file = await response.arrayBuffer();
+      const file = await readPhotoBytes(asset.uri);
       if (file.byteLength > 8 * 1024 * 1024) throw new Error('Fotoğraf 8 MB’tan büyük. Daha küçük bir fotoğraf seçin.');
       const photoPath = `${couple.couple.id}/photo`;
       const { error: uploadError } = await supabase.storage.from('couple-photos').upload(photoPath, file, {
@@ -546,7 +568,7 @@ export default function TodayScreen() {
             <Text style={styles.directionLabel}>Aşkım nerdesin?</Text>
           </Pressable>
           <Text style={styles.directionHintOverlay} numberOfLines={1}>
-            {direction.error || (direction.bothSharing ? 'İkinizin konumu açık.' : direction.sharing ? 'Konumunuz açık; partneriniz de açınca yönü göreceksiniz.' : direction.anySharing ? 'Partnerinizin konumu açık; yön için siz de açın.' : ' ')}
+            {direction.error || (direction.bothSharing ? 'Konumunuz paylaşılıyor.' : direction.sharing ? 'Partnerin de açınca yön görünür.' : direction.anySharing ? 'Sen de açınca yön görünür.' : ' ')}
           </Text>
         </View>
       ) : null}>
@@ -568,7 +590,7 @@ export default function TodayScreen() {
         </View>
       </View>
       </DynamicSky>
-      <SectionHeader title="Kategoriler" compact />
+      {/* Ana ekranın üstünde tekrarlanan kategori başlığı gösterilmez. */}
     </View>
   );
 
@@ -683,8 +705,8 @@ const styles = StyleSheet.create({
   photoChangeButton: { minWidth: 220, marginTop: spacing.xl },
   photoUploading: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
   appTitle: { fontFamily: 'serif', fontSize: fontSize.xxxl, fontWeight: '600', color: colors.cream, letterSpacing: 0.3 },
-  subtitle: { fontSize: fontSize.sm, color: colors.cream, marginTop: spacing.xs, fontWeight: '500' },
-  dateLabel: { fontSize: fontSize.xs, color: 'rgba(246,233,215,0.82)', marginTop: 2 },
+  subtitle: { fontSize: fontSize.sm + 1, color: colors.cream, marginTop: spacing.xs, fontWeight: '500' },
+  dateLabel: { fontSize: fontSize.xs + 1, color: 'rgba(246,233,215,0.82)', marginTop: 2 },
   durationPill: { alignSelf: 'flex-start', maxWidth: '100%', backgroundColor: 'rgba(41,47,44,0.84)', borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: 3, marginTop: spacing.xs },
   duration: { fontSize: fontSize.xs, color: colors.cream, fontWeight: '700' },
   durationMissing: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: spacing.xs },

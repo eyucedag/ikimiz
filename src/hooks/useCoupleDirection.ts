@@ -9,8 +9,15 @@ export function useCoupleDirection(coupleId?: string, userId?: string, partnerId
   const [heading, setHeading] = useState(0);
   const [sharing, setSharing] = useState(false);
   const [error, setError] = useState('');
+  const [freshnessTick, setFreshnessTick] = useState(0);
   const subscriptions = useRef<{ remove: () => void }[]>([]);
   const lastWrite = useRef(0);
+  const starting = useRef(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => setFreshnessTick((tick) => tick + 1), 15000);
+    return () => clearInterval(timer);
+  }, []);
 
   const refresh = useCallback(async () => {
     if (!coupleId) return;
@@ -26,24 +33,36 @@ export function useCoupleDirection(coupleId?: string, userId?: string, partnerId
   }, [userId]);
 
   const start = useCallback(async () => {
-    if (!coupleId || !userId) return;
+    if (!coupleId || !userId || starting.current || subscriptions.current.length) return;
+    starting.current = true;
     setError('');
-    const permission = await Location.requestForegroundPermissionsAsync();
-    if (!permission.granted) { setError('Partner yönünü görmek için konum izni verin.'); return; }
-    setSharing(true);
-    subscriptions.current.push(await Location.watchHeadingAsync((value) => setHeading(value.trueHeading >= 0 ? value.trueHeading : value.magHeading)));
-    subscriptions.current.push(await Location.watchPositionAsync({ accuracy: Location.Accuracy.Balanced, timeInterval: 10000, distanceInterval: 10 }, (position) => {
-      setLocations((current) => [...current.filter((item) => item.userId !== userId), {
-        userId, coupleId, latitude: position.coords.latitude, longitude: position.coords.longitude,
-        heading: position.coords.heading, updatedAt: new Date().toISOString(), directionEnabled: true,
-      }]);
-      const now = Date.now();
-      if (now - lastWrite.current >= 10000) {
-        lastWrite.current = now;
-        void presenceService.updateLocation({ userId, coupleId, latitude: position.coords.latitude, longitude: position.coords.longitude, heading: position.coords.heading, directionEnabled: true }).catch(() => setError('Konum paylaşılmadı. Supabase kurulum SQL’ini çalıştırın.'));
-      }
-    }));
-    await refresh();
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (!permission.granted) { setError('Konum izni gerekli.'); return; }
+      const headingSubscription = await Location.watchHeadingAsync((value) => setHeading(value.trueHeading >= 0 ? value.trueHeading : value.magHeading));
+      subscriptions.current.push(headingSubscription);
+      const positionSubscription = await Location.watchPositionAsync({ accuracy: Location.Accuracy.Balanced, timeInterval: 10000, distanceInterval: 10 }, (position) => {
+        setLocations((current) => [...current.filter((item) => item.userId !== userId), {
+          userId, coupleId, latitude: position.coords.latitude, longitude: position.coords.longitude,
+          heading: position.coords.heading, updatedAt: new Date().toISOString(), directionEnabled: true,
+        }]);
+        const now = Date.now();
+        if (now - lastWrite.current >= 10000) {
+          lastWrite.current = now;
+          void presenceService.updateLocation({ userId, coupleId, latitude: position.coords.latitude, longitude: position.coords.longitude, heading: position.coords.heading, directionEnabled: true }).catch(() => setError('Konum paylaşımı güncellenemedi.'));
+        }
+      });
+      subscriptions.current.push(positionSubscription);
+      setSharing(true);
+      await refresh();
+    } catch {
+      subscriptions.current.forEach((subscription) => subscription.remove());
+      subscriptions.current = [];
+      setSharing(false);
+      setError('Konum açılamadı. Tekrar deneyin.');
+    } finally {
+      starting.current = false;
+    }
   }, [coupleId, userId, refresh]);
 
   useEffect(() => {
@@ -71,7 +90,7 @@ export function useCoupleDirection(coupleId?: string, userId?: string, partnerId
       bothSharing,
       angle: bothSharing && mine && partner ? (bearingBetween(mine, partner) - heading + 360) % 360 : null,
     };
-  }, [locations, userId, partnerId, heading, sharing]);
+  }, [locations, userId, partnerId, heading, sharing, freshnessTick]);
 
   return { ...presence, sharing, start, stop, error };
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 import { KissRecord } from '@/src/services/kissService';
 import { getCategoryColor } from '@/src/constants/categories';
 
@@ -31,7 +31,8 @@ export function KissAnimationOverlay({ event, onFinish }: { event: KissRecord | 
   if (!event) return null;
 
   return (
-    <View pointerEvents="none" style={styles.overlay} accessibilityLiveRegion="polite">
+    <View pointerEvents="auto" style={styles.overlay} accessibilityLiveRegion="polite">
+      <Pressable style={StyleSheet.absoluteFill} onPress={() => {}} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
       <View style={styles.content}>
         <Text style={[styles.sparkleLeft, { color: kissTone.color }]}>❤</Text>
         <Animated.Text style={[styles.lips, { opacity, transform: [{ scale }, { rotate: '-12deg' }] }]}>💋</Animated.Text>

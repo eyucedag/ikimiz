@@ -7,6 +7,8 @@ import { KissRecord } from '@/src/services/kissService';
 import { AppNotification, UpcomingItem } from '@/src/types';
 import { useAuth } from './useAuth';
 
+const localDateKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
 interface AppStateValue {
   notifications: AppNotification[];
   unreadCount: number;
@@ -102,11 +104,12 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       const coupleIds = [...new Set((memberships ?? []).map((row) => String(row.couple_id)).filter(Boolean))];
       if (!coupleIds.length) { setUpcoming([]); return; }
       const now = new Date();
+      const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 23, 59, 59, 999);
       const [{ data, error }, { data: specialDates }] = await Promise.all([
         supabase.from('calendar_events')
         .select('id,title,location,starts_at,all_day')
         .in('couple_id', coupleIds).eq('visibility', 'shared').eq('is_deleted', false)
-        .gte('starts_at', now.toISOString()).order('starts_at').limit(10),
+        .gte('starts_at', now.toISOString()).lte('starts_at', endDate.toISOString()).order('starts_at').limit(100),
         supabase.from('important_dates').select('id,title,date,kind,couple_id')
           .in('couple_id', coupleIds).eq('visibility', 'shared').eq('is_deleted', false).limit(100),
       ]);
@@ -126,14 +129,19 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         if (!Number.isFinite(month) || !Number.isFinite(day)) return [];
         let next = new Date(now.getFullYear(), month, day, 12);
         const repeatsYearly = row.kind === 'anniversary' || row.kind === 'birthday';
-        if (repeatsYearly && next < today) next = new Date(now.getFullYear() + 1, month, day, 12);
-        if (next < today) return [];
-        const nextDate = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`;
+        if (repeatsYearly && localDateKey(next) < localDateKey(today)) next = new Date(now.getFullYear() + 1, month, day, 12);
+        if (localDateKey(next) < localDateKey(today) || next > endDate) return [];
+        const nextDate = localDateKey(next);
         const dateLabel = next.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
         const kindLabel = row.kind === 'birthday' ? 'Doğum günü' : row.kind === 'anniversary' ? 'Yıl dönümü' : 'Özel gün';
         return [{ id: String(row.id), title: String(row.title), date: nextDate, kind: 'special' as const, subtitle: `${dateLabel} · ${kindLabel}` }];
       });
-      setUpcoming([...events, ...specialItems].sort((a, b) => a.date.localeCompare(b.date)).slice(0, 10));
+      const toSortTime = (date: string, kind: 'event' | 'special') => {
+        if (kind === 'event') return new Date(date).getTime();
+        const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+        return match ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12).getTime() : new Date(date).getTime();
+      };
+      setUpcoming([...events, ...specialItems].sort((a, b) => toSortTime(a.date, a.kind) - toSortTime(b.date, b.kind)).slice(0, 10));
     } catch {
       // Takvim yüklemesi başarısız olsa da ana ekran kullanılabilir kalır.
     }
