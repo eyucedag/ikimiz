@@ -92,9 +92,9 @@ export function CoupleFlower({ coupleId }: { coupleId: string }) {
         <View style={styles.shelf} />
         <View style={styles.shelfBracket} />
         <View style={styles.shelfBracketRight} />
-        <View style={[styles.shoot, styles.shootLeft]} />
-        <View style={[styles.shoot, styles.shootCenter]} />
-        <View style={[styles.shoot, styles.shootRight]} />
+        <View style={[styles.frontVine, styles.frontVineLeft]} />
+        <View style={[styles.frontVine, styles.frontVineCenter]} />
+        <View style={[styles.frontVine, styles.frontVineRight]} />
         {heart(styles.leaf1, 'leaf1')}{heart(styles.leaf2, 'leaf2')}{heart(styles.leaf3, 'leaf3')}
         {heart(styles.leaf4, 'leaf4')}{heart(styles.leaf5, 'leaf5')}{heart(styles.leaf6, 'leaf6')}
         {heart(styles.leaf7, 'leaf7')}{heart(styles.leaf8, 'leaf8')}
@@ -125,10 +125,10 @@ const styles = StyleSheet.create({
   vineRightUpper: { top: 5, right: '31%', height: 63, transform: [{ rotate: '10deg' }] },
   vineRightMiddle: { top: 60, right: '29%', height: 53, transform: [{ rotate: '-15deg' }] },
   vineRightLower: { top: 105, right: '27%', height: 49, transform: [{ rotate: '12deg' }] },
-  shoot: { position: 'absolute', top: -3, width: 2, height: 12, borderRadius: 1, backgroundColor: '#65834E', zIndex: 6 },
-  shootLeft: { left: '37%', transform: [{ rotate: '-15deg' }] },
-  shootCenter: { left: '50%', height: 15 },
-  shootRight: { right: '37%', transform: [{ rotate: '15deg' }] },
+  frontVine: { position: 'absolute', top: 2, width: 2.5, height: 43, borderRadius: 2, backgroundColor: '#65834E', zIndex: 6 },
+  frontVineLeft: { left: '32%', transform: [{ rotate: '-10deg' }] },
+  frontVineCenter: { left: '50%', height: 46, transform: [{ rotate: '2deg' }] },
+  frontVineRight: { right: '31%', transform: [{ rotate: '12deg' }] },
   heartLeaf: { position: 'absolute', width: 22, height: 22 },
   heartDiamond: { position: 'absolute', top: 7, left: 6, width: 11, height: 11, borderRadius: 1, transform: [{ rotate: '45deg' }] },
   heartLobe: { position: 'absolute', top: 4, width: 11, height: 11, borderRadius: 6 },
