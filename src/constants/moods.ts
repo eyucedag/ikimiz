@@ -15,6 +15,10 @@ export const moodOptions: readonly MoodOption[] = [
   { value: 'okay', label: 'İdare eder', emoji: '😐', color: '#8E9AA6' },
   { value: 'low', label: 'Keyifsiz', emoji: '😔', color: '#8297B8' },
   { value: 'rough', label: 'Zorlanıyorum', emoji: '😣', color: '#B7859F' },
+  { value: 'tired', label: 'Yorgunum', emoji: '😴', color: '#8297B8' },
+  { value: 'energetic', label: 'Enerjik', emoji: '💪', color: '#6F997A' },
+  { value: 'angry', label: 'Kızgın', emoji: '😡', color: '#C65B4B' },
+  { value: 'bored', label: 'Sıkılmış', emoji: '😒', color: '#8E9AA6' },
 ];
 
 export function getMoodOption(value: MoodValue): MoodOption {

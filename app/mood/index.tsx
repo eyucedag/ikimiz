@@ -241,7 +241,7 @@ export default function MoodScreen() {
                       accessibilityState={{ selected, disabled: moods.saving || !draftIsCurrent }}
                       style={({ pressed }) => [styles.moodOption, { backgroundColor: appearance.surfaceColor }, selected && { borderColor: categoryColor.color, backgroundColor: categoryColor.tint }, pressed && styles.pressed, moods.saving && styles.disabled]}
                     >
-                      <View style={styles.selectionMark}>{selected ? <Feather name="check-circle" size={15} color={categoryColor.color} /> : null}</View>
+                      {selected ? <View style={styles.selectionMark}><Feather name="check-circle" size={16} color={categoryColor.color} /></View> : null}
                       <Text style={styles.moodEmoji} accessible={false}>{option.emoji}</Text>
                       <Text style={[styles.moodLabel, selected && styles.moodLabelSelected]}>{option.label}</Text>
                     </Pressable>
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   moodGrid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -2, marginTop: spacing.xs, marginBottom: spacing.xs },
   moodCell: { padding: 2 },
   moodOption: { minHeight: 58, borderRadius: radius.control, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 3, paddingVertical: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
-  selectionMark: { height: 9, alignSelf: 'flex-end' },
+  selectionMark: { position: 'absolute', top: 5, right: 5, zIndex: 1, width: 18, height: 18, alignItems: 'center', justifyContent: 'center', borderRadius: 9, backgroundColor: colors.card },
   moodEmoji: { fontSize: 19, marginBottom: 0 },
   moodLabel: { fontSize: fontSize.xs, color: colors.text, textAlign: 'center', fontWeight: '500', lineHeight: 16 },
   moodLabelSelected: { fontWeight: '700' },
