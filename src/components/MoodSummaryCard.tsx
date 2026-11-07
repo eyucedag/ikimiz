@@ -1,9 +1,8 @@
 import React from 'react';
-import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Button, Card } from '@/src/components/ui';
 import { getMoodOption } from '@/src/constants/moods';
-import { auroraMoodIcons } from '@/src/constants/auroraAssets';
 import { getCategoryColor } from '@/src/constants/categories';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { MoodEntry } from '@/src/types/mood';
@@ -27,7 +26,7 @@ function PersonMood({ name, entry, mine, toneColor, compact, overlay }: { name: 
   return (
     <View style={[styles.person, compact && styles.compactPerson]} accessible accessibilityLabel={`${name}: ${option?.label ?? (mine ? 'Henüz seçmediniz' : 'Henüz paylaşmadı')}`}>
       <View style={[styles.emojiCircle, compact && styles.compactMoodCircle, overlay && styles.overlayMoodCircle, option && { backgroundColor: overlay ? 'rgba(246,233,215,0.18)' : `${option.color}18` }]}>
-        {entry ? <Image source={auroraMoodIcons[entry.mood]} style={[styles.moodIcon, compact && styles.compactMoodIcon]} resizeMode="contain" /> : <Feather name="sun" size={compact ? 16 : 18} color={toneColor} />}
+        {entry ? <Text style={[styles.moodEmoji, compact && styles.compactMoodEmoji]} accessible={false}>{option?.emoji}</Text> : <Feather name="sun" size={compact ? 16 : 18} color={toneColor} />}
       </View>
       <View style={styles.personCopy}>
         <Text style={[styles.name, overlay && styles.overlayText]} numberOfLines={1}>{name}</Text>
@@ -96,9 +95,9 @@ const styles = StyleSheet.create({
   compactPerson: { gap: 3, paddingHorizontal: 2 },
   personCopy: { flex: 1, minWidth: 0 },
   emojiCircle: { width: 34, height: 34, flexShrink: 0, borderRadius: 17, backgroundColor: colors.beige, alignItems: 'center', justifyContent: 'center' },
-  moodIcon: { width: 30, height: 30 },
+  moodEmoji: { fontSize: 23, lineHeight: 28 },
   compactMoodCircle: { width: 27, height: 27, borderRadius: 14 },
-  compactMoodIcon: { width: 24, height: 24 },
+  compactMoodEmoji: { fontSize: 19, lineHeight: 23 },
   name: { fontSize: fontSize.xs, fontWeight: '600', color: colors.text },
   status: { fontSize: 10, color: colors.textSecondary, lineHeight: 13, marginTop: 1 },
   selectedStatus: { color: colors.text },
