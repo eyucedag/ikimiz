@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, AppState, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { colors } from '@/src/constants/theme';
 import { coupleFlowerService, CoupleFlowerState, CouplePlantType, flowerHealthNow } from '@/src/services/coupleFlowerService';
 import { notificationService } from '@/src/services/notificationService';
 import { supabase } from '@/src/lib/supabase';
 
 export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partnerId?: string }) {
+  const router = useRouter();
   const [flower, setFlower] = useState<CoupleFlowerState | null>(null);
   const [loading, setLoading] = useState(true);
   const [watering, setWatering] = useState(false);
@@ -94,6 +96,7 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
         {plantType === 'hanging' ? <Image source={require('../../assets/aurora/illustrations/couple-flower-books.png')} resizeMode="contain" style={styles.lowerBooks} accessibilityIgnoresInvertColors /> : null}
         <Image source={plantAssets[plantType].dry} resizeMode="contain" style={styles.plantImage} accessibilityIgnoresInvertColors />
         <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.plantImage, { opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
+        <Pressable onPress={() => router.push('/books')} accessibilityRole="button" accessibilityLabel="Okuyacağımız kitaplar listesini aç" style={plantType === 'hanging' ? styles.lowerBooksTap : styles.shelfBooksTap} />
       </View>
       <Pressable onPress={() => { void water(); }} disabled={loading || watering} accessibilityRole="button" accessibilityLabel="Ortak bitkiyi sula" style={({ pressed }) => [styles.waterButton, pressed && styles.pressed, (loading || watering) && styles.disabled]}>
         {loading || watering ? <ActivityIndicator size="small" color={colors.white} /> : <><Feather name="droplet" size={13} color={colors.white} /><Text style={styles.waterText}>Sula</Text></>}
@@ -124,7 +127,9 @@ const styles = StyleSheet.create({
   status: { color: colors.textSecondary, fontSize: 9, lineHeight: 12, fontWeight: '700', textAlign: 'center' },
   plantArea: { width: '100%', height: 140, position: 'relative', alignItems: 'center' },
   plantImage: { position: 'absolute', width: '100%', height: '100%' },
-  lowerBooks: { position: 'absolute', width: '100%', height: 58, bottom: -2 },
+  lowerBooksTap: { position: 'absolute', width: '100%', height: 58, bottom: -2, zIndex: 3 },
+  lowerBooks: { width: '100%', height: '100%' },
+  shelfBooksTap: { position: 'absolute', right: 0, bottom: 0, width: '100%', height: '44%', zIndex: 3 },
   waterButton: { minWidth: 58, height: 28, marginTop: 2, paddingHorizontal: 9, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, backgroundColor: colors.copper, borderWidth: 1, borderColor: 'rgba(255,249,235,0.8)' },
   waterText: { color: colors.white, fontSize: 11, fontWeight: '700' },
   pressed: { opacity: 0.75, transform: [{ scale: 0.96 }] },

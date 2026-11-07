@@ -75,6 +75,7 @@ export default function SharedListScreen() {
   ]);
 
   const checkedCount = items.filter((item) => item.isChecked).length;
+  const isBookList = list?.title.trim().toLocaleLowerCase('tr-TR') === 'okuyacağımız kitaplar'.toLocaleLowerCase('tr-TR');
 
   if (couple.loading) return <Screen title="Liste" toneColor={listColor.color}><CoupleLoading /></Screen>;
   if (!couple.isPaired) return <Screen title="Liste" toneColor={listColor.color}><EmptyState icon="users" toneColor={listColor.color} toneTint={listColor.tint} title="Önce eşleşin" description="Ortak listeleri görmek için partnerinizle eşleşin." /></Screen>;
@@ -88,12 +89,12 @@ export default function SharedListScreen() {
         </View>
 
         <Card style={[styles.addCard, { borderColor: listColor.color }]}>
-          <Input label="Yeni madde" compact placeholder="…" value={content} onChangeText={setContent} onSubmitEditing={() => { void addItem(); }} returnKeyType="done" />
+          <Input label={isBookList ? 'Kitap adı · yazar' : 'Yeni madde'} compact placeholder="…" value={content} onChangeText={setContent} onSubmitEditing={() => { void addItem(); }} returnKeyType="done" />
           {error ? <Text style={styles.error}>{error}</Text> : null}
-          <Button title="Madde ekle" icon="plus" toneColor={listColor.color} compact onPress={() => { void addItem(); }} loading={adding} disabled={!content.trim()} />
+          <Button title={isBookList ? 'Kitap ekle' : 'Madde ekle'} icon="plus" toneColor={listColor.color} compact onPress={() => { void addItem(); }} loading={adding} disabled={!content.trim()} />
         </Card>
 
-        {items.length === 0 ? <Card style={styles.emptyCard}><EmptyState compact icon="check-square" toneColor={listColor.color} toneTint={listColor.tint} title="Liste boş" description="İlk maddeyi ekleyin; partneriniz de anında görecek." /></Card> : <Card style={[styles.itemsCard, { borderColor: listColor.color }]}>
+        {items.length === 0 ? <Card style={styles.emptyCard}><EmptyState compact icon="check-square" toneColor={listColor.color} toneTint={listColor.tint} title={isBookList ? 'Henüz kitap yok' : 'Liste boş'} description={isBookList ? 'Birlikte okumak istediğiniz ilk kitabı ekleyin.' : 'İlk maddeyi ekleyin; partneriniz de anında görecek.'} /></Card> : <Card style={[styles.itemsCard, { borderColor: listColor.color }]}>
           {items.map((item, index) => <View key={item.id} style={[styles.itemRow, index > 0 && styles.itemDivider]}>
             <Pressable onPress={() => { void toggle(item); }} accessibilityRole="checkbox" accessibilityState={{ checked: item.isChecked, busy: savingItemId === item.id }} style={styles.checkPress}>
               {savingItemId === item.id ? <ActivityIndicator size="small" color={listColor.color} /> : <View style={[styles.checkbox, item.isChecked && { backgroundColor: listColor.color, borderColor: listColor.color }]}>{item.isChecked ? <Feather name="check" size={14} color={colors.white} /> : null}</View>}
