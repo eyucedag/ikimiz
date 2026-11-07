@@ -14,16 +14,6 @@ import { formatDate, relativeTime, todayLabel } from '@/src/utils/date';
 import { getLocalMoodDate } from '@/src/utils/mood';
 import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 
-function SharedNotice() {
-  const categoryColor = getCategoryColor('ruh-halim');
-  return (
-    <View style={[styles.sharedNotice, { backgroundColor: categoryColor.tint }]}>
-      <Feather name="users" size={17} color={categoryColor.color} />
-      <Text style={styles.sharedText}>Ruh haliniz ve notunuz mevcut partnerinizle paylaşılır.</Text>
-    </View>
-  );
-}
-
 function HistoryEntry({ entry, name }: { entry: MoodEntry; name: string }) {
   const option = getMoodOption(entry.mood);
   return (
@@ -186,7 +176,6 @@ export default function MoodScreen() {
   if (!couple.isPaired) {
     return (
       <Screen title="Ruh Halim" toneColor={categoryColor.color} refreshing={refreshing} onRefresh={onRefresh}>
-        <SharedNotice />
         <EmptyState
           icon="heart"
           toneColor={categoryColor.color}
@@ -218,8 +207,6 @@ export default function MoodScreen() {
         <Text style={styles.headline} accessibilityRole="header">Bugün nasıl hissediyorsunuz?</Text>
         <Text style={styles.description}>Bir duygu seçin, isterseniz kısa bir not ekleyin.</Text>
       </View>
-      <SharedNotice />
-
       {moods.error && moods.error !== saveError ? (
         <View style={styles.errorBox}>
           <Text style={styles.errorText} accessibilityRole="alert">{moods.error}</Text>
@@ -356,8 +343,6 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 10, color: colors.textSecondary, fontWeight: '600', letterSpacing: 1, marginBottom: spacing.xs },
   headline: { fontSize: fontSize.xl, color: colors.text, fontWeight: '700', lineHeight: 27 },
   description: { fontSize: fontSize.sm, color: colors.textSecondary, lineHeight: 19, marginTop: spacing.xs },
-  sharedNotice: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm, borderRadius: radius.card, marginBottom: spacing.sm },
-  sharedText: { flex: 1, fontSize: fontSize.xs, color: colors.text, lineHeight: 17 },
   section: { marginBottom: spacing.md, padding: spacing.md },
   cardTitle: { fontSize: fontSize.md, fontWeight: '600', color: colors.text },
   date: { fontSize: fontSize.sm, color: colors.textSecondary, marginTop: spacing.xs },
