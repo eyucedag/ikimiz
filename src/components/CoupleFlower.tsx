@@ -128,10 +128,10 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
         )}
         <Pressable onPress={() => setPlantMenuMode('actions')} disabled={loading || watering || wateringAnimationVisible} accessibilityRole="button" accessibilityLabel="Bitki işlemlerini aç" style={[styles.plantWaterTap, { height: artworkHeight * (plantType === 'hanging' ? 0.96 : 0.56), top: plantType === 'hanging' ? 0 : 8 }]} />
         {wateringAnimationVisible ? (
-          <Animated.View pointerEvents="none" style={[styles.wateringCan, { top: artworkHeight * 0.24, transform: [{ translateY: wateringProgress.interpolate({ inputRange: [0, 0.25, 0.8, 1], outputRange: [5, -3, -3, 5] }) }, { rotate: wateringProgress.interpolate({ inputRange: [0, 0.2, 0.8, 1], outputRange: ['0deg', '-28deg', '-28deg', '0deg'] }) }] }]}>
+          <Animated.View pointerEvents="none" style={[styles.wateringCan, { top: artworkHeight * 0.24, transform: [{ translateY: wateringProgress.interpolate({ inputRange: [0, 0.25, 0.8, 1], outputRange: [5, -3, -3, 5] }) }, { rotate: wateringProgress.interpolate({ inputRange: [0, 0.2, 0.8, 1], outputRange: ['0deg', '22deg', '22deg', '0deg'] }) }, { scaleX: -1 }] }]}>
             <MaterialCommunityIcons name="watering-can" size={30} color={colors.copper} />
-            <Animated.View style={[styles.waterDrop, { opacity: wateringProgress.interpolate({ inputRange: [0, 0.18, 0.78, 1], outputRange: [0, 1, 1, 0] }), transform: [{ translateY: wateringProgress.interpolate({ inputRange: [0, 0.2, 0.8, 1], outputRange: [-2, 0, 12, 15] }) }] }]} />
-            <Animated.View style={[styles.waterDrop, styles.waterDropSecond, { opacity: wateringProgress.interpolate({ inputRange: [0, 0.28, 0.78, 1], outputRange: [0, 1, 1, 0] }), transform: [{ translateY: wateringProgress.interpolate({ inputRange: [0, 0.25, 0.8, 1], outputRange: [-2, 0, 10, 14] }) }] }]} />
+            <Animated.View style={[styles.waterDrop, { opacity: wateringProgress.interpolate({ inputRange: [0, 0.18, 0.78, 1], outputRange: [0, 1, 1, 0] }), transform: [{ translateX: wateringProgress.interpolate({ inputRange: [0, 0.2, 0.8, 1], outputRange: [0, 6, 19, 21] }) }, { translateY: wateringProgress.interpolate({ inputRange: [0, 0.2, 0.8, 1], outputRange: [-2, 0, 8, 10] }) }] }]} />
+            <Animated.View style={[styles.waterDrop, styles.waterDropSecond, { opacity: wateringProgress.interpolate({ inputRange: [0, 0.28, 0.78, 1], outputRange: [0, 1, 1, 0] }), transform: [{ translateX: wateringProgress.interpolate({ inputRange: [0, 0.25, 0.8, 1], outputRange: [0, 4, 15, 17] }) }, { translateY: wateringProgress.interpolate({ inputRange: [0, 0.25, 0.8, 1], outputRange: [-2, 0, 10, 12] }) }] }]} />
           </Animated.View>
         ) : null}
         <Pressable onPress={() => router.push('/books')} accessibilityRole="button" accessibilityLabel="Okuyacağımız kitaplar listesini aç" style={plantType === 'hanging' ? styles.lowerBooksTap : styles.shelfBooksTap} />
@@ -172,9 +172,9 @@ const styles = StyleSheet.create({
   shelvedPlantClip: { position: 'absolute', top: 0, width: '100%', overflow: 'hidden' },
   shelvedPlantImage: { position: 'absolute', top: 0, width: '100%' },
   plantWaterTap: { position: 'absolute', left: 0, right: 0, zIndex: 2 },
-  wateringCan: { position: 'absolute', right: '5%', zIndex: 3, alignItems: 'center' },
-  waterDrop: { position: 'absolute', top: 23, left: 3, width: 5, height: 8, borderRadius: 4, backgroundColor: '#77BDE5' },
-  waterDropSecond: { left: 12, top: 27 },
+  wateringCan: { position: 'absolute', left: '4%', zIndex: 3, alignItems: 'center' },
+  waterDrop: { position: 'absolute', top: 23, left: 27, width: 5, height: 8, borderRadius: 4, backgroundColor: '#77BDE5' },
+  waterDropSecond: { left: 32, top: 27 },
   lowerBooksTap: { position: 'absolute', width: '100%', height: 58, bottom: -2, zIndex: 3 },
   lowerBooks: { position: 'absolute', width: '100%', bottom: 0 },
   shelfBooksTap: { position: 'absolute', right: 0, bottom: 0, width: '100%', height: '44%', zIndex: 3 },
