@@ -14,15 +14,18 @@ import { useCouple } from '@/src/hooks/useCouple';
 const mainCategories = categories.filter((category) => !['opucuk', 'ekrana-not', 'gunun-sarkisi'].includes(category.slug));
 
 export default function CategoriesScreen() {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const router = useRouter();
   const { user } = useAuth();
   const couple = useCouple();
   const columns = width >= 900 ? 4 : width >= 600 ? 3 : 2;
+  const tablet = Math.min(width, height) >= 600;
+  const landscapeTablet = tablet && width > height;
+  const contentMaxWidth = landscapeTablet ? 1120 : tablet ? 900 : 600;
   const tileWidth = `${100 / columns}%` as `${number}%`;
 
   return (
-    <Screen>
+    <Screen contentMaxWidth={contentMaxWidth}>
       <DynamicSky compact>
         <View style={styles.sceneHeading}>
           <IconButton icon="arrow-left" color={colors.cream} onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')} accessibilityLabel="Geri dön" />

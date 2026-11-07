@@ -29,17 +29,18 @@ interface ScreenProps {
   /** Sekme ekranlarında alt güvenli alanı sekme çubuğu yönetir. */
   inTabs?: boolean;
   scrollRef?: React.RefObject<ScrollViewInstance | null>;
+  contentMaxWidth?: number;
 }
 
 /**
  * Tüm ekranların ortak kabuğu: güvenli alan, krem zemin ve tabletlerde
  * en fazla 600pt genişliğinde ortalanmış içerik.
  */
-export function Screen({ children, title, toneColor, showBack = true, headerRight, scroll = true, refreshing, onRefresh, inTabs, scrollRef }: ScreenProps) {
+export function Screen({ children, title, toneColor, showBack = true, headerRight, scroll = true, refreshing, onRefresh, inTabs, scrollRef, contentMaxWidth = layout.maxContentWidth }: ScreenProps) {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const { backgroundColor } = useAppAppearance();
-  const contentWidth = Math.min(width, layout.maxContentWidth);
+  const contentWidth = Math.min(width, contentMaxWidth);
 
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)'));
 

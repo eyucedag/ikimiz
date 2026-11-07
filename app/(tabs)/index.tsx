@@ -70,6 +70,10 @@ export default function TodayScreen() {
   const moods = useMoods(couple);
   const { upcoming, refreshNotifications } = useAppState();
   const { width, height } = useWindowDimensions();
+  const tabletLayout = Math.min(width, height) >= 600;
+  const landscapeTablet = tabletLayout && width > height;
+  const portraitTablet = tabletLayout && !landscapeTablet;
+  const homeContentMaxWidth = landscapeTablet ? 1120 : portraitTablet ? 820 : 900;
   const [refreshing, setRefreshing] = useState(false);
   const [homeLayoutVisible, setHomeLayoutVisible] = useState(false);
   const [homeCategoryOrder, setHomeCategoryOrder] = useState<string[]>(DEFAULT_HOME_CATEGORY_ORDER);
@@ -510,7 +514,7 @@ export default function TodayScreen() {
   };
 
   const listHeader = (
-    <View style={styles.responsiveContent}>
+    <View style={[styles.responsiveContent, { maxWidth: landscapeTablet ? 1080 : portraitTablet ? 790 : 650 }]}>
       <View style={styles.homeTopBar}>
         <View style={styles.homeTopTitleGroup}>
           <Text style={styles.homeTopTitle} accessibilityRole="header">İkimiz</Text>
@@ -569,12 +573,15 @@ export default function TodayScreen() {
   );
 
   return (
-      <Screen inTabs scroll={false}>
+      <Screen inTabs scroll={false} contentMaxWidth={homeContentMaxWidth}>
       <FlatList
+        key={landscapeTablet ? 'home-tablet-landscape' : 'home-single-column'}
         style={styles.homeList}
+        numColumns={landscapeTablet ? 2 : 1}
+        columnWrapperStyle={landscapeTablet ? styles.landscapeCategoryRow : undefined}
         data={homeCategoryOrder.filter((slug) => !hiddenHomeCategories.includes(slug))}
         keyExtractor={(slug) => slug}
-        renderItem={({ item: slug }) => <View style={styles.draggableHomeItem}>{renderCategorySlug(slug)}</View>}
+        renderItem={({ item: slug }) => <View style={[styles.draggableHomeItem, landscapeTablet && styles.landscapeHomeItem]}>{renderCategorySlug(slug)}</View>}
         ListHeaderComponent={listHeader}
         contentContainerStyle={styles.draggableListContent}
         refreshing={refreshing}
@@ -647,6 +654,8 @@ const styles = StyleSheet.create({
   homeList: { width: '100%', flex: 1 },
   draggableListContent: { width: '100%', paddingBottom: spacing.xxxl },
   draggableHomeItem: { width: '100%', alignSelf: 'stretch' },
+  landscapeCategoryRow: { alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.md },
+  landscapeHomeItem: { width: '48.5%', alignSelf: 'auto' },
   layoutBackdrop: { flex: 1, justifyContent: 'flex-end', paddingHorizontal: spacing.md, paddingBottom: spacing.md, backgroundColor: 'rgba(20,24,22,0.52)' },
   layoutSheet: { width: '100%', maxWidth: 560, maxHeight: '82%', alignSelf: 'center', padding: spacing.lg, borderRadius: radius.card, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
   layoutHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md, marginBottom: spacing.sm },

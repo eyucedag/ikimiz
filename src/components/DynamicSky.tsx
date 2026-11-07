@@ -25,12 +25,19 @@ const forestOverlay = require('../../assets/aurora/sky/forest_overlay.png');
 interface DynamicSkyProps { children: React.ReactNode; compact?: boolean; treeContent?: React.ReactNode; sideContent?: React.ReactNode }
 
 export function DynamicSky({ children, compact = false, treeContent, sideContent }: DynamicSkyProps) {
-  const { width: windowWidth } = useWindowDimensions();
-  const sideWidth = sideContent ? Math.min(110, Math.max(76, windowWidth * 0.27)) : 0;
-  const sceneWidth = Math.min(sideContent ? 500 : 620, Math.max(sideContent ? 176 : 260, windowWidth - 36 - (sideContent ? sideWidth + 6 : 0)));
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const tablet = Math.min(windowWidth, windowHeight) >= 600;
+  const landscapeTablet = tablet && windowWidth > windowHeight;
+  const sideWidth = sideContent ? (landscapeTablet ? 154 : tablet ? 128 : Math.min(110, Math.max(76, windowWidth * 0.27))) : 0;
+  const maxSceneWidth = sideContent
+    ? landscapeTablet ? 800 : tablet ? 570 : 500
+    : landscapeTablet ? 900 : tablet ? 760 : 620;
+  const sceneWidth = Math.min(maxSceneWidth, Math.max(sideContent ? 176 : 260, windowWidth - 36 - (sideContent ? sideWidth + 6 : 0)));
   const skyHeight = compact
-    ? Math.min(210, Math.max(150, sceneWidth * 0.38))
-    : Math.min(350, Math.max(228, sceneWidth / 1.58 + 4));
+    ? Math.min(landscapeTablet ? 300 : 240, Math.max(150, sceneWidth * (landscapeTablet ? 0.30 : 0.34)))
+    : landscapeTablet
+      ? Math.min(560, Math.max(320, sceneWidth * 9 / 16))
+      : Math.min(tablet ? 390 : 350, Math.max(228, sceneWidth / 1.58 + 4));
   // Preserve the artwork's 16:9 ratio and frame its sun/moon in the open
   // upper-right area, away from the greeting on narrow phone layouts.
   const skyImageHeight = Math.max(skyHeight, sceneWidth * 9 / 16);
@@ -82,7 +89,7 @@ export function DynamicSky({ children, compact = false, treeContent, sideContent
   }, [phase, transitionOpacity]);
 
   return (
-    <View style={[styles.sceneRow, { width: Math.min(710, windowWidth - 36, sceneWidth + (sideContent ? sideWidth + 6 : 0)) }]}>
+    <View style={[styles.sceneRow, { width: Math.min(landscapeTablet ? 1140 : tablet ? 900 : 710, windowWidth - 36, sceneWidth + (sideContent ? sideWidth + 6 : 0)) }]}>
     <View style={[styles.container, { height: skyHeight, width: sideContent ? sceneWidth : '100%' }, compact && styles.compactContainer]}>
       <Image source={skyImages[phase]} resizeMode="cover" style={[styles.image, skyImageStyle]} accessibilityIgnoresInvertColors />
       {transitionFrom ? <Animated.Image pointerEvents="none" source={skyImages[transitionFrom]} resizeMode="cover" style={[styles.image, skyImageStyle, { opacity: transitionOpacity }]} /> : null}
