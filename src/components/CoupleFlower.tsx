@@ -107,8 +107,9 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
         <Text style={styles.status}>{status}</Text><Feather name="edit-2" size={9} color={colors.textSecondary} />
       </Pressable>
       <View style={[styles.plantArea, { height: plantAreaHeight }]}>
+        <Image source={booksSource} resizeMode="contain" style={[styles.lowerBooks, { height: booksHeight }]} accessibilityIgnoresInvertColors />
         {plantType === 'hanging' ? (
-          <View style={[styles.hangingPlantClip, { height: artworkHeight * 0.8 }]} pointerEvents="none">
+          <View style={[styles.hangingPlantClip, { height: artworkHeight * 0.98 }]} pointerEvents="none">
             <Image source={plantAssets[plantType].dry} resizeMode="contain" style={[styles.plantImage, { top: 6, height: artworkHeight }]} accessibilityIgnoresInvertColors />
             <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.plantImage, { top: 6, height: artworkHeight, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
           </View>
@@ -118,7 +119,6 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
             <Animated.Image source={plantAssets[plantType].lush} resizeMode="contain" style={[styles.shelvedPlantImage, { height: artworkHeight, opacity: lushOpacity }]} accessibilityIgnoresInvertColors />
           </View>
         )}
-        <Image source={booksSource} resizeMode="contain" style={[styles.lowerBooks, { height: booksHeight }]} accessibilityIgnoresInvertColors />
         <Pressable onPress={() => router.push('/books')} accessibilityRole="button" accessibilityLabel="Okuyacağımız kitaplar listesini aç" style={plantType === 'hanging' ? styles.lowerBooksTap : styles.shelfBooksTap} />
       </View>
       <Pressable onPress={() => { void water(); }} disabled={loading || watering} accessibilityRole="button" accessibilityLabel="Ortak bitkiyi sula" style={({ pressed }) => [styles.waterButton, pressed && styles.pressed, (loading || watering) && styles.disabled]}>
