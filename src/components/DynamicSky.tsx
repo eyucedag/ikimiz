@@ -31,6 +31,16 @@ export function DynamicSky({ children, compact = false, treeContent, sideContent
   const skyHeight = compact
     ? Math.min(210, Math.max(150, sceneWidth * 0.38))
     : Math.min(350, Math.max(228, sceneWidth / 1.58 + 4));
+  // Keep the source's 16:9 artwork ratio and anchor it to the right so the
+  // sun/moon at the edge remains visible when the flower column narrows the scene.
+  const skyImageHeight = Math.max(skyHeight, sceneWidth * 9 / 16);
+  const skyImageStyle = {
+    width: skyImageHeight * 16 / 9,
+    height: skyImageHeight,
+    left: undefined,
+    right: 0,
+    top: (skyHeight - skyImageHeight) / 2,
+  };
   const [phase, setPhase] = useState<SkyPhase>(() => getSkyPhase(new Date()));
   const [transitionFrom, setTransitionFrom] = useState<SkyPhase | null>(null);
   const transitionOpacity = useRef(new Animated.Value(0)).current;
@@ -71,10 +81,10 @@ export function DynamicSky({ children, compact = false, treeContent, sideContent
   return (
     <View style={[styles.sceneRow, { width: Math.min(710, windowWidth - 36, sceneWidth + (sideContent ? sideWidth + 6 : 0)) }]}>
     <View style={[styles.container, { height: skyHeight, width: sideContent ? sceneWidth : '100%' }, compact && styles.compactContainer]}>
-      <Image source={skyImages[phase]} resizeMode="cover" style={styles.image} accessibilityIgnoresInvertColors />
-      {transitionFrom ? <Animated.Image pointerEvents="none" source={skyImages[transitionFrom]} resizeMode="cover" style={[styles.image, { opacity: transitionOpacity }]} /> : null}
+      <Image source={skyImages[phase]} resizeMode="cover" style={[styles.image, skyImageStyle]} accessibilityIgnoresInvertColors />
+      {transitionFrom ? <Animated.Image pointerEvents="none" source={skyImages[transitionFrom]} resizeMode="cover" style={[styles.image, skyImageStyle, { opacity: transitionOpacity }]} /> : null}
       <View pointerEvents="none" style={styles.readabilityScrim} />
-      <Image pointerEvents="none" source={forestOverlay} resizeMode="cover" style={[styles.image, styles.forestOverlay]} accessibilityIgnoresInvertColors />
+      <Image pointerEvents="none" source={forestOverlay} resizeMode="cover" style={[styles.image, skyImageStyle, styles.forestOverlay]} accessibilityIgnoresInvertColors />
       <View style={[styles.content, compact && styles.compactContent]}>{children}</View>
       {treeContent ? <View style={styles.treeContent}>{treeContent}</View> : null}
     </View>
