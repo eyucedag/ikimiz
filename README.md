@@ -1,6 +1,6 @@
 # İkimiz
 
-**İkimiz**, çiftlerin ortak hayatını tek ve sakin bir alanda düzenlemesi için geliştirilen Türkçe bir mobil uygulamadır. Takvim, listeler, notlar, görevler, hediye fikirleri ve hatırlatmalar gibi modüller aşamalı olarak eklenir. İlk aşamada hesap yönetimi, partner eşleşmesi ve **Ekrana Not** özelliği çalışır durumdadır.
+**İkimiz**, çiftlerin ortak hayatını tek ve sakin bir alanda düzenlemesi için geliştirilen Türkçe bir mobil uygulamadır. Takvim, listeler, notlar, görevler, hediye fikirleri ve hatırlatmalar gibi modüller aşamalı olarak eklenir. İlk aşamada hesap yönetimi, partner eşleşmesi, **Ortak Fotoğraf**, **Ekrana Not**, **Ruh Halim** ve **Öpücük** özellikleri bulunur.
 
 - **Teknoloji:** React Native · Expo SDK 58 · React Native 0.88 · TypeScript · Expo Router · Supabase
 - **Platformlar:** iPhone, iPad ve Android telefon/tablet — **web sürümü yoktur.**
@@ -32,6 +32,9 @@
 | Davet kodunu kabul etme / reddetme | ✅ Çalışıyor |
 | Eşleşme durumu ve onaylı sonlandırma | ✅ Çalışıyor |
 | Ekrana Not: metin + emoji + arka plan rengi, geçmiş | ✅ Çalışıyor |
+| Ruh Halim: günlük ruh hali, kısa not, ortak 30 günlük geçmiş | ✅ Çalışıyor |
+| Öpücük: istenildiği zaman partnere animasyonlu gönderim | ✅ Çalışıyor |
+| Ortak Fotoğraf: iki telefonda gösterilen, partnerlerden biri tarafından değiştirilebilen fotoğraf | ✅ Çalışıyor |
 | Uygulama içi bildirimler (okundu işaretleme, sekme rozeti) | ✅ Çalışıyor |
 | Arama (kategoriler, ekran notları, bildirimler) | ✅ Çalışıyor |
 | Profil düzenleme, çıkış, hesap silme | ✅ Çalışıyor |
@@ -65,6 +68,8 @@ npm run ios         # iOS simülatörü ile başlat (yalnızca macOS)
 
 ## Expo Go ile çalıştırma
 
+Ortak yayımlanan önizlemeler `shared-preview` kanalından açılır. Kanal aynı adlı Expo güncelleme dalına bağlıdır; `scripts/shared-update-links.cjs` her yayında aynı kanal bağlantısını üretir. Bağlantıyı Expo Go'da bir kez açtıktan sonra yeni uyumlu sürümler Expo Go menüsündeki **Reload / Yenile** ile alınır. `/group/<kimlik>` içeren bağlantılar belirli bir yayına sabitlenir; bu bağlantılarda yenileme yeni yayın grubuna geçmez. İnternet bağlantısı yoksa Expo Go önbellekteki sürümü açabilir.
+
 1. iPhone/iPad için App Store'dan, Android için Google Play'den **Expo Go** uygulamasını yükleyin.
 2. Bilgisayarda `npx expo start` komutunu çalıştırın.
 3. Terminalde çıkan QR kodu
@@ -92,11 +97,13 @@ Yerel mock (demo) mod kaldırılmıştır; tüm veriler Supabase'de tutulur.
 4. Başka bir Supabase projesi kullanacaksanız **Project Settings → API** sayfasındaki URL ve anon anahtarını `src/lib/supabase.ts` dosyasına yazın.
 5. `npx expo start -c` ile uygulamayı yeniden başlatın.
 
-**Şema özeti** — 17 tablo:
+Mevcut kuruluma **Ruh Halim** eklemek için `supabase/migrations/20261104_mood_entries.sql`, **Öpücük** için `supabase/migrations/20261104_kisses.sql` ve eski sabah/akşam sınırını kaldırmak için `supabase/migrations/20261104_kisses_anytime.sql`, **Ortak Fotoğraf** için `supabase/migrations/20261104_couple_photo.sql`, **Gezdiğimiz Yerler** için `supabase/migrations/20261104_travel_places.sql`, `supabase/migrations/20261104_travel_place_notes.sql` ve `supabase/migrations/20261104_travel_places_edit.sql`, `supabase/migrations/20261104_travel_places_shared_edit.sql` dosyalarını Supabase SQL Editor'da çalıştırın. Bu ek kurulumlar mevcut verileri silmeden tabloları, Storage alanını ve erişim kurallarını oluşturur. Ruh hali ve not aktif partnerle paylaşılır; herkes yalnızca kendi kaydını değiştirebilir. Öpücük tablosu istenildiği zaman gönderimi ve partner uygulaması açıkken anlık animasyonu sağlar; partner daha sonra uygulamayı açarsa son 24 saatteki öpücük animasyonu gösterilir. Ortak fotoğrafını eşleşmedeki iki kullanıcı da değiştirebilir ve yalnızca aktif çift üyeleri görebilir. Gezdiğimiz Yerler kayıtları iki partnerin de haritasında görünür; ekleyen kişi kendi kaydını düzenleyebilir veya kaldırabilir.
+
+**Şema özeti** — 20 tablo:
 
 | Aşama 1 (aktif) | Aşama 2 (hazır) |
 | --- | --- |
-| `profiles`, `couples`, `couple_members`, `invitations`, `screen_notes`, `notifications` | `calendar_events`, `important_dates`, `lists`, `list_items`, `note_folders`, `notes`, `tasks`, `reminders`, `gift_ideas`, `partner_facts`, `user_settings` |
+| `profiles`, `couples`, `couple_members`, `invitations`, `screen_notes`, `notifications`, `mood_entries`, `kisses`, `travel_places` | `calendar_events`, `important_dates`, `lists`, `list_items`, `note_folders`, `notes`, `tasks`, `reminders`, `gift_ideas`, `partner_facts`, `user_settings` |
 
 - Her tabloda ortak sütunlar bulunur: `id`, `created_at`, `updated_at`, `owner_id`, `couple_id`, `visibility` (`personal` | `shared`), `is_deleted`.
 - Tüm tablolarda **Row Level Security** açıktır; her tablonun üzerinde erişim kuralı yorum olarak açıklanmıştır.
@@ -116,6 +123,7 @@ ikimiz/
 │   ├── (tabs)/                 # index (Bugün), search, add (+), notifications, profile
 │   ├── couple/                 # invite, accept, status
 │   ├── screen-note/            # compose, history
+│   ├── mood/                   # Günlük ruh hali ve ortak geçmiş
 │   └── categories/[slug].tsx   # Geliştirme aşamasındaki kategoriler için "Yakında" ekranı
 ├── src/
 │   ├── components/ui/          # Card, Button, Input, IconButton, EmptyState,

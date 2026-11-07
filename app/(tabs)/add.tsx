@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Badge, Card, Divider, Screen } from '@/src/components/ui';
+import { getCategoryColor } from '@/src/constants/categories';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { showSoon } from '@/src/utils/soon';
 
@@ -11,18 +12,20 @@ interface QuickAction {
   title: string;
   description: string;
   icon: keyof typeof Feather.glyphMap;
+  category: string;
   route?: string;
   soonDetail?: string;
 }
 
 const actions: QuickAction[] = [
-  { key: 'screen-note', title: 'Ekran Notu', description: "Partnerinizin ana ekranına kısa not", icon: 'edit-3', route: '/screen-note/compose' },
-  { key: 'event', title: 'Etkinlik', description: 'Takvime plan veya önemli gün', icon: 'calendar', soonDetail: 'Ortak takvim ve tekrarlayan etkinlikler Aşama 2’de eklenecek.' },
-  { key: 'list', title: 'Liste', description: 'Market, film, seyahat listesi', icon: 'list', soonDetail: 'Paylaşılan listeler Aşama 2’de eklenecek.' },
-  { key: 'note', title: 'Not', description: 'Kişisel veya ortak not', icon: 'file-text', soonDetail: 'Klasörlü notlar Aşama 2’de eklenecek.' },
-  { key: 'task', title: 'Görev', description: 'Atanabilir ve tekrarlanabilir iş', icon: 'check-square', soonDetail: 'Görevler ve atamalar Aşama 2’de eklenecek.' },
-  { key: 'gift', title: 'Hediye Fikri', description: 'Partnerinizden gizli fikir', icon: 'gift', soonDetail: 'Hediye Radarı Aşama 2’de eklenecek.' },
-  { key: 'reminder', title: 'Hatırlatma', description: 'Zamanı gelince bildirim', icon: 'bell', soonDetail: 'Hatırlatmalar ve bildirim zamanlama Aşama 2’de eklenecek.' },
+  { key: 'travel', title: 'Gezdiğimiz Yerler', description: 'Gittiğiniz şehirleri ortak haritaya ekle', icon: 'map-pin', category: 'gezilen-yerler', route: '/travel-map' },
+  { key: 'special-date', title: 'Özel Gün', description: 'Yıl dönümü, doğum günü veya anlamlı bir tarih ekle', icon: 'gift', category: 'ozel-gunler', route: '/special-dates' },
+  { key: 'screen-note', title: 'Ekran Notu', description: "Partnerinizin ana ekranına kısa not", icon: 'edit-3', category: 'ekrana-not', route: '/screen-note/compose' },
+  { key: 'event', title: 'Etkinlik', description: 'Ortak takvime bir etkinlik ekle', icon: 'calendar', category: 'takvim', route: '/calendar' },
+  { key: 'list', title: 'Liste', description: 'Market, film, seyahat listesi', icon: 'list', category: 'listeler', route: '/lists' },
+  { key: 'note', title: 'Not', description: 'Kişisel veya ortak not', icon: 'file-text', category: 'notlar', soonDetail: 'Klasörlü notlar Aşama 2’de eklenecek.' },
+  { key: 'task', title: 'Görev', description: 'Atanabilir ve tekrarlanabilir iş', icon: 'check-square', category: 'gorevler', soonDetail: 'Görevler ve atamalar Aşama 2’de eklenecek.' },
+  { key: 'gift', title: 'Hediye Fikri', description: 'Partnerinizden gizli fikir', icon: 'gift', category: 'hediye-radari', soonDetail: 'Hediye Radarı Aşama 2’de eklenecek.' },
 ];
 
 export default function AddScreen() {
@@ -44,10 +47,10 @@ export default function AddScreen() {
               onPress={() => onSelect(a)}
               accessibilityRole="button"
               accessibilityLabel={a.route ? a.title : `${a.title}, yakında`}
-              style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.row, { borderLeftColor: getCategoryColor(a.category).color }, pressed && styles.pressed]}
             >
-              <View style={[styles.icon, !a.route && styles.iconMuted]}>
-                <Feather name={a.icon} size={20} color={a.route ? colors.accent : colors.earth2} />
+              <View style={[styles.icon, { backgroundColor: getCategoryColor(a.category).tint }]}>
+                <Feather name={a.icon} size={20} color={getCategoryColor(a.category).color} />
               </View>
               <View style={styles.flex}>
                 <Text style={styles.rowTitle}>{a.title}</Text>
@@ -66,7 +69,7 @@ const styles = StyleSheet.create({
   title: { fontSize: fontSize.xxl, fontWeight: '700', color: colors.text, marginTop: spacing.md },
   lead: { fontSize: fontSize.md, color: colors.textSecondary, marginTop: spacing.xs, marginBottom: spacing.lg },
   card: { paddingVertical: spacing.xs },
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md },
+  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md, paddingLeft: spacing.sm, borderLeftWidth: 3 },
   icon: {
     width: 40,
     height: 40,

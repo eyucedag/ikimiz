@@ -1,16 +1,25 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { KissAnimationOverlay } from '@/src/components/KissAnimationOverlay';
+import { supabase } from '@/src/lib/supabase';
 import { notificationService } from '@/src/services/notificationService';
+import { KissRecord } from '@/src/services/kissService';
 import { AppNotification, UpcomingItem } from '@/src/types';
 import { useAuth } from './useAuth';
+
+const localDateKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
 interface AppStateValue {
   notifications: AppNotification[];
   unreadCount: number;
   /** Takvim/Görev/Hatırlatma modülleri Aşama 2'de bu listeyi dolduracak. */
   upcoming: UpcomingItem[];
+  refreshUpcoming: () => Promise<void>;
   refreshNotifications: () => Promise<void>;
   markAllRead: () => Promise<void>;
   markRead: (id: string) => Promise<void>;
+  incomingKiss: KissRecord | null;
+  dismissKiss: () => void;
 }
 
 const AppStateContext = createContext<AppStateValue | null>(null);
@@ -19,6 +28,60 @@ const AppStateContext = createContext<AppStateValue | null>(null);
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [upcoming, setUpcoming] = useState<UpcomingItem[]>([]);
+  const [incomingKiss, setIncomingKiss] = useState<KissRecord | null>(null);
+  const dismissKiss = useCallback(() => setIncomingKiss(null), []);
+
+  useEffect(() => {
+    if (!user) {
+      setIncomingKiss(null);
+      return;
+    }
+    let active = true;
+    let lastSeenId: string | null = null;
+    const seenKey = `ikimiz:last-seen-kiss:${user.id}`;
+    const showIncoming = (row: Record<string, unknown>) => {
+      if (!active || row.partner_id !== user.id || typeof row.id !== 'string' || row.id === lastSeenId) return;
+      lastSeenId = row.id;
+      const record: KissRecord = {
+        id: row.id,
+        ownerId: String(row.owner_id),
+        partnerId: String(row.partner_id),
+        coupleId: String(row.couple_id),
+        localDate: String(row.local_date),
+        createdAt: String(row.created_at),
+      };
+      setIncomingKiss(record);
+      void supabase.from('profiles').select('display_name').eq('id', record.ownerId).maybeSingle()
+        .then(({ data }) => {
+          if (data?.display_name) setIncomingKiss((current) => current?.id === record.id ? { ...current, senderName: data.display_name } : current);
+        });
+      void AsyncStorage.setItem(seenKey, row.id);
+    };
+    void (async () => {
+      try {
+        const storedLastSeenId = await AsyncStorage.getItem(seenKey);
+        if (lastSeenId === null) lastSeenId = storedLastSeenId;
+        const { data } = await supabase.from('kisses')
+          .select('id, owner_id, partner_id, couple_id, local_date, created_at')
+          .eq('partner_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        const latest = data?.[0] as Record<string, unknown> | undefined;
+        if (latest && Date.now() - new Date(String(latest.created_at)).getTime() < 24 * 60 * 60 * 1000) showIncoming(latest);
+      } catch {
+        // Realtime can still deliver new events if the catch-up query is unavailable.
+      }
+    })();
+    const channel = supabase.channel(`kisses-for-${user.id}`)
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'kisses', filter: `partner_id=eq.${user.id}`,
+      }, ({ new: row }) => {
+        showIncoming(row as Record<string, unknown>);
+      })
+      .subscribe();
+    return () => { active = false; void supabase.removeChannel(channel); };
+  }, [user?.id]);
 
   const refreshNotifications = useCallback(async () => {
     if (!user) {
@@ -32,15 +95,77 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user]);
 
+  const refreshUpcoming = useCallback(async () => {
+    if (!user) { setUpcoming([]); return; }
+    try {
+      const { data: memberships, error: membershipError } = await supabase.from('couple_members')
+        .select('couple_id').eq('user_id', user.id).eq('is_deleted', false);
+      if (membershipError) throw membershipError;
+      const coupleIds = [...new Set((memberships ?? []).map((row) => String(row.couple_id)).filter(Boolean))];
+      if (!coupleIds.length) { setUpcoming([]); return; }
+      const now = new Date();
+      const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 23, 59, 59, 999);
+      const [{ data, error }, { data: specialDates }] = await Promise.all([
+        supabase.from('calendar_events')
+        .select('id,title,location,starts_at,all_day')
+        .in('couple_id', coupleIds).eq('visibility', 'shared').eq('is_deleted', false)
+        .gte('starts_at', now.toISOString()).lte('starts_at', endDate.toISOString()).order('starts_at').limit(100),
+        supabase.from('important_dates').select('id,title,date,kind,couple_id')
+          .in('couple_id', coupleIds).eq('visibility', 'shared').eq('is_deleted', false).limit(100),
+      ]);
+      if (error) throw error;
+      const events = (data ?? []).map((row) => {
+        const start = new Date(String(row.starts_at));
+        const day = start.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+        const time = row.all_day ? '' : start.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        const location = typeof row.location === 'string' && row.location.trim() ? row.location.trim() : '';
+        return { id: String(row.id), title: String(row.title), date: String(row.starts_at), kind: 'event' as const, subtitle: [day, time, location].filter(Boolean).join(' · ') };
+      });
+      const specialItems = (specialDates ?? []).flatMap((row) => {
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const [, monthText, dayText] = String(row.date).split('-');
+        const month = Number(monthText) - 1;
+        const day = Number(dayText);
+        if (!Number.isFinite(month) || !Number.isFinite(day)) return [];
+        let next = new Date(now.getFullYear(), month, day, 12);
+        const repeatsYearly = row.kind === 'anniversary' || row.kind === 'birthday';
+        if (repeatsYearly && localDateKey(next) < localDateKey(today)) next = new Date(now.getFullYear() + 1, month, day, 12);
+        if (localDateKey(next) < localDateKey(today) || next > endDate) return [];
+        const nextDate = localDateKey(next);
+        const dateLabel = next.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+        const kindLabel = row.kind === 'birthday' ? 'Doğum günü' : row.kind === 'anniversary' ? 'Yıl dönümü' : 'Özel gün';
+        return [{ id: String(row.id), title: String(row.title), date: nextDate, kind: 'special' as const, subtitle: `${dateLabel} · ${kindLabel}` }];
+      });
+      const toSortTime = (date: string, kind: 'event' | 'special') => {
+        if (kind === 'event') return new Date(date).getTime();
+        const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+        return match ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12).getTime() : new Date(date).getTime();
+      };
+      setUpcoming([...events, ...specialItems].sort((a, b) => toSortTime(a.date, a.kind) - toSortTime(b.date, b.kind)).slice(0, 10));
+    } catch {
+      // Takvim yüklemesi başarısız olsa da ana ekran kullanılabilir kalır.
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     refreshNotifications();
   }, [refreshNotifications]);
+
+  useEffect(() => {
+    void refreshUpcoming();
+    const timer = setInterval(() => { void refreshUpcoming(); }, 60_000);
+    const channel = supabase.channel(`upcoming-events-${user?.id ?? 'guest'}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events' }, () => { void refreshUpcoming(); })
+      .subscribe();
+    return () => { clearInterval(timer); void supabase.removeChannel(channel); };
+  }, [refreshUpcoming, user?.id]);
 
   const value = useMemo<AppStateValue>(
     () => ({
       notifications,
       unreadCount: notifications.filter((n) => !n.readAt).length,
-      upcoming: [],
+      upcoming,
+      refreshUpcoming,
       refreshNotifications,
       markAllRead: async () => {
         if (!user) return;
@@ -51,11 +176,18 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         await notificationService.markRead(id);
         await refreshNotifications();
       },
+      incomingKiss,
+      dismissKiss,
     }),
-    [notifications, refreshNotifications, user],
+    [notifications, refreshNotifications, upcoming, refreshUpcoming, user, incomingKiss, dismissKiss],
   );
 
-  return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
+  return (
+    <AppStateContext.Provider value={value}>
+      {children}
+      <KissAnimationOverlay event={incomingKiss} onFinish={dismissKiss} />
+    </AppStateContext.Provider>
+  );
 }
 
 export function useAppState(): AppStateValue {

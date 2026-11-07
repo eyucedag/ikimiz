@@ -1,19 +1,37 @@
+/** Aurora Forest: açık taş yüzeyler, adaçayı detayları ve sıcak bakır vurgular. */
 export const colors = {
-  background: '#FAF8F5',
-  card: '#FFFFFF',
-  accent: '#7D9B76',
-  accentLight: '#E8F0E6',
-  beige: '#F0EBE3',
-  earth1: '#C4A882',
-  earth2: '#A67C5B',
-  text: '#2D2D2D',
-  textSecondary: '#6B6B6B',
-  textTertiary: '#9E9E9E',
-  border: '#E8E3DC',
-  error: '#C0392B',
-  success: '#7D9B76',
-  white: '#FFFFFF',
+  background: '#F3F0E8',
+  card: '#FFFCF5',
+  accent: '#AD633F',
+  accentLight: '#F2E7DB',
+  beige: '#E7E7DC',
+  earth1: '#AD633F',
+  earth2: '#976779',
+  text: '#29352E',
+  textSecondary: '#5D685F',
+  textTertiary: '#747F75',
+  border: '#D6D9CE',
+  error: '#B34D46',
+  success: '#52764D',
+  white: '#FFFDF8',
+  forestDeep: '#2C3931',
+  forest: '#52695A',
+  pine: '#768A7A',
+  sage: '#96A58F',
+  cream: '#F6E9D7',
+  copper: '#AD633F',
+  mauve: '#976779',
 };
+
+// Mevcut Ayarlar > Arka plan seçimi korunurken Aurora paletinde kalır.
+export const appBackgroundColors = [
+  { label: 'Krem', color: '#F3F0E8' },
+  { label: 'Adaçayı', color: '#E9EEE7' },
+  { label: 'Keten', color: '#F5EDE3' },
+  { label: 'Sis', color: '#E8EEEB' },
+  { label: 'Pudra', color: '#F1E8E9' },
+  { label: 'Gökyüzü', color: '#E9EDF2' },
+];
 
 export const fontSize = {
   xs: 11,
@@ -36,24 +54,24 @@ export const spacing = {
 };
 
 export const radius = {
-  card: 12,
-  control: 8,
-  pill: 20,
+  card: 20,
+  control: 14,
+  pill: 24,
 };
 
 export const shadow = {
-  shadowColor: '#000000',
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.1,
-  shadowRadius: 4,
+  shadowColor: '#34382F',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.12,
+  shadowRadius: 10,
   elevation: 2,
 };
 
 export const layout = {
-  maxContentWidth: 600,
+  maxContentWidth: 900,
 };
 
-/** Ekrana Not için yumuşak toprak/bej arka plan tonları */
-export const noteColors = ['#F0EBE3', '#E8F0E6', '#F5E6D3', '#EADFD0', '#E3E8DE', '#F3EDE4'];
+/** Ekrana Not renkleri mevcut kayıtlarla aynı kalır. */
+export const noteColors = ['#F7DDE9', '#F9E2D0', '#F7EFC6', '#E2EECF', '#D5ECE8', '#DCE7F8', '#E9DDF2'];
 
 export const noteEmojis = ['🌿', '☕', '✨', '🌙', '🌻', '🍂', '😊', '🤗'];

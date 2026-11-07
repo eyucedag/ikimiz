@@ -43,7 +43,7 @@ export default function ForgotPasswordScreen() {
         label="E-posta"
         value={email}
         onChangeText={setEmail}
-        placeholder="ornek@eposta.com"
+        placeholder="…"
         keyboardType="email-address"
         autoCapitalize="none"
         error={error || undefined}

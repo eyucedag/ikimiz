@@ -2,6 +2,7 @@ import React from 'react';
 import { ActivityIndicator, Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
+import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -14,6 +15,7 @@ interface ButtonProps {
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
   compact?: boolean;
+  toneColor?: string;
 }
 
 const palette: Record<Variant, { bg: string; fg: string; border: string }> = {
@@ -24,7 +26,11 @@ const palette: Record<Variant, { bg: string; fg: string; border: string }> = {
 };
 
 export function Button({ title, onPress, variant = 'primary', icon, loading, disabled, style, compact }: ButtonProps) {
+  const { surfaceColor } = useAppAppearance();
   const p = palette[variant];
+  const backgroundColor = variant === 'secondary' || variant === 'danger' ? surfaceColor : p.bg;
+  const foregroundColor = p.fg;
+  const borderColor = p.border;
   const inactive = disabled || loading;
   return (
     <Pressable
@@ -35,7 +41,7 @@ export function Button({ title, onPress, variant = 'primary', icon, loading, dis
       style={({ pressed }) => [
         styles.base,
         compact && styles.compact,
-        { backgroundColor: p.bg, borderColor: p.border },
+        { backgroundColor, borderColor },
         pressed && styles.pressed,
         inactive && styles.disabled,
         style,
@@ -45,8 +51,8 @@ export function Button({ title, onPress, variant = 'primary', icon, loading, dis
         <ActivityIndicator color={p.fg} />
       ) : (
         <View style={styles.row}>
-          {icon ? <Feather name={icon} size={compact ? 16 : 18} color={p.fg} style={styles.icon} /> : null}
-          <Text style={[styles.label, compact && styles.labelCompact, { color: p.fg }]}>{title}</Text>
+          {icon ? <Feather name={icon} size={18} color={foregroundColor} style={styles.icon} /> : null}
+          <Text style={[styles.label, { color: foregroundColor }]}>{title}</Text>
         </View>
       )}
     </Pressable>
@@ -57,16 +63,16 @@ const styles = StyleSheet.create({
   base: {
     minHeight: 48,
     borderRadius: radius.control,
-    borderWidth: 1,
+    borderWidth: 1.25,
     paddingHorizontal: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  compact: { minHeight: 38, paddingHorizontal: spacing.md },
+  compact: { minHeight: 48, paddingHorizontal: spacing.lg },
   row: { flexDirection: 'row', alignItems: 'center' },
   icon: { marginRight: spacing.sm },
-  label: { fontSize: fontSize.md, fontWeight: '600' },
-  labelCompact: { fontSize: fontSize.sm },
+  label: { fontSize: fontSize.md, fontWeight: '700', letterSpacing: 0.1 },
+  labelCompact: { fontSize: fontSize.md },
   pressed: { opacity: 0.8 },
   disabled: { opacity: 0.5 },
 });

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import { EmptyState, IconButton, Screen } from '@/src/components/ui';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { CoupleLoading, EmptyState, IconButton, Screen } from '@/src/components/ui';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
+import { getCategoryColor } from '@/src/constants/categories';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
 import { useScreenNotes } from '@/src/hooks/useScreenNotes';
@@ -17,10 +18,11 @@ const filters: { key: Filter; label: string }[] = [
 ];
 
 export default function NoteHistoryScreen() {
+  const categoryColor = getCategoryColor('ekrana-not');
   const router = useRouter();
   const { user } = useAuth();
   const couple = useCouple();
-  const { notes, refresh } = useScreenNotes(couple);
+  const { notes, refresh, markRead } = useScreenNotes(couple);
   const [filter, setFilter] = useState<Filter>('all');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -32,9 +34,23 @@ export default function NoteHistoryScreen() {
     setRefreshing(false);
   };
 
+  useFocusEffect(React.useCallback(() => {
+    const timer = setInterval(() => { void refresh(); }, 5000);
+    return () => clearInterval(timer);
+  }, [refresh]));
+
+  useEffect(() => {
+    for (const note of notes) {
+      if (note.receiverId === user?.id && !note.readAt) void markRead(note.id);
+    }
+  }, [notes, markRead, user?.id]);
+
+  if (couple.loading) return <Screen title="Not Geçmişi" toneColor={categoryColor.color}><CoupleLoading /></Screen>;
+
   return (
     <Screen
       title="Not Geçmişi"
+      toneColor={categoryColor.color}
       refreshing={refreshing}
       onRefresh={onRefresh}
       headerRight={couple.isPaired ? <IconButton icon="plus" accessibilityLabel="Yeni not" onPress={() => router.push('/screen-note/compose')} /> : undefined}
@@ -44,7 +60,7 @@ export default function NoteHistoryScreen() {
           <Pressable
             key={f.key}
             onPress={() => setFilter(f.key)}
-            style={[styles.pill, filter === f.key && styles.pillActive]}
+            style={[styles.pill, filter === f.key && { backgroundColor: categoryColor.color, borderColor: categoryColor.color }]}
             accessibilityRole="button"
             accessibilityState={{ selected: filter === f.key }}
           >
@@ -56,6 +72,8 @@ export default function NoteHistoryScreen() {
       {visible.length === 0 ? (
         <EmptyState
           icon="edit-3"
+          toneColor={categoryColor.color}
+          toneTint={categoryColor.tint}
           title="Burada henüz not yok"
           description={couple.isPaired ? 'Gönderdiğiniz ve aldığınız ekran notları burada saklanır.' : 'Not alışverişi için önce partnerinizle eşleşin.'}
           actionLabel={couple.isPaired ? 'Yeni Not Bırak' : 'Partner Davet Et'}
@@ -65,13 +83,19 @@ export default function NoteHistoryScreen() {
         visible.map((n) => {
           const mine = n.senderId === user?.id;
           return (
-            <View key={n.id} style={[styles.note, { backgroundColor: n.backgroundColor }, mine ? styles.mine : styles.theirs]}>
+              <View key={n.id} style={[styles.note, { backgroundColor: n.backgroundColor, borderColor: categoryColor.color }, mine ? styles.mine : styles.theirs]}>
               <Text style={styles.noteText}>
-                {n.emoji} {n.text}
+                {n.emoji ? `${n.emoji} ` : ''}{n.text}
               </Text>
-              <Text style={styles.meta}>
-                {mine ? 'Siz' : couple.partner?.displayName ?? 'Partneriniz'} · {formatDateTime(n.createdAt)}
-              </Text>
+              <View style={styles.metaRow}>
+                <Text style={styles.meta}>
+                  {mine ? 'Siz' : couple.partner?.displayName ?? 'Partneriniz'} · {formatDateTime(n.createdAt)}
+                </Text>
+                  <View style={styles.metaActions}>
+                    {mine && n.readAt ? <Text style={styles.readChecks} accessibilityLabel="Partneriniz notu gördü">✓✓</Text> : null}
+                    {mine ? <IconButton icon="edit-2" size={16} color={categoryColor.color} accessibilityLabel="Notu düzenle" onPress={() => router.push({ pathname: '/screen-note/compose', params: { noteId: n.id } })} style={styles.editButton} /> : null}
+                  </View>
+              </View>
             </View>
           );
         })
@@ -81,14 +105,17 @@ export default function NoteHistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  filters: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg },
-  pill: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: radius.pill, backgroundColor: colors.beige },
-  pillActive: { backgroundColor: colors.accent },
+  filters: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.sm },
+  pill: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: radius.pill, backgroundColor: colors.beige },
   pillText: { fontSize: fontSize.sm, color: colors.textSecondary, fontWeight: '500' },
   pillTextActive: { color: colors.white },
-  note: { borderRadius: radius.card, padding: spacing.lg, marginBottom: spacing.md, maxWidth: '88%' },
+  note: { borderRadius: radius.card, borderWidth: 1, padding: spacing.md, marginBottom: spacing.sm, maxWidth: '100%' },
   mine: { alignSelf: 'flex-end' },
   theirs: { alignSelf: 'flex-start' },
-  noteText: { fontSize: fontSize.md, color: colors.text, lineHeight: 22 },
-  meta: { fontSize: fontSize.xs, color: colors.textSecondary, marginTop: spacing.sm },
+  noteText: { fontSize: fontSize.sm, color: colors.text, lineHeight: 20 },
+  meta: { fontSize: fontSize.xs, color: colors.textSecondary, marginTop: spacing.xs, flex: 1 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+  metaActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  editButton: { width: 28, height: 28 },
+  readChecks: { color: '#34B7F1', fontSize: fontSize.md, fontWeight: '800', marginTop: spacing.sm },
 });

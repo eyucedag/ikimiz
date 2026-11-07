@@ -19,7 +19,7 @@
       "package": "app.ikimiz.mobile",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#FAF8F5"
+      "backgroundColor": "#082D25"
       }
     },
     "plugins": [
@@ -30,7 +30,35 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 180,
           "resizeMode": "contain",
-          "backgroundColor": "#FAF8F5"
+          "backgroundColor": "#082D25"
+        }
+      ],
+      "@react-native-community/datetimepicker",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Galeriye fotoğraf eklemek için fotoğraf arşiviniz seçilir.",
+          "savePhotosPermission": "Galerideki fotoğrafları telefon arşivinize kaydetmek için izin gerekir."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Partnerinizin yönünü göstermek için uygulama açıkken konum paylaşılır."
+        }
+      ],
+      [
+        "expo-sensors",
+        {
+          "motionPermission": "İkimiz, birlikte olduğunuz sırada adım saymak için hareket verisine erişir."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Sesli anı kaydetmek için mikrofon izni gerekir.",
+          "enableBackgroundRecording": false,
+          "enableBackgroundPlayback": false
         }
       ]
     ],

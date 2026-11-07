@@ -35,9 +35,9 @@ export default function InviteScreen() {
       <Screen title="Partner Davet Et">
         <EmptyState
           icon="check-circle"
-          title="Zaten eşleştiniz"
+          title="Partneriniz eklendi"
           description={`${couple.partner?.displayName ?? 'Partneriniz'} ile ortak alanınız aktif.`}
-          actionLabel="Eşleşme durumunu gör"
+          actionLabel="Partner ayarlarını aç"
           onAction={() => router.replace('/couple/status')}
         />
       </Screen>
@@ -88,7 +88,7 @@ export default function InviteScreen() {
 
 const styles = StyleSheet.create({
   lead: { fontSize: fontSize.md, color: colors.textSecondary, lineHeight: 22, marginBottom: spacing.xl },
-  codeCard: { alignItems: 'center', marginBottom: spacing.xl, paddingVertical: spacing.xxl },
+  codeCard: { alignItems: 'center', marginBottom: spacing.md, paddingVertical: spacing.xxl },
   codeLabel: { fontSize: fontSize.sm, color: colors.textSecondary, marginBottom: spacing.md },
   codeRow: { flexDirection: 'row', gap: spacing.sm },
   codeCell: {

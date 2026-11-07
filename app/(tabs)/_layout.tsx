@@ -1,16 +1,18 @@
 import React from 'react';
-import { ColorValue, GestureResponderEvent, Pressable, PressableProps, StyleSheet, View } from 'react-native';
-import { Tabs } from 'expo-router';
+import { ColorValue, GestureResponderEvent, Image, Pressable, PressableProps, StyleSheet, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { Tabs } from 'expo-router';
 import { colors, fontSize, shadow } from '@/src/constants/theme';
+import { auroraIcons } from '@/src/constants/auroraAssets';
 import { useAppState } from '@/src/hooks/useAppState';
+import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 
-type IconName = keyof typeof Feather.glyphMap;
+type IconName = 'today' | 'search' | 'notifications' | 'settings';
 
 const tabIcon =
   (name: IconName) =>
-  ({ color, size }: { color: ColorValue; size: number }) => (
-    <Feather name={name} size={size - 2} color={color as string} />
+  ({ color, size, focused }: { color: ColorValue; size: number; focused: boolean }) => (
+    <Image source={auroraIcons[name]} resizeMode="contain" style={{ width: size + 2, height: size + 2, tintColor: color, opacity: focused ? 1 : 0.72 }} />
   );
 
 type AddTabButtonProps = {
@@ -20,6 +22,7 @@ type AddTabButtonProps = {
 
 /** Ortadaki büyük, yuvarlak "+" butonu */
 function AddTabButton({ onPress, accessibilityState }: AddTabButtonProps) {
+  const { backgroundColor } = useAppAppearance();
   return (
     <View style={styles.addWrap}>
       <Pressable
@@ -27,9 +30,9 @@ function AddTabButton({ onPress, accessibilityState }: AddTabButtonProps) {
         accessibilityRole="button"
         accessibilityLabel="Hızlı ekle"
         accessibilityState={accessibilityState}
-        style={({ pressed }) => [styles.addButton, pressed && styles.addPressed]}
+        style={({ pressed }) => [styles.addButton, { borderColor: backgroundColor }, pressed && styles.addPressed]}
       >
-        <Feather name="plus" size={28} color={colors.white} />
+        <Image source={auroraIcons.add} resizeMode="contain" style={styles.addIcon} />
       </Pressable>
     </View>
   );
@@ -37,6 +40,7 @@ function AddTabButton({ onPress, accessibilityState }: AddTabButtonProps) {
 
 export default function TabsLayout() {
   const { unreadCount } = useAppState();
+  const { surfaceColor } = useAppAppearance();
 
   return (
     <Tabs
@@ -44,12 +48,12 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textTertiary,
-        tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.border },
-        tabBarLabelStyle: { fontSize: fontSize.xs, fontWeight: '500' },
+        tabBarStyle: { backgroundColor: surfaceColor, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 7, paddingBottom: 8, elevation: 12, shadowColor: '#020D0A', shadowOpacity: 0.22, shadowRadius: 14, shadowOffset: { width: 0, height: -4 } },
+        tabBarLabelStyle: { fontSize: fontSize.xs, fontWeight: '600' },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Bugün', tabBarIcon: tabIcon('home') }} />
-      <Tabs.Screen name="search" options={{ title: 'Ara', tabBarIcon: tabIcon('search') }} />
+      <Tabs.Screen name="index" options={{ title: 'Bugün', tabBarIcon: tabIcon('today') }} />
+      <Tabs.Screen name="search" options={{ title: 'Kategoriler', tabBarIcon: ({ color, size }) => <Feather name="grid" size={size} color={color as string} /> }} />
       <Tabs.Screen
         name="add"
         options={{ title: 'Ekle', tabBarLabel: () => null, tabBarButton: (props) => <AddTabButton {...props} /> }}
@@ -58,12 +62,12 @@ export default function TabsLayout() {
         name="notifications"
         options={{
           title: 'Bildirimler',
-          tabBarIcon: tabIcon('bell'),
+          tabBarIcon: tabIcon('notifications'),
           tabBarBadge: unreadCount > 0 ? (unreadCount > 9 ? '9+' : unreadCount) : undefined,
-          tabBarBadgeStyle: { backgroundColor: colors.earth2, fontSize: 10 },
+          tabBarBadgeStyle: { backgroundColor: colors.mauve, fontSize: 10 },
         }}
       />
-      <Tabs.Screen name="profile" options={{ title: 'Profil', tabBarIcon: tabIcon('user') }} />
+      <Tabs.Screen name="profile" options={{ title: 'Ayarlar', tabBarIcon: tabIcon('settings') }} />
     </Tabs>
   );
 }
@@ -83,4 +87,5 @@ const styles = StyleSheet.create({
     ...shadow,
   },
   addPressed: { opacity: 0.85 },
+  addIcon: { width: 35, height: 35 },
 });

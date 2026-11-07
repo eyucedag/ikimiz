@@ -1,5 +1,6 @@
 import { nowIso, supabase } from '@/src/lib/supabase';
 import { ScreenNote, ServiceResult } from '@/src/types';
+import { notificationService } from '@/src/services/notificationService';
 
 export const SCREEN_NOTE_MAX_LENGTH = 140;
 
@@ -11,7 +12,9 @@ const mapNote = (row: any): ScreenNote => ({
   text: row.text,
   emoji: row.emoji,
   backgroundColor: row.background_color,
+  imageUrl: null,
   createdAt: row.created_at,
+  readAt: row.read_at ?? null,
 });
 
 export interface SendNoteInput {
@@ -22,6 +25,7 @@ export interface SendNoteInput {
   text: string;
   emoji: string;
   backgroundColor: string;
+  stickerUri?: string | null;
 }
 
 export const screenNoteService = {
@@ -35,7 +39,14 @@ export const screenNoteService = {
       .order('created_at', { ascending: false })
       .limit(100);
     if (error) throw new Error(error.message);
-    return (data ?? []).map(mapNote);
+    return Promise.all((data ?? []).map(async (row) => {
+      const note = mapNote(row);
+      if (row.image_path) {
+        const { data: image } = await supabase.storage.from('screen-note-stickers').createSignedUrl(row.image_path, 60 * 60 * 24 * 7);
+        note.imageUrl = image?.signedUrl ?? null;
+      }
+      return note;
+    }));
   },
 
   async send(input: SendNoteInput): Promise<ServiceResult<ScreenNote>> {
@@ -45,6 +56,17 @@ export const screenNoteService = {
 
 
     const client = supabase;
+    let imagePath: string | null = null;
+    if (input.stickerUri) {
+      const response = await fetch(input.stickerUri);
+      if (!response.ok) return { error: 'Sticker görseli okunamadı.' };
+      const blob = await response.arrayBuffer();
+      if (blob.byteLength > 5 * 1024 * 1024) return { error: 'Sticker görseli 5 MB’tan küçük olmalı.' };
+      const path = `${input.coupleId}/${input.senderId}/${Date.now()}.jpg`;
+      const { error: uploadError } = await client.storage.from('screen-note-stickers').upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+      if (uploadError) return { error: uploadError.message.includes('bucket') ? 'Sticker saklama ayarı henüz kurulmamış. Supabase SQL kurulumunu çalıştırın.' : uploadError.message };
+      imagePath = path;
+    }
     const { data, error } = await client
       .from('screen_notes')
       .insert({
@@ -54,18 +76,54 @@ export const screenNoteService = {
         text,
         emoji: input.emoji,
         background_color: input.backgroundColor,
+        image_path: imagePath,
         visibility: 'shared',
       })
       .select('*')
       .single();
-    if (error) return { error: error.message };
-    await client.from('notifications').insert({
-      owner_id: input.receiverId,
-      couple_id: input.coupleId,
+    if (error) {
+      if (imagePath) await client.storage.from('screen-note-stickers').remove([imagePath]);
+      return { error: error.message };
+    }
+    let note = mapNote(data);
+    if (imagePath) {
+      const { data: image } = await client.storage.from('screen-note-stickers').createSignedUrl(imagePath, 60 * 60 * 24 * 7);
+      note.imageUrl = image?.signedUrl ?? null;
+    }
+    await notificationService.notifyPartner({
+      partnerId: input.receiverId,
+      coupleId: input.coupleId,
       category: 'screen_note',
       title: 'Yeni ekran notu',
-      body: `${input.senderName}: ${input.emoji} ${text}`,
+      body: `${input.senderName}: ${text}`,
     });
+    return { data: note };
+  },
+
+  async markRead(noteId: string): Promise<ServiceResult> {
+    const { error } = await supabase.rpc('mark_screen_note_read', { p_note_id: noteId });
+    return error ? { error: error.message } : {};
+  },
+
+  async update(noteId: string, textValue: string, backgroundColor: string): Promise<ServiceResult<ScreenNote>> {
+    const text = textValue.trim();
+    if (!text) return { error: 'Lütfen kısa bir not yazın.' };
+    if (text.length > SCREEN_NOTE_MAX_LENGTH) return { error: `Not en fazla ${SCREEN_NOTE_MAX_LENGTH} karakter olabilir.` };
+    const { data, error } = await supabase.from('screen_notes')
+      .update({ text, background_color: backgroundColor, emoji: '' })
+      .eq('id', noteId)
+      .select('*')
+      .single();
+    if (error) return { error: error.message };
+    if (data.receiver_id && data.couple_id) {
+      await notificationService.notifyPartner({
+        partnerId: data.receiver_id,
+        coupleId: data.couple_id,
+        category: 'screen_note',
+        title: 'Ekran notu güncellendi',
+        body: `Not: ${text}`,
+      });
+    }
     return { data: mapNote(data) };
   },
 };

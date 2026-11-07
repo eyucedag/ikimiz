@@ -4,6 +4,7 @@ import { Feather } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Button, Card, Divider, EmptyState, Screen } from '@/src/components/ui';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
+import { getCategoryColor } from '@/src/constants/categories';
 import { useAppState } from '@/src/hooks/useAppState';
 import { AppNotification, NotificationCategory } from '@/src/types';
 import { relativeTime } from '@/src/utils/date';
@@ -13,6 +14,9 @@ const categoryMeta: Record<NotificationCategory, { icon: keyof typeof Feather.gl
   invitation: { icon: 'send', route: '/couple/status' },
   couple: { icon: 'link', route: '/couple/status' },
   screen_note: { icon: 'edit-3', route: '/screen-note/history' },
+  event: { icon: 'calendar' },
+  task: { icon: 'check-square' },
+  reminder: { icon: 'bell' },
 };
 
 export default function NotificationsScreen() {
@@ -59,8 +63,8 @@ export default function NotificationsScreen() {
             <View key={n.id}>
               {index > 0 ? <Divider inset={52} /> : null}
               <Pressable onPress={() => open(n)} style={({ pressed }) => [styles.row, pressed && styles.pressed]} accessibilityRole="button">
-                <View style={[styles.icon, !n.readAt && styles.iconUnread]}>
-                  <Feather name={categoryMeta[n.category]?.icon ?? 'info'} size={18} color={n.readAt ? colors.textTertiary : colors.accent} />
+                <View style={[styles.icon, !n.readAt && { backgroundColor: getCategoryColor(n.category).tint }]}>
+                  <Feather name={categoryMeta[n.category]?.icon ?? 'info'} size={18} color={n.readAt ? colors.textTertiary : getCategoryColor(n.category).color} />
                 </View>
                 <View style={styles.flex}>
                   <Text style={[styles.rowTitle, !n.readAt && styles.unread]}>{n.title}</Text>

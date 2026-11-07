@@ -17,7 +17,8 @@ jobs:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.pull_request.head.repo.full_name == github.repository &&
-       github.event.pull_request.head.ref == 'codex/shared-expo-update')
+       (github.event.pull_request.head.ref == 'codex/shared-expo-update' ||
+        github.event.pull_request.head.ref == 'codex/ruh-halim'))
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -46,12 +47,23 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: npx --yes eas-cli@latest update:configure --environment preview --non-interactive
 
+      - name: Point the persistent preview channel at the shared branch
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if ! npx --yes eas-cli@latest channel:view shared-preview --json --non-interactive > "$RUNNER_TEMP/ikimiz-channel.json" 2> "$RUNNER_TEMP/ikimiz-channel-check.log"; then
+            npx --yes eas-cli@latest channel:create shared-preview --non-interactive
+          fi
+          npx --yes eas-cli@latest channel:edit shared-preview --branch shared-preview --non-interactive
+          npx --yes eas-cli@latest channel:view shared-preview --json --non-interactive > "$RUNNER_TEMP/ikimiz-channel.json"
+
       - name: Publish iOS and Android previews
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           npx --yes eas-cli@latest update --branch shared-preview --platform all --message "Shared Expo Go preview" --environment preview --non-interactive --json > "$RUNNER_TEMP/ikimiz-update.json"
           node scripts/shared-update-links.cjs "$RUNNER_TEMP/ikimiz-update.json"
+          cp "$RUNNER_TEMP/ikimiz-channel.json" dist/shared-preview/channel.json
 
       - name: Save shared Expo Go connection
         if: always()

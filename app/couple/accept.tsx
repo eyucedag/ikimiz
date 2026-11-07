@@ -49,7 +49,7 @@ export default function AcceptInvitationScreen() {
           icon="check-circle"
           title="Zaten eşleştiniz"
           description="Yeni bir daveti kabul etmek için önce mevcut eşleşmeyi sonlandırmanız gerekir."
-          actionLabel="Eşleşme durumunu gör"
+          actionLabel="Partner ayarlarını aç"
           onAction={() => router.replace('/couple/status')}
         />
       </Screen>
@@ -63,7 +63,7 @@ export default function AcceptInvitationScreen() {
         label="Davet kodu"
         value={code}
         onChangeText={onChange}
-        placeholder="ÖRN. K7M2QX"
+        placeholder="…"
         autoCapitalize="characters"
         autoCorrect={false}
         maxLength={6}

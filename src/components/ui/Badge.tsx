@@ -11,11 +11,11 @@ const tones: Record<Tone, { bg: string; fg: string }> = {
   danger: { bg: '#F6E0DD', fg: colors.error },
 };
 
-export function Badge({ label, tone = 'accent' }: { label: string; tone?: Tone }) {
+export function Badge({ label, tone = 'accent', color, backgroundColor }: { label: string; tone?: Tone; color?: string; backgroundColor?: string }) {
   const t = tones[tone];
   return (
-    <View style={[styles.badge, { backgroundColor: t.bg }]}>
-      <Text style={[styles.text, { color: t.fg }]}>{label}</Text>
+    <View style={[styles.badge, { backgroundColor: backgroundColor ?? t.bg }]}>
+      <Text style={[styles.text, { color: color ?? t.fg }]}>{label}</Text>
     </View>
   );
 }
