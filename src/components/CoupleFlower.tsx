@@ -90,7 +90,7 @@ export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partne
   const plantType = flower?.plantType ?? 'hanging';
   const shelvedPlantClipHeight = artworkHeight * (plantType === 'cactus' ? 0.56 : 0.53);
   const plantAssets: Record<CouplePlantType, { dry: number; lush: number; label: string }> = {
-    hanging: { dry: require('../../assets/aurora/illustrations/couple-flower-dry.png'), lush: require('../../assets/aurora/illustrations/couple-flower-lush.png'), label: 'Kalbe karşı kalp' },
+    hanging: { dry: require('../../assets/aurora/illustrations/couple-flower-dry.png'), lush: require('../../assets/aurora/illustrations/couple-flower-lush.png'), label: 'Kalp kalbe karşı' },
     cactus: { dry: require('../../assets/aurora/illustrations/couple-cactus-shelves-dry.png'), lush: require('../../assets/aurora/illustrations/couple-cactus-shelves.png'), label: 'Kaktüs' },
     violet: { dry: require('../../assets/aurora/illustrations/couple-violet-shelves-dry.png'), lush: require('../../assets/aurora/illustrations/couple-violet-shelves.png'), label: 'Menekşe' },
   };
