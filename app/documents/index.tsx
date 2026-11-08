@@ -99,10 +99,6 @@ export default function DocumentsScreen() {
     size?: number | null;
   }) => {
     if (!user || !couple.couple || !couple.partner) return;
-    if (!displayName.trim()) {
-      Alert.alert('Görünen ad gerekli', 'Belge için ikinizin göreceği adı önce yazın.');
-      return;
-    }
     const ext = extension(file.name);
     if (!allowedExtensions.has(ext)) {
       Alert.alert('Dosya türü desteklenmiyor', 'Word, PDF, JPG, PNG, WEBP, HEIC veya GIF dosyası seçin.');
@@ -112,6 +108,7 @@ export default function DocumentsScreen() {
       Alert.alert('Dosya çok büyük', 'En fazla 25 MB boyutunda dosya ekleyebilirsiniz.');
       return;
     }
+    const visibleName = displayName.trim() || file.name.replace(/\.[^.]+$/, '').trim() || 'Belge';
     setUploading(true);
     setError('');
     try {
@@ -124,7 +121,7 @@ export default function DocumentsScreen() {
         partnerId: couple.partner.id,
         coupleId: couple.couple.id,
         fileName: file.name,
-        displayName: displayName.trim(),
+        displayName: visibleName,
         mimeType,
         sizeBytes: content.byteLength,
         content,
@@ -158,20 +155,20 @@ export default function DocumentsScreen() {
   };
 
   const choosePhoto = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('Fotoğraf erişimi gerekli', 'Belge eklemek için fotoğraf arşivine erişim izni verin.');
-      return;
+    try {
+      // Android's system photo picker grants access to the selected item without library permission.
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsMultipleSelection: false,
+        quality: 1,
+      });
+      if (result.canceled || !result.assets[0]) return;
+      const image = result.assets[0];
+      const name = image.fileName || `fotoğraf.${extension(image.uri) || 'jpg'}`;
+      await upload({ uri: image.uri, name, mimeType: image.mimeType, size: image.fileSize });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Fotoğraf seçilemedi.');
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsMultipleSelection: false,
-      quality: 1,
-    });
-    if (result.canceled || !result.assets[0]) return;
-    const image = result.assets[0];
-    const name = image.fileName || `fotoğraf.${extension(image.uri) || 'jpg'}`;
-    await upload({ uri: image.uri, name, mimeType: image.mimeType, size: image.fileSize });
   };
 
   const open = async (document: CoupleDocument) => {
@@ -312,7 +309,7 @@ export default function DocumentsScreen() {
                 void chooseDocument();
               }}
               loading={uploading}
-              disabled={uploading || !displayName.trim()}
+              disabled={uploading}
               compact
               style={styles.actionButton}
             />
@@ -324,7 +321,7 @@ export default function DocumentsScreen() {
               onPress={() => {
                 void choosePhoto();
               }}
-              disabled={uploading || !displayName.trim()}
+              disabled={uploading}
               compact
               style={styles.actionButton}
             />

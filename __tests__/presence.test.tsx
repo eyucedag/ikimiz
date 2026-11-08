@@ -91,22 +91,22 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
-test('direction toggling reuses one GPS watcher and does not delete the step counter location', async () => {
+test('location is requested only by the direction control and stop clears the shared fix', async () => {
   const view = await renderHook(useCouplePresence, { wrapper });
+  expect(Location.requestForegroundPermissionsAsync).not.toHaveBeenCalled();
+  expect(Location.watchPositionAsync).not.toHaveBeenCalled();
   await act(async () => {
-    positionCallback(fix);
     await view.result.current.start();
   });
+  await act(async () => positionCallback(fix));
   expect(view.result.current.sharing).toBe(true);
   expect(Location.watchPositionAsync).toHaveBeenCalledTimes(1);
   await act(async () => {
     view.result.current.stop();
   });
   expect(view.result.current.sharing).toBe(false);
-  expect(presenceService.clearLocation).not.toHaveBeenCalled();
-  expect(presenceService.updateLocation).toHaveBeenLastCalledWith(
-    expect.objectContaining({ directionEnabled: false }),
-  );
+  expect(presenceService.clearLocation).toHaveBeenCalledWith('me', 'couple');
+  expect(removePosition).toHaveBeenCalledTimes(1);
   expect(removeHeading).toHaveBeenCalledTimes(1);
   await view.unmount();
 });
@@ -114,9 +114,9 @@ test('direction toggling reuses one GPS watcher and does not delete the step cou
 test('sharing survives the iOS inactive phase but closes on background and stays off after returning', async () => {
   const view = await renderHook(useCouplePresence, { wrapper });
   await act(async () => {
-    positionCallback(fix);
     await view.result.current.start();
   });
+  await act(async () => positionCallback(fix));
   await act(async () => {
     listeners.forEach((listener) => listener('inactive'));
   });
@@ -130,7 +130,23 @@ test('sharing survives the iOS inactive phase but closes on background and stays
     listeners.forEach((listener) => listener('active'));
   });
   expect(view.result.current.sharing).toBe(false);
-  expect(Location.watchPositionAsync).toHaveBeenCalledTimes(2);
+  expect(Location.watchPositionAsync).toHaveBeenCalledTimes(1);
+  await view.unmount();
+});
+
+test('stationary devices keep publishing presence instead of silently expiring', async () => {
+  const view = await renderHook(useCouplePresence, { wrapper });
+  const start = view.result.current.start;
+  await act(async () => {
+    await start();
+  });
+  await act(async () => positionCallback(fix));
+  const before = jest.mocked(presenceService.updateLocation).mock.calls.length;
+  await act(async () => {
+    jest.advanceTimersByTime(180_000);
+  });
+  expect(jest.mocked(presenceService.updateLocation).mock.calls.length).toBeGreaterThan(before);
+  expect(view.result.current.sharing).toBe(true);
   await view.unmount();
 });
 
@@ -143,28 +159,18 @@ test('a permission request resolving after background cannot create a leaked GPS
       }),
   );
   const view = await renderHook(useCouplePresence, { wrapper });
+  let pending!: Promise<void>;
+  act(() => {
+    pending = view.result.current.start();
+  });
   await act(async () => {
     listeners.forEach((listener) => listener('background'));
   });
   await act(async () => {
     grant({ granted: true } as Location.LocationPermissionResponse);
+    await pending;
   });
   expect(Location.watchPositionAsync).not.toHaveBeenCalled();
   expect(view.result.current.sharing).toBe(false);
-  await view.unmount();
-});
-
-test('stationary devices keep publishing presence instead of silently expiring', async () => {
-  const view = await renderHook(useCouplePresence, { wrapper });
-  await act(async () => {
-    positionCallback(fix);
-    await view.result.current.start();
-  });
-  const before = jest.mocked(presenceService.updateLocation).mock.calls.length;
-  await act(async () => {
-    jest.advanceTimersByTime(180_000);
-  });
-  expect(jest.mocked(presenceService.updateLocation).mock.calls.length).toBeGreaterThan(before);
-  expect(view.result.current.sharing).toBe(true);
   await view.unmount();
 });

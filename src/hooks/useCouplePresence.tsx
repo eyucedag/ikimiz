@@ -96,7 +96,7 @@ export function CouplePresenceProvider({ children }: { children: React.ReactNode
       if (!current()) return;
       if (!permission.granted) throw new Error('Konum izni gerekli.');
       const watcher = await Location.watchPositionAsync(
-        { accuracy: Location.Accuracy.Balanced, timeInterval: 5_000, distanceInterval: 0 },
+        { accuracy: Location.Accuracy.Balanced, timeInterval: 10_000, distanceInterval: 25 },
         (position) => {
           if (!current()) return;
           latestPosition.current = position;
@@ -126,13 +126,19 @@ export function CouplePresenceProvider({ children }: { children: React.ReactNode
     enabled.current = false;
     headingWatcher.current?.remove();
     headingWatcher.current = null;
+    locationGeneration.current += 1;
+    initializing.current = null;
+    locationWatcher.current?.remove();
+    locationWatcher.current = null;
+    latestPosition.current = null;
     setSharing(false);
     setStarting(false);
     setHeading(null);
     setError('');
-    // Automatic nearby steps may still need the location; only disable direction.
-    publish(true);
-  }, [publish]);
+    if (userId && coupleId) {
+      void enqueueLocation(() => presenceService.clearLocation(userId, coupleId)).catch(() => undefined);
+    }
+  }, [coupleId, enqueueLocation, userId]);
 
   const start = useCallback(async () => {
     if (!userId || !coupleId || enabled.current || !active.current) return;
@@ -174,21 +180,14 @@ export function CouplePresenceProvider({ children }: { children: React.ReactNode
       locationGeneration.current += 1;
       initializing.current = null;
       stop();
-      locationWatcher.current?.remove();
-      locationWatcher.current = null;
       latestPosition.current = null;
-      if (userId && coupleId)
-        void enqueueLocation(() => presenceService.clearLocation(userId, coupleId)).catch(() => undefined);
     };
     const resume = () => {
       active.current = true;
       setForeground(true);
       setNow(Date.now());
-      void ensureLocation().catch((cause: unknown) => {
-        if (alive.current) setStepsError(cause instanceof Error ? cause.message : 'Konum açılamadı.');
-      });
     };
-    if (active.current && userId && coupleId) resume();
+    if (active.current) resume();
     const listener = AppState.addEventListener('change', (state) => {
       if (state === 'active') resume();
       // iOS briefly becomes inactive for permission dialogs; only leaving the app ends sharing.
@@ -209,7 +208,7 @@ export function CouplePresenceProvider({ children }: { children: React.ReactNode
       clearInterval(timer);
       suspend();
     };
-  }, [coupleId, userId, ensureLocation, stop, publish, enqueueLocation]);
+  }, [coupleId, userId, stop, publish]);
 
   useEffect(() => {
     if (!userId || !coupleId || !partnerId || !foreground) return;
