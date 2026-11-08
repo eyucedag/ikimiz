@@ -150,7 +150,7 @@ test('stationary devices keep publishing presence instead of silently expiring',
   await view.unmount();
 });
 
-test('a permission request resolving after background cannot create a leaked GPS subscription', async () => {
+test('Android permission sheet resumes the requested direction only after foreground returns', async () => {
   let grant!: (value: Location.LocationPermissionResponse) => void;
   jest.mocked(Location.requestForegroundPermissionsAsync).mockImplementationOnce(
     () =>
@@ -160,17 +160,26 @@ test('a permission request resolving after background cannot create a leaked GPS
   );
   const view = await renderHook(useCouplePresence, { wrapper });
   let pending!: Promise<void>;
-  act(() => {
+  await act(async () => {
     pending = view.result.current.start();
+    await Promise.resolve();
   });
+  expect(view.result.current.sharing).toBe(true);
+  expect(view.result.current.starting).toBe(true);
   await act(async () => {
     listeners.forEach((listener) => listener('background'));
   });
+  expect(presenceService.clearLocation).not.toHaveBeenCalled();
   await act(async () => {
     grant({ granted: true } as Location.LocationPermissionResponse);
-    await pending;
   });
   expect(Location.watchPositionAsync).not.toHaveBeenCalled();
-  expect(view.result.current.sharing).toBe(false);
+  await act(async () => {
+    listeners.forEach((listener) => listener('active'));
+    await pending;
+  });
+  expect(Location.watchPositionAsync).toHaveBeenCalledTimes(1);
+  expect(presenceService.clearLocation).not.toHaveBeenCalled();
+  expect(view.result.current.sharing).toBe(true);
   await view.unmount();
 });

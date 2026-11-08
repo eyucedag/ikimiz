@@ -160,19 +160,26 @@ export const documentService = {
           ? 'Doküman deposu henüz kurulmamış. Supabase SQL Editor’da 20261105_shared_documents.sql kodunu çalıştırın.'
           : `Dosya yüklenemedi: ${uploadError.message}`,
       );
-    const { data, error } = await supabase
-      .from('couple_documents')
-      .insert({
-        owner_id: input.ownerId,
-        couple_id: input.coupleId,
-        file_name: input.fileName,
-        display_name: input.displayName.trim(),
-        mime_type: input.mimeType,
-        storage_path: storagePath,
-        size_bytes: input.sizeBytes,
-      })
-      .select('*')
-      .single();
+    const insertDocument = (includeDisplayName: boolean) =>
+      supabase
+        .from('couple_documents')
+        .insert({
+          owner_id: input.ownerId,
+          couple_id: input.coupleId,
+          file_name: input.fileName,
+          ...(includeDisplayName ? { display_name: input.displayName.trim() } : {}),
+          mime_type: input.mimeType,
+          storage_path: storagePath,
+          size_bytes: input.sizeBytes,
+        })
+        .select('*')
+        .single();
+    let result = await insertDocument(true);
+    const missingDisplayNameColumn =
+      (result.error?.code === 'PGRST204' || result.error?.code === '42703') &&
+      result.error.message.toLowerCase().includes('display_name');
+    if (missingDisplayNameColumn) result = await insertDocument(false);
+    const { data, error } = result;
     if (error || !data) {
       await supabase.storage.from('couple-documents').remove([storagePath]);
       throw new Error(

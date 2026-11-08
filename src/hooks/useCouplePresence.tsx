@@ -50,6 +50,8 @@ export function CouplePresenceProvider({ children }: { children: React.ReactNode
   const locationWatcher = useRef<Location.LocationSubscription | null>(null);
   const headingWatcher = useRef<Location.LocationSubscription | null>(null);
   const initializing = useRef<Promise<void> | null>(null);
+  const permissionRequesting = useRef(false);
+  const activeWaiter = useRef<(() => void) | null>(null);
   const alive = useRef(true);
   const active = useRef(foreground);
   const locationGeneration = useRef(0);
@@ -92,9 +94,20 @@ export function CouplePresenceProvider({ children }: { children: React.ReactNode
     const generation = locationGeneration.current;
     const current = () => alive.current && active.current && locationGeneration.current === generation;
     const operation = (async () => {
-      const permission = await Location.requestForegroundPermissionsAsync();
+      permissionRequesting.current = true;
+      try {
+        const permission = await Location.requestForegroundPermissionsAsync();
+        if (!alive.current || locationGeneration.current !== generation) return;
+        if (!permission.granted) throw new Error('Konum izni gerekli.');
+        if (!active.current) {
+          await new Promise<void>((resolve) => {
+            activeWaiter.current = resolve;
+          });
+        }
+      } finally {
+        permissionRequesting.current = false;
+      }
       if (!current()) return;
-      if (!permission.granted) throw new Error('Konum izni gerekli.');
       const watcher = await Location.watchPositionAsync(
         { accuracy: Location.Accuracy.Balanced, timeInterval: 10_000, distanceInterval: 25 },
         (position) => {
@@ -163,13 +176,13 @@ export function CouplePresenceProvider({ children }: { children: React.ReactNode
         if (current()) setError('Bu cihazda yön sensörü kullanılamıyor.');
       }
     } catch (cause) {
-      if (current()) {
+      if (alive.current && generation === directionGeneration.current) {
         enabled.current = false;
         setSharing(false);
         setError(cause instanceof Error ? cause.message : 'Konum açılamadı. Yeniden deneyin.');
       }
     } finally {
-      if (current()) setStarting(false);
+      if (alive.current && generation === directionGeneration.current) setStarting(false);
     }
   }, [userId, coupleId, ensureLocation, publish]);
 
@@ -177,6 +190,10 @@ export function CouplePresenceProvider({ children }: { children: React.ReactNode
     alive.current = true;
     const suspend = () => {
       active.current = false;
+      setForeground(false);
+      // Android may background the host Activity while its runtime permission sheet is open.
+      // Keep the user's explicit start request and resume it after the sheet closes.
+      if (permissionRequesting.current) return;
       locationGeneration.current += 1;
       initializing.current = null;
       stop();
@@ -186,6 +203,8 @@ export function CouplePresenceProvider({ children }: { children: React.ReactNode
       active.current = true;
       setForeground(true);
       setNow(Date.now());
+      activeWaiter.current?.();
+      activeWaiter.current = null;
     };
     if (active.current) resume();
     const listener = AppState.addEventListener('change', (state) => {
@@ -206,6 +225,8 @@ export function CouplePresenceProvider({ children }: { children: React.ReactNode
       alive.current = false;
       listener.remove();
       clearInterval(timer);
+      activeWaiter.current?.();
+      activeWaiter.current = null;
       suspend();
     };
   }, [coupleId, userId, stop, publish]);
