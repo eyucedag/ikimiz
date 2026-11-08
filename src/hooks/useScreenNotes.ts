@@ -1,3 +1,4 @@
+import { useRequestGuard } from './useRequestGuard';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { screenNoteService } from '@/src/services/screenNoteService';
@@ -11,39 +12,61 @@ type NoteDraft = { text: string; emoji: string; backgroundColor: string; sticker
 export function useScreenNotes(coupleState: Pick<CoupleState, 'couple' | 'partner'>) {
   const { user } = useAuth();
   const coupleId = coupleState.couple?.id ?? null;
+  const beginRequest = useRequestGuard();
   const [notes, setNotes] = useState<ScreenNote[]>([]);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    if (!user) return;
-    try {
-      setNotes(await screenNoteService.list(user.id, coupleId));
-    } catch {
+    const current = beginRequest();
+    if (!user) {
       setNotes([]);
-    } finally {
       setLoading(false);
+      return;
     }
-  }, [user, coupleId]);
+    try {
+      const rows = await screenNoteService.list(user.id, coupleId);
+      if (current()) setNotes(rows);
+    } catch {
+      // Preserve the last successful notes during a temporary connection failure.
+    } finally {
+      if (current()) setLoading(false);
+    }
+  }, [user, coupleId, beginRequest]);
 
   useFocusEffect(
     useCallback(() => {
-      refresh();
+      void refresh();
     }, [refresh]),
   );
 
   useEffect(() => {
     if (!coupleId) return;
-    const channel = supabase.channel(`screen-notes-${coupleId}-${user?.id ?? 'guest'}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'screen_notes', filter: `couple_id=eq.${coupleId}` }, () => { void refresh(); })
+    const channel = supabase
+      .channel(
+        `screen-notes-${coupleId}-${user?.id ?? 'guest'}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'screen_notes', filter: `couple_id=eq.${coupleId}` },
+        () => {
+          void refresh();
+        },
+      )
       .subscribe();
-    return () => { void supabase.removeChannel(channel); };
+    return () => {
+      void supabase.removeChannel(channel);
+    };
   }, [coupleId, user?.id, refresh]);
 
-  const latestFromPartner = useMemo(() => notes.find((n) => n.senderId !== user?.id) ?? null, [notes, user]);
+  const latestFromPartner = useMemo(
+    () => notes.find((n) => n.senderId === coupleState.partner?.id && n.receiverId === user?.id) ?? null,
+    [notes, user, coupleState.partner?.id],
+  );
 
   const send = useCallback(
     async (draft: NoteDraft): Promise<ServiceResult<ScreenNote>> => {
-      if (!user || !coupleState.couple || !coupleState.partner) return { error: 'Not göndermek için önce partnerinizle eşleşin.' };
+      if (!user || !coupleState.couple || !coupleState.partner)
+        return { error: 'Not göndermek için önce partnerinizle eşleşin.' };
       const result = await screenNoteService.send({
         ...draft,
         senderId: user.id,
@@ -51,7 +74,8 @@ export function useScreenNotes(coupleState: Pick<CoupleState, 'couple' | 'partne
         coupleId: coupleState.couple.id,
         receiverId: coupleState.partner.id,
       });
-      if (result.data) setNotes((prev) => [result.data!, ...prev]);
+      if (result.data)
+        setNotes((prev) => [result.data!, ...prev.filter((entry) => entry.id !== result.data!.id)]);
       return result;
     },
     [user, coupleState.couple, coupleState.partner],
@@ -59,13 +83,19 @@ export function useScreenNotes(coupleState: Pick<CoupleState, 'couple' | 'partne
 
   const markRead = useCallback(async (noteId: string) => {
     const result = await screenNoteService.markRead(noteId);
-    if (!result.error) setNotes((previous) => previous.map((note) => note.id === noteId ? { ...note, readAt: note.readAt ?? new Date().toISOString() } : note));
+    if (!result.error)
+      setNotes((previous) =>
+        previous.map((note) =>
+          note.id === noteId ? { ...note, readAt: note.readAt ?? new Date().toISOString() } : note,
+        ),
+      );
     return result;
   }, []);
 
   const update = useCallback(async (noteId: string, text: string, backgroundColor: string) => {
     const result = await screenNoteService.update(noteId, text, backgroundColor);
-    if (result.data) setNotes((previous) => previous.map((note) => note.id === noteId ? result.data! : note));
+    if (result.data)
+      setNotes((previous) => previous.map((note) => (note.id === noteId ? result.data! : note)));
     return result;
   }, []);
 

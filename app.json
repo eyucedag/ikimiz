@@ -7,10 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "ikimiz",
     "userInterfaceStyle": "light",
-    "platforms": [
-      "ios",
-      "android"
-    ],
+    "platforms": ["ios", "android"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.ikimiz.mobile"
@@ -19,7 +16,7 @@
       "package": "app.ikimiz.mobile",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-      "backgroundColor": "#082D25"
+        "backgroundColor": "#082D25"
       }
     },
     "plugins": [
@@ -60,7 +57,8 @@
           "enableBackgroundRecording": false,
           "enableBackgroundPlayback": false
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "owner": "eyucedag",
     "extra": {

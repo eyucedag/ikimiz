@@ -1,5 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, AppState, AppStateStatus, Image, StyleSheet, useWindowDimensions, View } from 'react-native';
+import {
+  Animated,
+  AppState,
+  AppStateStatus,
+  Image,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { colors, spacing } from '@/src/constants/theme';
 
 export type SkyPhase = 'morning' | 'day' | 'sunset' | 'evening' | 'night';
@@ -22,26 +30,48 @@ const skyImages: Record<SkyPhase, number> = {
 };
 const forestOverlay = require('../../assets/aurora/sky/forest_overlay.png');
 
-interface DynamicSkyProps { children: React.ReactNode; compact?: boolean; treeContent?: React.ReactNode; sideContent?: React.ReactNode }
+interface DynamicSkyProps {
+  children: React.ReactNode;
+  compact?: boolean;
+  treeContent?: React.ReactNode;
+  sideContent?: React.ReactNode;
+}
 
 export function DynamicSky({ children, compact = false, treeContent, sideContent }: DynamicSkyProps) {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const tablet = Math.min(windowWidth, windowHeight) >= 600;
   const landscapeTablet = tablet && windowWidth > windowHeight;
-  const sideWidth = sideContent ? (landscapeTablet ? 154 : tablet ? 128 : Math.min(110, Math.max(76, windowWidth * 0.27))) : 0;
+  const sideWidth = sideContent
+    ? landscapeTablet
+      ? 154
+      : tablet
+        ? 128
+        : Math.min(110, Math.max(76, windowWidth * 0.27))
+    : 0;
   const maxSceneWidth = sideContent
-    ? landscapeTablet ? 800 : tablet ? 570 : 500
-    : landscapeTablet ? 900 : tablet ? 760 : 620;
-  const sceneWidth = Math.min(maxSceneWidth, Math.max(sideContent ? 176 : 260, windowWidth - 36 - (sideContent ? sideWidth + 6 : 0)));
-  const skyHeight = compact
-    ? Math.min(landscapeTablet ? 300 : 240, Math.max(150, sceneWidth * (landscapeTablet ? 0.30 : 0.34)))
+    ? landscapeTablet
+      ? 800
+      : tablet
+        ? 570
+        : 500
     : landscapeTablet
-      ? Math.min(560, Math.max(320, sceneWidth * 9 / 16))
+      ? 900
+      : tablet
+        ? 760
+        : 620;
+  const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
+  const rowMaxWidth = maxSceneWidth + (sideContent ? sideWidth + 6 : 0);
+  const rowWidth = measuredWidth ?? Math.min(rowMaxWidth, windowWidth - 36);
+  const sceneWidth = Math.max(0, Math.min(maxSceneWidth, rowWidth - (sideContent ? sideWidth + 6 : 0)));
+  const skyHeight = compact
+    ? Math.min(landscapeTablet ? 300 : 240, Math.max(150, sceneWidth * (landscapeTablet ? 0.3 : 0.34)))
+    : landscapeTablet
+      ? Math.min(560, Math.max(320, (sceneWidth * 9) / 16))
       : Math.min(tablet ? 390 : 350, Math.max(228, sceneWidth / 1.58 + 4));
   // Preserve the artwork's 16:9 ratio and frame its sun/moon in the open
   // upper-right area, away from the greeting on narrow phone layouts.
-  const skyImageHeight = Math.max(skyHeight, sceneWidth * 9 / 16);
-  const skyImageWidth = skyImageHeight * 16 / 9;
+  const skyImageHeight = Math.max(skyHeight, (sceneWidth * 9) / 16);
+  const skyImageWidth = (skyImageHeight * 16) / 9;
   const visibleFraction = Math.min(1, sceneWidth / skyImageWidth);
   const cropStart = Math.max(0, Math.min(1 - visibleFraction, 0.77 - 0.82 * visibleFraction));
   const skyImageStyle = {
@@ -76,7 +106,10 @@ export function DynamicSky({ children, compact = false, treeContent, sideContent
       }
     });
     refreshAndSchedule();
-    return () => { clearTimeout(timer); subscription.remove(); };
+    return () => {
+      clearTimeout(timer);
+      subscription.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -85,30 +118,85 @@ export function DynamicSky({ children, compact = false, treeContent, sideContent
     previousPhase.current = phase;
     setTransitionFrom(oldPhase);
     transitionOpacity.setValue(0.42);
-    Animated.timing(transitionOpacity, { toValue: 0, duration: 900, useNativeDriver: true }).start(() => setTransitionFrom(null));
+    Animated.timing(transitionOpacity, { toValue: 0, duration: 900, useNativeDriver: true }).start(() =>
+      setTransitionFrom(null),
+    );
   }, [phase, transitionOpacity]);
 
   return (
-    <View style={[styles.sceneRow, { width: Math.min(landscapeTablet ? 1140 : tablet ? 900 : 710, windowWidth - 36, sceneWidth + (sideContent ? sideWidth + 6 : 0)) }]}>
-    <View style={[styles.container, { height: skyHeight, width: sideContent ? sceneWidth : '100%' }, compact && styles.compactContainer]}>
-      <Image source={skyImages[phase]} resizeMode="cover" style={[styles.image, skyImageStyle]} accessibilityIgnoresInvertColors />
-      {transitionFrom ? <Animated.Image pointerEvents="none" source={skyImages[transitionFrom]} resizeMode="cover" style={[styles.image, skyImageStyle, { opacity: transitionOpacity }]} /> : null}
-      <View pointerEvents="none" style={styles.readabilityScrim} />
-      <Image pointerEvents="none" source={forestOverlay} resizeMode="cover" style={[styles.image, skyImageStyle, styles.forestOverlay]} accessibilityIgnoresInvertColors />
-      <View style={[styles.content, compact && styles.compactContent]}>{children}</View>
-      {treeContent ? <View style={styles.treeContent}>{treeContent}</View> : null}
-    </View>
-    {sideContent ? <View style={[styles.sideContent, { height: skyHeight, width: sideWidth }]}>{sideContent}</View> : null}
+    <View
+      style={[styles.sceneRow, { width: '100%', maxWidth: rowMaxWidth }]}
+      onLayout={({ nativeEvent }) => {
+        const width = nativeEvent.layout.width;
+        setMeasuredWidth((previous) =>
+          previous !== null && Math.abs(previous - width) < 1 ? previous : width,
+        );
+      }}
+    >
+      <View
+        style={[
+          styles.container,
+          { height: skyHeight, width: sideContent ? sceneWidth : '100%' },
+          compact && styles.compactContainer,
+        ]}
+      >
+        <Image
+          source={skyImages[phase]}
+          resizeMode="cover"
+          style={[styles.image, skyImageStyle]}
+          accessibilityIgnoresInvertColors
+        />
+        {transitionFrom ? (
+          <Animated.Image
+            pointerEvents="none"
+            source={skyImages[transitionFrom]}
+            resizeMode="cover"
+            style={[styles.image, skyImageStyle, { opacity: transitionOpacity }]}
+          />
+        ) : null}
+        <View pointerEvents="none" style={styles.readabilityScrim} />
+        <Image
+          pointerEvents="none"
+          source={forestOverlay}
+          resizeMode="cover"
+          style={[styles.image, skyImageStyle, styles.forestOverlay]}
+          accessibilityIgnoresInvertColors
+        />
+        <View style={[styles.content, compact && styles.compactContent]}>{children}</View>
+        {treeContent ? <View style={styles.treeContent}>{treeContent}</View> : null}
+      </View>
+      {sideContent ? (
+        <View style={[styles.sideContent, { height: skyHeight, width: sideWidth }]}>{sideContent}</View>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  sceneRow: { maxWidth: 710, alignSelf: 'center', flexDirection: 'row', alignItems: 'stretch', marginBottom: 18 },
-  container: { maxWidth: 620, alignSelf: 'center', borderRadius: 22, overflow: 'hidden', justifyContent: 'flex-start', backgroundColor: colors.background },
+  sceneRow: {
+    maxWidth: '100%',
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    marginBottom: 18,
+  },
+  container: {
+    alignSelf: 'center',
+    borderRadius: 22,
+    overflow: 'hidden',
+    justifyContent: 'flex-start',
+    backgroundColor: colors.background,
+  },
   compactContainer: { marginBottom: spacing.lg },
   image: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
-  readabilityScrim: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(32, 35, 33, 0.08)' },
+  readabilityScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(32, 35, 33, 0.08)',
+  },
   forestOverlay: { opacity: 0.82 },
   content: { width: '100%', zIndex: 1, padding: 14, paddingBottom: 8 },
   compactContent: { padding: 14, paddingBottom: 24 },

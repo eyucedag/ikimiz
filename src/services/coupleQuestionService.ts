@@ -25,13 +25,16 @@ export const coupleQuestionService = {
     const cleaned = answer.trim();
     if (!cleaned) throw new Error('Yanıtınızı yazın.');
     if (cleaned.length > 1000) throw new Error('Yanıt en fazla 1000 karakter olabilir.');
-    const { error } = await supabase.from('couple_question_answers').upsert({
-      couple_id: coupleId,
-      question_id: questionId,
-      owner_id: ownerId,
-      answer: cleaned,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'couple_id,question_id,owner_id' });
+    const { error } = await supabase.from('couple_question_answers').upsert(
+      {
+        couple_id: coupleId,
+        question_id: questionId,
+        owner_id: ownerId,
+        answer: cleaned,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'couple_id,question_id,owner_id' },
+    );
     if (error) throw new Error(`Yanıt kaydedilemedi: ${error.message}`);
   },
 };

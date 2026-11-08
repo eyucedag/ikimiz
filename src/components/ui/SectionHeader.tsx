@@ -1,4 +1,3 @@
-import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, fontSize, spacing } from '@/src/constants/theme';
 
@@ -26,9 +25,20 @@ export function SectionHeader({ title, actionLabel, onAction, actionColor, compa
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
+  },
   compactRow: { marginBottom: spacing.xs },
-  title: { fontFamily: 'serif', fontSize: fontSize.lg, fontWeight: '700', color: colors.text, letterSpacing: 0.1 },
+  title: {
+    fontFamily: 'serif',
+    fontSize: fontSize.lg,
+    fontWeight: '700',
+    color: colors.text,
+    letterSpacing: 0.1,
+  },
   compactTitle: { fontSize: fontSize.md },
   action: { fontSize: fontSize.sm, fontWeight: '600', color: colors.accent },
 });

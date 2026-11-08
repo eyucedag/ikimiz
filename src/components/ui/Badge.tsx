@@ -1,4 +1,3 @@
-import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 
@@ -11,7 +10,17 @@ const tones: Record<Tone, { bg: string; fg: string }> = {
   danger: { bg: '#F6E0DD', fg: colors.error },
 };
 
-export function Badge({ label, tone = 'accent', color, backgroundColor }: { label: string; tone?: Tone; color?: string; backgroundColor?: string }) {
+export function Badge({
+  label,
+  tone = 'accent',
+  color,
+  backgroundColor,
+}: {
+  label: string;
+  tone?: Tone;
+  color?: string;
+  backgroundColor?: string;
+}) {
   const t = tones[tone];
   return (
     <View style={[styles.badge, { backgroundColor: backgroundColor ?? t.bg }]}>
@@ -21,6 +30,11 @@ export function Badge({ label, tone = 'accent', color, backgroundColor }: { labe
 }
 
 const styles = StyleSheet.create({
-  badge: { alignSelf: 'flex-start', borderRadius: radius.pill, paddingHorizontal: spacing.sm + 2, paddingVertical: 3 },
+  badge: {
+    alignSelf: 'flex-start',
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: 3,
+  },
   text: { fontSize: fontSize.xs, fontWeight: '600' },
 });

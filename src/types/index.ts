@@ -49,7 +49,8 @@ export interface ScreenNote {
   readAt?: string | null;
 }
 
-export type NotificationCategory = 'system' | 'invitation' | 'couple' | 'screen_note' | 'event' | 'task' | 'reminder';
+export type NotificationCategory =
+  'system' | 'invitation' | 'couple' | 'screen_note' | 'event' | 'task' | 'reminder';
 
 export interface AppNotification {
   id: string;

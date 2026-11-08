@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Alert, Share, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button, Card, EmptyState, Screen } from '@/src/components/ui';
@@ -48,10 +48,16 @@ export default function InviteScreen() {
     <Screen title="Partner Davet Et">
       {invitation ? (
         <>
-          <Text style={styles.lead}>Bu kodu partnerinize iletin. Partneriniz uygulamada “Kodum Var” bölümüne kodu girdiğinde eşleşmeniz tamamlanır.</Text>
+          <Text style={styles.lead}>
+            Bu kodu partnerinize iletin. Partneriniz uygulamada “Kodum Var” bölümüne kodu girdiğinde
+            eşleşmeniz tamamlanır.
+          </Text>
           <Card style={styles.codeCard}>
             <Text style={styles.codeLabel}>Davet kodunuz</Text>
-            <View style={styles.codeRow} accessibilityLabel={`Davet kodu ${invitation.code.split('').join(' ')}`}>
+            <View
+              style={styles.codeRow}
+              accessibilityLabel={`Davet kodu ${invitation.code.split('').join(' ')}`}
+            >
               {invitation.code.split('').map((ch, i) => (
                 <View key={`${ch}-${i}`} style={styles.codeCell}>
                   <Text style={styles.codeChar}>{ch}</Text>
@@ -69,7 +75,13 @@ export default function InviteScreen() {
             onPress={() => run('create', couple.createInvitation)}
             style={styles.gap}
           />
-          <Button title="Daveti İptal Et" variant="ghost" loading={busy === 'cancel'} onPress={() => run('cancel', couple.cancelInvitation)} style={styles.gap} />
+          <Button
+            title="Daveti İptal Et"
+            variant="ghost"
+            loading={busy === 'cancel'}
+            onPress={() => run('cancel', couple.cancelInvitation)}
+            style={styles.gap}
+          />
         </>
       ) : (
         <>
@@ -78,8 +90,18 @@ export default function InviteScreen() {
             title="Partnerinizi davet edin"
             description="6 haneli bir davet kodu oluşturun ve partnerinizle paylaşın. Kod ile eşleştiğinizde ortak alanınız açılır."
           />
-          <Button title="Davet Kodu Oluştur" icon="plus" loading={busy === 'create'} onPress={() => run('create', couple.createInvitation)} />
-          <Button title="Bana kod verildi" variant="ghost" onPress={() => router.replace('/couple/accept')} style={styles.gap} />
+          <Button
+            title="Davet Kodu Oluştur"
+            icon="plus"
+            loading={busy === 'create'}
+            onPress={() => run('create', couple.createInvitation)}
+          />
+          <Button
+            title="Bana kod verildi"
+            variant="ghost"
+            onPress={() => router.replace('/couple/accept')}
+            style={styles.gap}
+          />
         </>
       )}
     </Screen>

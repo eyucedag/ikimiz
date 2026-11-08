@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Alert, StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button, EmptyState, Input, Screen } from '@/src/components/ui';
@@ -12,7 +12,13 @@ export default function AcceptInvitationScreen() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState<'accept' | 'reject' | null>(null);
 
-  const onChange = (value: string) => setCode(value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 6));
+  const onChange = (value: string) =>
+    setCode(
+      value
+        .replace(/[^a-zA-Z0-9]/g, '')
+        .toUpperCase()
+        .slice(0, 6),
+    );
 
   const accept = async () => {
     setError('');
@@ -20,27 +26,34 @@ export default function AcceptInvitationScreen() {
     const result = await couple.acceptInvitation(code);
     setBusy(null);
     if (result.error) setError(result.error);
-    else Alert.alert('Eşleşme tamamlandı', 'Ortak alanınız artık hazır.', [{ text: 'Harika', onPress: () => router.replace('/(tabs)') }]);
+    else
+      Alert.alert('Eşleşme tamamlandı', 'Ortak alanınız artık hazır.', [
+        { text: 'Harika', onPress: () => router.replace('/(tabs)') },
+      ]);
   };
 
   const reject = () =>
-    Alert.alert('Daveti reddet', 'Bu daveti reddetmek istediğinize emin misiniz? Davet eden kişi bilgilendirilir.', [
-      { text: 'Vazgeç', style: 'cancel' },
-      {
-        text: 'Reddet',
-        style: 'destructive',
-        onPress: async () => {
-          setBusy('reject');
-          const result = await couple.rejectInvitation(code);
-          setBusy(null);
-          if (result.error) setError(result.error);
-          else {
-            setCode('');
-            Alert.alert('Davet reddedildi');
-          }
+    Alert.alert(
+      'Daveti reddet',
+      'Bu daveti reddetmek istediğinize emin misiniz? Davet eden kişi bilgilendirilir.',
+      [
+        { text: 'Vazgeç', style: 'cancel' },
+        {
+          text: 'Reddet',
+          style: 'destructive',
+          onPress: async () => {
+            setBusy('reject');
+            const result = await couple.rejectInvitation(code);
+            setBusy(null);
+            if (result.error) setError(result.error);
+            else {
+              setCode('');
+              Alert.alert('Davet reddedildi');
+            }
+          },
         },
-      },
-    ]);
+      ],
+    );
 
   if (couple.isPaired) {
     return (
@@ -71,9 +84,27 @@ export default function AcceptInvitationScreen() {
         error={error || undefined}
         onSubmitEditing={accept}
       />
-      <Button title="Kabul Et ve Eşleş" icon="check" onPress={accept} loading={busy === 'accept'} disabled={code.length !== 6} />
-      <Button title="Daveti Reddet" variant="ghost" onPress={reject} loading={busy === 'reject'} disabled={code.length !== 6} style={styles.gap} />
-      <Button title="Bunun yerine ben davet edeyim" variant="secondary" onPress={() => router.replace('/couple/invite')} style={styles.gapLarge} />
+      <Button
+        title="Kabul Et ve Eşleş"
+        icon="check"
+        onPress={accept}
+        loading={busy === 'accept'}
+        disabled={code.length !== 6}
+      />
+      <Button
+        title="Daveti Reddet"
+        variant="ghost"
+        onPress={reject}
+        loading={busy === 'reject'}
+        disabled={code.length !== 6}
+        style={styles.gap}
+      />
+      <Button
+        title="Bunun yerine ben davet edeyim"
+        variant="secondary"
+        onPress={() => router.replace('/couple/invite')}
+        style={styles.gapLarge}
+      />
     </Screen>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -7,6 +7,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider, useAuth } from '@/src/hooks/useAuth';
 import { AppStateProvider } from '@/src/hooks/useAppState';
+import { CoupleProvider, useCouple } from '@/src/hooks/useCouple';
+import { CouplePresenceProvider } from '@/src/hooks/useCouplePresence';
 import { colors } from '@/src/constants/theme';
 import { AppAppearanceProvider, useAppAppearance } from '@/src/hooks/useAppAppearance';
 
@@ -69,10 +71,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <AppAppearanceProvider>
           <AuthProvider>
-            <AppStateProvider>
-              <StatusBar style="dark" />
-              <RootNavigator />
-            </AppStateProvider>
+            <SessionProviders />
           </AuthProvider>
         </AppAppearanceProvider>
       </SafeAreaProvider>
@@ -80,7 +79,34 @@ export default function RootLayout() {
   );
 }
 
+function SessionProviders() {
+  const { user } = useAuth();
+  return (
+    <CoupleProvider key={user?.id ?? 'anonymous'}>
+      <CoupleSession />
+    </CoupleProvider>
+  );
+}
+
+function CoupleSession() {
+  const { couple } = useCouple();
+  // Drop screen drafts and cached partner data when the session/couple changes.
+  return (
+    <CouplePresenceProvider key={couple?.id ?? 'unpaired'}>
+      <AppStateProvider>
+        <StatusBar style="dark" />
+        <RootNavigator />
+      </AppStateProvider>
+    </CouplePresenceProvider>
+  );
+}
+
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
-  loading: { ...StyleSheet.absoluteFill, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
+  loading: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

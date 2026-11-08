@@ -1,4 +1,5 @@
-export type MoodValue = 'great' | 'good' | 'okay' | 'low' | 'rough' | 'tired' | 'energetic' | 'angry' | 'bored';
+export type MoodValue =
+  'great' | 'good' | 'okay' | 'low' | 'rough' | 'tired' | 'energetic' | 'angry' | 'bored';
 
 export interface MoodEntry {
   id: string;

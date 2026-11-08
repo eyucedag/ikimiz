@@ -1,4 +1,3 @@
-import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { colors, spacing } from '@/src/constants/theme';
 

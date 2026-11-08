@@ -1,14 +1,14 @@
 import { nowIso, supabase } from '@/src/lib/supabase';
 import { AppNotification } from '@/src/types';
 
-const mapNotification = (row: any): AppNotification => ({
-  id: row.id,
-  userId: row.owner_id,
-  category: row.category,
-  title: row.title,
-  body: row.body,
-  readAt: row.read_at,
-  createdAt: row.created_at,
+const mapNotification = (row: Record<string, unknown>): AppNotification => ({
+  id: String(row.id),
+  userId: String(row.owner_id),
+  category: row.category as AppNotification['category'],
+  title: String(row.title ?? ''),
+  body: String(row.body ?? ''),
+  readAt: row.read_at == null ? null : String(row.read_at),
+  createdAt: String(row.created_at),
 });
 
 export const notificationService = {
@@ -18,7 +18,11 @@ export const notificationService = {
         p_partner_id: input.partnerId,
         p_couple_id: input.coupleId,
       });
-      if (error) console.warn('Öpücük bildirimi sınırlandırılamadı. Supabase SQL migration kurulumu gerekli:', error.message);
+      if (error)
+        console.warn(
+          'Öpücük bildirimi sınırlandırılamadı. Supabase SQL migration kurulumu gerekli:',
+          error.message,
+        );
     } catch (error) {
       console.warn('Öpücük bildirimi sınırlandırılamadı:', error);
     }
@@ -58,10 +62,16 @@ export const notificationService = {
   },
 
   async markAllRead(userId: string): Promise<void> {
-    await supabase.from('notifications').update({ read_at: nowIso() }).eq('owner_id', userId).is('read_at', null);
+    const { error } = await supabase
+      .from('notifications')
+      .update({ read_at: nowIso() })
+      .eq('owner_id', userId)
+      .is('read_at', null);
+    if (error) throw new Error('Bildirimler okundu olarak işaretlenemedi.');
   },
 
   async markRead(id: string): Promise<void> {
-    await supabase.from('notifications').update({ read_at: nowIso() }).eq('id', id);
+    const { error } = await supabase.from('notifications').update({ read_at: nowIso() }).eq('id', id);
+    if (error) throw new Error('Bildirim okundu olarak işaretlenemedi.');
   },
 };

@@ -36,11 +36,3 @@ export const auroraCategoryIllustrations: Record<string, ImageSourcePropType> = 
   'gezilen-yerler': require('../../assets/aurora/illustrations/gezilen_yerler.png'),
   'birlikte-adimlar': require('../../assets/aurora/illustrations/birlikte_adimlar.png'),
 };
-
-export const auroraMoodIcons = {
-  great: require('../../assets/aurora/icons/enerjik.png'),
-  good: require('../../assets/aurora/icons/mutlu.png'),
-  okay: require('../../assets/aurora/icons/sakin.png'),
-  low: require('../../assets/aurora/icons/dusunceli.png'),
-  rough: require('../../assets/aurora/icons/yorgun.png'),
-} as const;

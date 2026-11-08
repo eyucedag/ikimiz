@@ -19,13 +19,24 @@ export function useMoods(coupleState: Pick<CoupleState, 'couple' | 'partner'>) {
   const ownerId = user?.id ?? null;
   const coupleId = coupleState.couple?.id ?? null;
   const partnerId = coupleState.partner?.id ?? null;
-  const isMember = !!ownerId && !!partnerId && partnerId !== ownerId && !coupleState.couple?.endedAt &&
-    !!coupleState.couple?.memberIds.includes(ownerId) && !!coupleState.couple?.memberIds.includes(partnerId);
-  const scope = useMemo<MoodScope | null>(() =>
-    ownerId && coupleId && partnerId && isMember ? { ownerId, coupleId, partnerId } : null,
-  [ownerId, coupleId, partnerId, isMember]);
+  const isMember =
+    !!ownerId &&
+    !!partnerId &&
+    partnerId !== ownerId &&
+    !coupleState.couple?.endedAt &&
+    !!coupleState.couple?.memberIds.includes(ownerId) &&
+    !!coupleState.couple?.memberIds.includes(partnerId);
+  const scope = useMemo<MoodScope | null>(
+    () => (ownerId && coupleId && partnerId && isMember ? { ownerId, coupleId, partnerId } : null),
+    [ownerId, coupleId, partnerId, isMember],
+  );
   const scopeKey = `${ownerId ?? ''}:${scope?.coupleId ?? ''}:${scope?.partnerId ?? ''}`;
-  const [state, setState] = useState<MoodState>({ scope: scopeKey, history: [], loading: !!scope, error: null });
+  const [state, setState] = useState<MoodState>({
+    scope: scopeKey,
+    history: [],
+    loading: !!scope,
+    error: null,
+  });
   const [savingScope, setSavingScope] = useState<string | null>(null);
   const mounted = useRef(true);
   const currentScope = useRef(scopeKey);
@@ -36,7 +47,10 @@ export function useMoods(coupleState: Pick<CoupleState, 'couple' | 'partner'>) {
 
   useEffect(() => {
     mounted.current = true;
-    return () => { mounted.current = false; requestId.current += 1; };
+    return () => {
+      mounted.current = false;
+      requestId.current += 1;
+    };
   }, []);
 
   useEffect(() => {
@@ -49,7 +63,8 @@ export function useMoods(coupleState: Pick<CoupleState, 'couple' | 'partner'>) {
 
   const refresh = useCallback(async (): Promise<void> => {
     if (!scope || !mounted.current || currentScope.current !== scopeKey) return;
-    if (pendingSave.current?.scope === scopeKey && pendingSave.current.generation === scopeGeneration.current) return;
+    if (pendingSave.current?.scope === scopeKey && pendingSave.current.generation === scopeGeneration.current)
+      return;
     if (pendingRefresh.current?.scope === scopeKey) return pendingRefresh.current.promise;
     const id = ++requestId.current;
     const promise = (async () => {
@@ -61,8 +76,11 @@ export function useMoods(coupleState: Pick<CoupleState, 'couple' | 'partner'>) {
       } catch (error) {
         if (mounted.current && currentScope.current === scopeKey && requestId.current === id) {
           setState((previous) => ({
-            scope: scopeKey, history: previous.scope === scopeKey ? previous.history : [], loading: false,
-            error: error instanceof Error ? error.message : 'Ruh halleri yüklenemedi. Lütfen yeniden deneyin.',
+            scope: scopeKey,
+            history: previous.scope === scopeKey ? previous.history : [],
+            loading: false,
+            error:
+              error instanceof Error ? error.message : 'Ruh halleri yüklenemedi. Lütfen yeniden deneyin.',
           }));
         }
       } finally {
@@ -73,61 +91,92 @@ export function useMoods(coupleState: Pick<CoupleState, 'couple' | 'partner'>) {
     return promise;
   }, [scope, scopeKey]);
 
-  useFocusEffect(useCallback(() => {
-    void refresh();
-    // Realtime yayını gerektirmeden partnerin kaydını ve gün değişimini yeniler.
-    const interval = scope ? setInterval(() => { void refresh(); }, 15_000) : null;
-    return () => {
-      if (interval) clearInterval(interval);
+  useFocusEffect(
+    useCallback(() => {
+      void refresh();
+      // Realtime yayını gerektirmeden partnerin kaydını ve gün değişimini yeniler.
+      const interval = scope
+        ? setInterval(() => {
+            void refresh();
+          }, 15_000)
+        : null;
+      return () => {
+        if (interval) clearInterval(interval);
+        requestId.current += 1;
+        pendingRefresh.current = null;
+      };
+    }, [refresh, scope]),
+  );
+
+  const save = useCallback(
+    async (draft: MoodDraft): Promise<ServiceResult<MoodEntry>> => {
+      if (!ownerId) return { error: 'Oturum bulunamadı. Lütfen yeniden giriş yapın.' };
+      if (!scope || currentScope.current !== scopeKey)
+        return { error: 'Ruh halinizi paylaşmak için önce partnerinizle eşleşin.' };
+      if (pendingSave.current) return { error: 'Ruh haliniz kaydediliyor. Lütfen bekleyin.' };
+      const operation = { scope: scopeKey, generation: scopeGeneration.current };
+      pendingSave.current = operation;
       requestId.current += 1;
       pendingRefresh.current = null;
-    };
-  }, [refresh, scope]));
-
-  const save = useCallback(async (draft: MoodDraft): Promise<ServiceResult<MoodEntry>> => {
-    if (!ownerId) return { error: 'Oturum bulunamadı. Lütfen yeniden giriş yapın.' };
-    if (!scope || currentScope.current !== scopeKey) return { error: 'Ruh halinizi paylaşmak için önce partnerinizle eşleşin.' };
-    if (pendingSave.current) return { error: 'Ruh haliniz kaydediliyor. Lütfen bekleyin.' };
-    const operation = { scope: scopeKey, generation: scopeGeneration.current };
-    pendingSave.current = operation;
-    requestId.current += 1;
-    pendingRefresh.current = null;
-    setSavingScope(scopeKey);
-    try {
-      const result = await moodService.save({ ...scope, ...draft });
-      if (!mounted.current || currentScope.current !== scopeKey || scopeGeneration.current !== operation.generation) {
-        return { error: 'Eşleşme veya oturum değişti. Lütfen sayfayı yenileyin.' };
+      setSavingScope(scopeKey);
+      try {
+        const result = await moodService.save({ ...scope, ...draft });
+        if (
+          !mounted.current ||
+          currentScope.current !== scopeKey ||
+          scopeGeneration.current !== operation.generation
+        ) {
+          return { error: 'Eşleşme veya oturum değişti. Lütfen sayfayı yenileyin.' };
+        }
+        setState((previous) => {
+          const history = previous.scope === scopeKey ? previous.history : [];
+          return {
+            scope: scopeKey,
+            loading: false,
+            error: result.error ?? null,
+            history: result.data
+              ? [
+                  result.data,
+                  ...history.filter(
+                    (entry) =>
+                      entry.id !== result.data!.id &&
+                      !(entry.ownerId === result.data!.ownerId && entry.date === result.data!.date),
+                  ),
+                ].sort((a, b) => b.date.localeCompare(a.date) || b.updatedAt.localeCompare(a.updatedAt))
+              : history,
+          };
+        });
+        return result;
+      } catch {
+        const error = 'Ruh haliniz kaydedilemedi. Lütfen yeniden deneyin.';
+        if (
+          mounted.current &&
+          currentScope.current === scopeKey &&
+          scopeGeneration.current === operation.generation
+        ) {
+          setState((previous) => ({ ...previous, loading: false, error }));
+        }
+        return { error };
+      } finally {
+        if (pendingSave.current === operation) pendingSave.current = null;
+        if (mounted.current) setSavingScope((previous) => (previous === scopeKey ? null : previous));
       }
-      setState((previous) => {
-        const history = previous.scope === scopeKey ? previous.history : [];
-        return {
-          scope: scopeKey, loading: false, error: result.error ?? null,
-          history: result.data
-            ? [result.data, ...history.filter((entry) => entry.id !== result.data!.id &&
-              !(entry.ownerId === result.data!.ownerId && entry.date === result.data!.date))]
-              .sort((a, b) => b.date.localeCompare(a.date) || b.updatedAt.localeCompare(a.updatedAt))
-            : history,
-        };
-      });
-      return result;
-    } catch {
-      const error = 'Ruh haliniz kaydedilemedi. Lütfen yeniden deneyin.';
-      if (mounted.current && currentScope.current === scopeKey && scopeGeneration.current === operation.generation) {
-        setState((previous) => ({ ...previous, loading: false, error }));
-      }
-      return { error };
-    } finally {
-      if (pendingSave.current === operation) pendingSave.current = null;
-      if (mounted.current) setSavingScope((previous) => previous === scopeKey ? null : previous);
-    }
-  }, [ownerId, scope, scopeKey]);
+    },
+    [ownerId, scope, scopeKey],
+  );
 
   const todayDate = getLocalMoodDate();
   const historyStart = getMoodHistoryStartDate();
-  const history = state.scope === scopeKey && scope
-    ? state.history.filter((entry) => entry.coupleId === scope.coupleId &&
-      (entry.ownerId === scope.ownerId || entry.ownerId === scope.partnerId) && entry.date >= historyStart && entry.date <= todayDate)
-    : [];
+  const history =
+    state.scope === scopeKey && scope
+      ? state.history.filter(
+          (entry) =>
+            entry.coupleId === scope.coupleId &&
+            (entry.ownerId === scope.ownerId || entry.ownerId === scope.partnerId) &&
+            entry.date >= historyStart &&
+            entry.date <= todayDate,
+        )
+      : [];
   return {
     today: history.find((entry) => entry.ownerId === ownerId && entry.date === todayDate) ?? null,
     partnerToday: history.find((entry) => entry.ownerId === partnerId && entry.date === todayDate) ?? null,

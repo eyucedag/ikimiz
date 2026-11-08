@@ -27,8 +27,12 @@ function mapKiss(row: Record<string, unknown>): KissRecord {
 }
 
 export const kissService = {
-  async send(input: { ownerId: string; partnerId: string; coupleId: string }, date: Date = new Date()): Promise<KissRecord> {
-    const { data, error } = await supabase.from('kisses')
+  async send(
+    input: { ownerId: string; partnerId: string; coupleId: string },
+    date: Date = new Date(),
+  ): Promise<KissRecord> {
+    const { data, error } = await supabase
+      .from('kisses')
       .insert({
         owner_id: input.ownerId,
         partner_id: input.partnerId,

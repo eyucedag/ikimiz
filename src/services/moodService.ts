@@ -13,7 +13,8 @@ export interface MoodScope {
 
 export type SaveMoodInput = MoodScope & MoodDraft;
 
-const isMoodValue = (value: unknown): value is MoodValue => moodOptions.some((option) => option.value === value);
+const isMoodValue = (value: unknown): value is MoodValue =>
+  moodOptions.some((option) => option.value === value);
 
 function isDateKey(value: unknown): value is string {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -26,30 +27,44 @@ function mapMood(row: unknown): MoodEntry {
   if (!row || typeof row !== 'object') throw new Error('Ruh hali kaydı okunamadı. Lütfen yeniden deneyin.');
   const entry = row as Record<string, unknown>;
   if (
-    typeof entry.id !== 'string' || typeof entry.owner_id !== 'string' ||
+    typeof entry.id !== 'string' ||
+    typeof entry.owner_id !== 'string' ||
     (entry.couple_id !== null && typeof entry.couple_id !== 'string') ||
-    !isDateKey(entry.entry_date) || !isMoodValue(entry.mood) ||
-    typeof entry.note !== 'string' || typeof entry.created_at !== 'string' || typeof entry.updated_at !== 'string'
-  ) throw new Error('Ruh hali kaydı okunamadı. Lütfen yeniden deneyin.');
+    !isDateKey(entry.entry_date) ||
+    !isMoodValue(entry.mood) ||
+    typeof entry.note !== 'string' ||
+    typeof entry.created_at !== 'string' ||
+    typeof entry.updated_at !== 'string'
+  )
+    throw new Error('Ruh hali kaydı okunamadı. Lütfen yeniden deneyin.');
   return {
-    id: entry.id, ownerId: entry.owner_id, coupleId: entry.couple_id,
-    date: entry.entry_date, mood: entry.mood, note: entry.note,
-    createdAt: entry.created_at, updatedAt: entry.updated_at,
+    id: entry.id,
+    ownerId: entry.owner_id,
+    coupleId: entry.couple_id,
+    date: entry.entry_date,
+    mood: entry.mood,
+    note: entry.note,
+    createdAt: entry.created_at,
+    updatedAt: entry.updated_at,
   };
 }
 
 function scopeError(input: MoodScope): string | null {
   if (!input.ownerId) return 'Oturum bulunamadı. Lütfen yeniden giriş yapın.';
-  if (!input.coupleId || !input.partnerId || input.partnerId === input.ownerId) return 'Ruh halinizi paylaşmak için önce partnerinizle eşleşin.';
+  if (!input.coupleId || !input.partnerId || input.partnerId === input.ownerId)
+    return 'Ruh halinizi paylaşmak için önce partnerinizle eşleşin.';
   return null;
 }
 
 function requestError(error: unknown, saving: boolean): string {
-  const detail = error && typeof error === 'object' ? error as { code?: string; message?: string } : {};
+  const detail = error && typeof error === 'object' ? (error as { code?: string; message?: string }) : {};
   if (detail.code === '42P01' || detail.code === 'PGRST205' || detail.code === 'PGRST204') {
     return 'Ruh Halim henüz sunucuda hazır değil. Veritabanı güncellemesi uygulandıktan sonra yeniden deneyin.';
   }
   if (detail.code === '42501') return 'Eşleşmeniz doğrulanamadı. Sayfayı yenileyip yeniden deneyin.';
+  if (detail.code === '23514' && detail.message?.includes('mood_entries_mood_check')) {
+    return 'Yeni ruh halleri için veritabanı güncellemesi eksik. 20261107_expand_mood_options.sql dosyasını uygulayın.';
+  }
   return saving
     ? 'Ruh haliniz kaydedilemedi. Bağlantınızı kontrol edip yeniden deneyin.'
     : 'Ruh halleri yüklenemedi. Bağlantınızı kontrol edip yeniden deneyin.';
@@ -60,7 +75,8 @@ export const moodService = {
     const invalidScope = scopeError(input);
     if (invalidScope) throw new Error(invalidScope);
     try {
-      const { data, error } = await supabase.from('mood_entries')
+      const { data, error } = await supabase
+        .from('mood_entries')
         .select('*')
         .eq('couple_id', input.coupleId)
         .eq('visibility', 'shared')
@@ -73,9 +89,12 @@ export const moodService = {
         .limit(60);
       if (error) throw new Error(requestError(error, false));
       if (!Array.isArray(data)) throw new Error('Ruh halleri okunamadı. Lütfen yeniden deneyin.');
-      return data.map(mapMood).filter((entry) =>
-        entry.coupleId === input.coupleId && [input.ownerId, input.partnerId].includes(entry.ownerId),
-      );
+      return data
+        .map(mapMood)
+        .filter(
+          (entry) =>
+            entry.coupleId === input.coupleId && [input.ownerId, input.partnerId].includes(entry.ownerId),
+        );
     } catch (error) {
       if (error instanceof Error && /^(Ruh hali|Ruh Halim|Eşleşmeniz)/.test(error.message)) throw error;
       throw new Error(requestError(error, false));
@@ -88,15 +107,26 @@ export const moodService = {
     if (!isMoodValue(input.mood)) return { error: 'Lütfen nasıl hissettiğinizi seçin.' };
     if (typeof input.note !== 'string') return { error: 'Lütfen geçerli bir not yazın.' };
     const note = input.note.trim();
-    if (note.length > MOOD_NOTE_MAX_LENGTH) return { error: `Not en fazla ${MOOD_NOTE_MAX_LENGTH} karakter olabilir.` };
+    if (note.length > MOOD_NOTE_MAX_LENGTH)
+      return { error: `Not en fazla ${MOOD_NOTE_MAX_LENGTH} karakter olabilir.` };
     const date = getLocalMoodDate(now);
-    if (!isDateKey(date)) return { error: 'Bugünün tarihi belirlenemedi. Cihazınızın tarihini kontrol edin.' };
+    if (!isDateKey(date))
+      return { error: 'Bugünün tarihi belirlenemedi. Cihazınızın tarihini kontrol edin.' };
     try {
-      const { data, error } = await supabase.from('mood_entries')
-        .upsert({
-          owner_id: input.ownerId, couple_id: input.coupleId,
-          visibility: 'shared', is_deleted: false, entry_date: date, mood: input.mood, note,
-        }, { onConflict: 'owner_id,entry_date' })
+      const { data, error } = await supabase
+        .from('mood_entries')
+        .upsert(
+          {
+            owner_id: input.ownerId,
+            couple_id: input.coupleId,
+            visibility: 'shared',
+            is_deleted: false,
+            entry_date: date,
+            mood: input.mood,
+            note,
+          },
+          { onConflict: 'owner_id,entry_date' },
+        )
         .select('*')
         .single();
       if (error) return { error: requestError(error, true) };

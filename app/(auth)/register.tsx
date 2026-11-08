@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button, Input, Screen } from '@/src/components/ui';
@@ -16,6 +16,7 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
 
   const submit = async () => {
+    if (loading) return;
     setError('');
     if (password !== passwordAgain) {
       setError('Şifreler birbiriyle eşleşmiyor.');
@@ -29,16 +30,24 @@ export default function RegisterScreen() {
       return;
     }
     if (result.data === null) {
-      Alert.alert('E-postanızı doğrulayın', 'Hesabınızı etkinleştirmek için e-posta adresinize gönderilen bağlantıya tıklayın.', [
-        { text: 'Tamam', onPress: () => router.replace('/(auth)/login') },
-      ]);
+      Alert.alert(
+        'E-postanızı doğrulayın',
+        'Hesabınızı etkinleştirmek için e-posta adresinize gönderilen bağlantıya tıklayın.',
+        [{ text: 'Tamam', onPress: () => router.replace('/(auth)/login') }],
+      );
     }
   };
 
   return (
     <Screen title="Hesap Oluştur">
       <Text style={styles.lead}>Birkaç bilgiyle hesabınızı oluşturun, ardından partnerinizi davet edin.</Text>
-      <Input label="Ad Soyad" value={fullName} onChangeText={setFullName} placeholder="…" autoComplete="name" />
+      <Input
+        label="Ad Soyad"
+        value={fullName}
+        onChangeText={setFullName}
+        placeholder="…"
+        autoComplete="name"
+      />
       <Input
         label="E-posta"
         value={email}
@@ -48,7 +57,13 @@ export default function RegisterScreen() {
         autoCapitalize="none"
         autoComplete="email"
       />
-      <Input label="Şifre" value={password} onChangeText={setPassword} placeholder="En az 6 karakter" secureTextEntry />
+      <Input
+        label="Şifre"
+        value={password}
+        onChangeText={setPassword}
+        placeholder="En az 6 karakter"
+        secureTextEntry
+      />
       <Input
         label="Şifre (tekrar)"
         value={passwordAgain}

@@ -26,7 +26,9 @@ export default function NoteHistoryScreen() {
   const [filter, setFilter] = useState<Filter>('all');
   const [refreshing, setRefreshing] = useState(false);
 
-  const visible = notes.filter((n) => (filter === 'all' ? true : filter === 'sent' ? n.senderId === user?.id : n.senderId !== user?.id));
+  const visible = notes.filter((n) =>
+    filter === 'all' ? true : filter === 'sent' ? n.senderId === user?.id : n.senderId !== user?.id,
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -34,10 +36,14 @@ export default function NoteHistoryScreen() {
     setRefreshing(false);
   };
 
-  useFocusEffect(React.useCallback(() => {
-    const timer = setInterval(() => { void refresh(); }, 5000);
-    return () => clearInterval(timer);
-  }, [refresh]));
+  useFocusEffect(
+    React.useCallback(() => {
+      const timer = setInterval(() => {
+        void refresh();
+      }, 5000);
+      return () => clearInterval(timer);
+    }, [refresh]),
+  );
 
   useEffect(() => {
     for (const note of notes) {
@@ -45,7 +51,12 @@ export default function NoteHistoryScreen() {
     }
   }, [notes, markRead, user?.id]);
 
-  if (couple.loading) return <Screen title="Not Geçmişi" toneColor={categoryColor.color}><CoupleLoading /></Screen>;
+  if (couple.loading)
+    return (
+      <Screen title="Not Geçmişi" toneColor={categoryColor.color}>
+        <CoupleLoading />
+      </Screen>
+    );
 
   return (
     <Screen
@@ -53,14 +64,25 @@ export default function NoteHistoryScreen() {
       toneColor={categoryColor.color}
       refreshing={refreshing}
       onRefresh={onRefresh}
-      headerRight={couple.isPaired ? <IconButton icon="plus" accessibilityLabel="Yeni not" onPress={() => router.push('/screen-note/compose')} /> : undefined}
+      headerRight={
+        couple.isPaired ? (
+          <IconButton
+            icon="plus"
+            accessibilityLabel="Yeni not"
+            onPress={() => router.push('/screen-note/compose')}
+          />
+        ) : undefined
+      }
     >
       <View style={styles.filters}>
         {filters.map((f) => (
           <Pressable
             key={f.key}
             onPress={() => setFilter(f.key)}
-            style={[styles.pill, filter === f.key && { backgroundColor: categoryColor.color, borderColor: categoryColor.color }]}
+            style={[
+              styles.pill,
+              filter === f.key && { backgroundColor: categoryColor.color, borderColor: categoryColor.color },
+            ]}
             accessibilityRole="button"
             accessibilityState={{ selected: filter === f.key }}
           >
@@ -75,7 +97,11 @@ export default function NoteHistoryScreen() {
           toneColor={categoryColor.color}
           toneTint={categoryColor.tint}
           title="Burada henüz not yok"
-          description={couple.isPaired ? 'Gönderdiğiniz ve aldığınız ekran notları burada saklanır.' : 'Not alışverişi için önce partnerinizle eşleşin.'}
+          description={
+            couple.isPaired
+              ? 'Gönderdiğiniz ve aldığınız ekran notları burada saklanır.'
+              : 'Not alışverişi için önce partnerinizle eşleşin.'
+          }
           actionLabel={couple.isPaired ? 'Yeni Not Bırak' : 'Partner Davet Et'}
           onAction={() => router.push(couple.isPaired ? '/screen-note/compose' : '/couple/invite')}
         />
@@ -83,18 +109,42 @@ export default function NoteHistoryScreen() {
         visible.map((n) => {
           const mine = n.senderId === user?.id;
           return (
-              <View key={n.id} style={[styles.note, { backgroundColor: n.backgroundColor, borderColor: categoryColor.color }, mine ? styles.mine : styles.theirs]}>
+            <View
+              key={n.id}
+              style={[
+                styles.note,
+                { backgroundColor: n.backgroundColor, borderColor: categoryColor.color },
+                mine ? styles.mine : styles.theirs,
+              ]}
+            >
               <Text style={styles.noteText}>
-                {n.emoji ? `${n.emoji} ` : ''}{n.text}
+                {n.emoji ? `${n.emoji} ` : ''}
+                {n.text}
               </Text>
               <View style={styles.metaRow}>
                 <Text style={styles.meta}>
-                  {mine ? 'Siz' : couple.partner?.displayName ?? 'Partneriniz'} · {formatDateTime(n.createdAt)}
+                  {mine ? 'Siz' : (couple.partner?.displayName ?? 'Partneriniz')} ·{' '}
+                  {formatDateTime(n.createdAt)}
                 </Text>
-                  <View style={styles.metaActions}>
-                    {mine && n.readAt ? <Text style={styles.readChecks} accessibilityLabel="Partneriniz notu gördü">✓✓</Text> : null}
-                    {mine ? <IconButton icon="edit-2" size={16} color={categoryColor.color} accessibilityLabel="Notu düzenle" onPress={() => router.push({ pathname: '/screen-note/compose', params: { noteId: n.id } })} style={styles.editButton} /> : null}
-                  </View>
+                <View style={styles.metaActions}>
+                  {mine && n.readAt ? (
+                    <Text style={styles.readChecks} accessibilityLabel="Partneriniz notu gördü">
+                      ✓✓
+                    </Text>
+                  ) : null}
+                  {mine ? (
+                    <IconButton
+                      icon="edit-2"
+                      size={16}
+                      color={categoryColor.color}
+                      accessibilityLabel="Notu düzenle"
+                      onPress={() =>
+                        router.push({ pathname: '/screen-note/compose', params: { noteId: n.id } })
+                      }
+                      style={styles.editButton}
+                    />
+                  ) : null}
+                </View>
               </View>
             </View>
           );
@@ -106,10 +156,21 @@ export default function NoteHistoryScreen() {
 
 const styles = StyleSheet.create({
   filters: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.sm },
-  pill: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: radius.pill, backgroundColor: colors.beige },
+  pill: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.pill,
+    backgroundColor: colors.beige,
+  },
   pillText: { fontSize: fontSize.sm, color: colors.textSecondary, fontWeight: '500' },
   pillTextActive: { color: colors.white },
-  note: { borderRadius: radius.card, borderWidth: 1, padding: spacing.md, marginBottom: spacing.sm, maxWidth: '100%' },
+  note: {
+    borderRadius: radius.card,
+    borderWidth: 1,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    maxWidth: '100%',
+  },
   mine: { alignSelf: 'flex-end' },
   theirs: { alignSelf: 'flex-start' },
   noteText: { fontSize: fontSize.sm, color: colors.text, lineHeight: 20 },

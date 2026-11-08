@@ -1,6 +1,14 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from 'react-native';
+import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from 'expo-router';
 import { Button, Card, EmptyState, IconButton, Screen, SectionHeader } from '@/src/components/ui';
 import { getMoodOption, MOOD_NOTE_MAX_LENGTH, moodOptions } from '@/src/constants/moods';
@@ -19,7 +27,9 @@ function HistoryEntry({ entry, name }: { entry: MoodEntry; name: string }) {
   return (
     <View style={styles.historyEntry}>
       <View style={[styles.historyEmojiCircle, { backgroundColor: `${option.color}18` }]}>
-        <Text style={styles.historyEmoji} accessible={false}>{option.emoji}</Text>
+        <Text style={styles.historyEmoji} accessible={false}>
+          {option.emoji}
+        </Text>
       </View>
       <View style={styles.flex}>
         <Text style={styles.historyName}>{name}</Text>
@@ -65,8 +75,18 @@ export default function MoodScreen() {
   const scope = `${user?.id ?? ''}:${coupleId ?? ''}:${currentDate}`;
   const latestScopeRef = useRef(scope);
   latestScopeRef.current = scope;
-  const today = moods.today?.ownerId === user?.id && moods.today?.coupleId === coupleId && moods.today?.date === currentDate ? moods.today : null;
-  const partnerToday = moods.partnerToday?.ownerId === partnerId && moods.partnerToday?.coupleId === coupleId && moods.partnerToday?.date === currentDate ? moods.partnerToday : null;
+  const today =
+    moods.today?.ownerId === user?.id &&
+    moods.today?.coupleId === coupleId &&
+    moods.today?.date === currentDate
+      ? moods.today
+      : null;
+  const partnerToday =
+    moods.partnerToday?.ownerId === partnerId &&
+    moods.partnerToday?.coupleId === coupleId &&
+    moods.partnerToday?.date === currentDate
+      ? moods.partnerToday
+      : null;
   const optionColumns = Math.min(width, layout.maxContentWidth) >= 520 ? 5 : 3;
   const draftIsCurrent = draftScope === scope;
 
@@ -86,7 +106,7 @@ export default function MoodScreen() {
       setSelectedMood(today?.mood ?? null);
       setNote(today?.note ?? '');
     }
-  }, [scope, today?.id, today?.mood, today?.note, today?.updatedAt, moods.saving, dirty]);
+  }, [scope, today, moods.saving, dirty]);
 
   const historyByDay = useMemo(() => {
     if (!coupleId || !user?.id) return [];
@@ -95,7 +115,13 @@ export default function MoodScreen() {
     const firstDate = getLocalMoodDate(start);
     const groups = new Map<string, MoodEntry[]>();
     for (const entry of moods.history) {
-      if (entry.coupleId !== coupleId || (entry.ownerId !== user.id && entry.ownerId !== partnerId) || entry.date < firstDate || entry.date > currentDate) continue;
+      if (
+        entry.coupleId !== coupleId ||
+        (entry.ownerId !== user.id && entry.ownerId !== partnerId) ||
+        entry.date < firstDate ||
+        entry.date > currentDate
+      )
+        continue;
       const day = groups.get(entry.date) ?? [];
       day.push(entry);
       groups.set(entry.date, day);
@@ -156,9 +182,14 @@ export default function MoodScreen() {
       setSelectedMood(result.data.mood);
       setNote(result.data.note);
       setDirty(false);
-      setSuccess(wasUpdate ? 'Bugünkü ruh haliniz güncellendi. Partneriniz değişikliği görebilir.' : 'Bugünkü ruh haliniz paylaşıldı. Partneriniz görebilir.');
+      setSuccess(
+        wasUpdate
+          ? 'Bugünkü ruh haliniz güncellendi. Partneriniz değişikliği görebilir.'
+          : 'Bugünkü ruh haliniz paylaşıldı. Partneriniz görebilir.',
+      );
     } catch {
-      if (latestScopeRef.current === submittedScope) setSaveError('Ruh haliniz kaydedilemedi. Lütfen tekrar deneyin.');
+      if (latestScopeRef.current === submittedScope)
+        setSaveError('Ruh haliniz kaydedilemedi. Lütfen tekrar deneyin.');
     }
   };
 
@@ -185,7 +216,13 @@ export default function MoodScreen() {
           actionLabel="Partner Davet Et"
           onAction={() => router.push('/couple/invite')}
         />
-        <Button title="Ruh Halini Paylaş" icon="smile" toneColor={categoryColor.color} onPress={submit} disabled />
+        <Button
+          title="Ruh Halini Paylaş"
+          icon="smile"
+          toneColor={categoryColor.color}
+          onPress={submit}
+          disabled
+        />
         <Text style={styles.saveHint}>Ruh halinizi paylaşmak için önce partnerinizle eşleşin.</Text>
       </Screen>
     );
@@ -200,17 +237,32 @@ export default function MoodScreen() {
       toneColor={categoryColor.color}
       refreshing={refreshing}
       onRefresh={onRefresh}
-      headerRight={<IconButton icon="refresh-cw" accessibilityLabel="Ruh hallerini yenile" onPress={onRefresh} />}
+      headerRight={
+        <IconButton icon="refresh-cw" accessibilityLabel="Ruh hallerini yenile" onPress={onRefresh} />
+      }
     >
       <View style={styles.intro}>
         <Text style={styles.eyebrow}>GÜNÜNÜZDEN KÜÇÜK BİR PAYLAŞIM</Text>
-        <Text style={styles.headline} accessibilityRole="header">Bugün nasıl hissediyorsunuz?</Text>
+        <Text style={styles.headline} accessibilityRole="header">
+          Bugün nasıl hissediyorsunuz?
+        </Text>
         <Text style={styles.description}>Bir duygu seçin, isterseniz kısa bir not ekleyin.</Text>
       </View>
       {moods.error && moods.error !== saveError ? (
         <View style={styles.errorBox}>
-          <Text style={styles.errorText} accessibilityRole="alert">{moods.error}</Text>
-          <Button title="Tekrar Dene" variant="secondary" icon="refresh-cw" toneColor={categoryColor.color} onPress={onRefresh} compact style={styles.retry} disabled={refreshing || moods.saving} />
+          <Text style={styles.errorText} accessibilityRole="alert">
+            {moods.error}
+          </Text>
+          <Button
+            title="Tekrar Dene"
+            variant="secondary"
+            icon="refresh-cw"
+            toneColor={categoryColor.color}
+            onPress={onRefresh}
+            compact
+            style={styles.retry}
+            disabled={refreshing || moods.saving}
+          />
         </View>
       ) : null}
 
@@ -224,9 +276,13 @@ export default function MoodScreen() {
       ) : (
         <>
           <Card style={[styles.section, { borderColor: categoryColor.color, borderWidth: 1 }]}>
-            <Text style={styles.cardTitle} accessibilityRole="header">Bugünkü ruh haliniz</Text>
+            <Text style={styles.cardTitle} accessibilityRole="header">
+              Bugünkü ruh haliniz
+            </Text>
             <Text style={styles.date}>{todayLabel()}</Text>
-            <Text style={styles.cardDescription}>Gün içinde değiştirebilirsiniz. Her gün tek bir kaydınız olur.</Text>
+            <Text style={styles.cardDescription}>
+              Gün içinde değiştirebilirsiniz. Her gün tek bir kaydınız olur.
+            </Text>
 
             <View style={styles.moodGrid}>
               {moodOptions.map((option) => {
@@ -234,16 +290,33 @@ export default function MoodScreen() {
                 return (
                   <View key={option.value} style={[styles.moodCell, { width: `${100 / optionColumns}%` }]}>
                     <Pressable
-                      onPress={() => { setSelectedMood(option.value); markEdited(option.value, note); }}
+                      onPress={() => {
+                        setSelectedMood(option.value);
+                        markEdited(option.value, note);
+                      }}
                       disabled={moods.saving || !draftIsCurrent}
                       accessibilityRole="button"
                       accessibilityLabel={option.label}
                       accessibilityState={{ selected, disabled: moods.saving || !draftIsCurrent }}
-                      style={({ pressed }) => [styles.moodOption, { backgroundColor: appearance.surfaceColor }, selected && { borderColor: categoryColor.color, backgroundColor: categoryColor.tint }, pressed && styles.pressed, moods.saving && styles.disabled]}
+                      style={({ pressed }) => [
+                        styles.moodOption,
+                        { backgroundColor: appearance.surfaceColor },
+                        selected && { borderColor: categoryColor.color, backgroundColor: categoryColor.tint },
+                        pressed && styles.pressed,
+                        moods.saving && styles.disabled,
+                      ]}
                     >
-                      {selected ? <View style={styles.selectionMark}><Feather name="check-circle" size={16} color={categoryColor.color} /></View> : null}
-                      <Text style={styles.moodEmoji} accessible={false}>{option.emoji}</Text>
-                      <Text style={[styles.moodLabel, selected && styles.moodLabelSelected]}>{option.label}</Text>
+                      {selected ? (
+                        <View style={styles.selectionMark}>
+                          <Feather name="check-circle" size={16} color={categoryColor.color} />
+                        </View>
+                      ) : null}
+                      <Text style={styles.moodEmoji} accessible={false}>
+                        {option.emoji}
+                      </Text>
+                      <Text style={[styles.moodLabel, selected && styles.moodLabelSelected]}>
+                        {option.label}
+                      </Text>
                     </Pressable>
                   </View>
                 );
@@ -256,7 +329,10 @@ export default function MoodScreen() {
             </View>
             <TextInput
               value={draftIsCurrent ? note : ''}
-              onChangeText={(text) => { setNote(text); markEdited(selectedMood, text); }}
+              onChangeText={(text) => {
+                setNote(text);
+                markEdited(selectedMood, text);
+              }}
               editable={!moods.saving && draftIsCurrent}
               maxLength={MOOD_NOTE_MAX_LENGTH}
               multiline
@@ -265,13 +341,26 @@ export default function MoodScreen() {
               textAlignVertical="top"
               accessibilityLabel="Bugünkü ruh haliniz için kısa not"
               accessibilityHint={`İsteğe bağlı, en fazla ${MOOD_NOTE_MAX_LENGTH} karakter. Notunuz mevcut partnerinizle paylaşılır.`}
-              style={[styles.noteInput, { backgroundColor: appearance.surfaceColor }, moods.saving && styles.disabled]}
+              style={[
+                styles.noteInput,
+                { backgroundColor: appearance.surfaceColor },
+                moods.saving && styles.disabled,
+              ]}
             />
-            <Text style={styles.counter}>{draftIsCurrent ? note.length : 0}/{MOOD_NOTE_MAX_LENGTH}</Text>
+            <Text style={styles.counter}>
+              {draftIsCurrent ? note.length : 0}/{MOOD_NOTE_MAX_LENGTH}
+            </Text>
 
-            {draftIsCurrent && saveError ? <Text style={styles.saveError} accessibilityRole="alert">{saveError}</Text> : null}
+            {draftIsCurrent && saveError ? (
+              <Text style={styles.saveError} accessibilityRole="alert">
+                {saveError}
+              </Text>
+            ) : null}
             {draftIsCurrent && success ? (
-              <View style={[styles.successBox, { backgroundColor: categoryColor.tint }]} accessibilityLiveRegion="polite">
+              <View
+                style={[styles.successBox, { backgroundColor: categoryColor.tint }]}
+                accessibilityLiveRegion="polite"
+              >
                 <Feather name="check-circle" size={18} color={categoryColor.color} />
                 <Text style={styles.successText}>{success}</Text>
               </View>
@@ -284,27 +373,43 @@ export default function MoodScreen() {
               loading={moods.saving}
               disabled={!draftIsCurrent || !selectedMood || (!!today && !dirty)}
             />
-            <Text style={styles.saveHint}>{today ? 'Yalnızca kendi bugünkü kaydınızı düzenleyebilirsiniz.' : 'Paylaştığınızda partneriniz ruh halinizi ve notunuzu görebilir.'}</Text>
+            <Text style={styles.saveHint}>
+              {today
+                ? 'Yalnızca kendi bugünkü kaydınızı düzenleyebilirsiniz.'
+                : 'Paylaştığınızda partneriniz ruh halinizi ve notunuzu görebilir.'}
+            </Text>
           </Card>
 
           <Card style={[styles.section, { borderColor: categoryColor.color, borderWidth: 1 }]}>
-            <Text style={styles.cardTitle} accessibilityRole="header">{partnerName} bugün</Text>
+            <Text style={styles.cardTitle} accessibilityRole="header">
+              {partnerName} bugün
+            </Text>
             {partnerToday && partnerOption ? (
               <>
                 <View style={styles.partnerMood}>
                   <View style={[styles.partnerEmojiCircle, { backgroundColor: `${partnerOption.color}18` }]}>
-                    <Text style={styles.partnerEmoji} accessible={false}>{partnerOption.emoji}</Text>
+                    <Text style={styles.partnerEmoji} accessible={false}>
+                      {partnerOption.emoji}
+                    </Text>
                   </View>
                   <View style={styles.flex}>
                     <Text style={styles.partnerLabel}>{partnerOption.label}</Text>
                     <Text style={styles.muted}>Paylaşım · {relativeTime(partnerToday.updatedAt)}</Text>
                   </View>
                 </View>
-                {partnerToday.note ? <Text style={[styles.partnerNote, { backgroundColor: appearance.surfaceColor }]}>{partnerToday.note}</Text> : <Text style={styles.muted}>Bugün bir not eklemedi.</Text>}
+                {partnerToday.note ? (
+                  <Text style={[styles.partnerNote, { backgroundColor: appearance.surfaceColor }]}>
+                    {partnerToday.note}
+                  </Text>
+                ) : (
+                  <Text style={styles.muted}>Bugün bir not eklemedi.</Text>
+                )}
               </>
             ) : (
               <View style={styles.partnerEmpty}>
-                <View style={[styles.waitingIcon, { backgroundColor: categoryColor.tint }]}><Feather name="sun" size={24} color={categoryColor.color} /></View>
+                <View style={[styles.waitingIcon, { backgroundColor: categoryColor.tint }]}>
+                  <Feather name="sun" size={24} color={categoryColor.color} />
+                </View>
                 <View style={styles.flex}>
                   <Text style={styles.waitingTitle}>Henüz paylaşmadı</Text>
                   <Text style={styles.muted}>Paylaştığında ruh hali ve notu burada görünecek.</Text>
@@ -317,20 +422,31 @@ export default function MoodScreen() {
           <Text style={styles.historyDescription}>Mevcut eşleşmenizde ikinizin paylaştığı ruh halleri.</Text>
           {historyByDay.length === 0 ? (
             <Card style={{ borderColor: categoryColor.color, borderWidth: 1 }}>
-              <EmptyState compact icon="calendar" toneColor={categoryColor.color} toneTint={categoryColor.tint} title="İlk paylaşımınızla başlasın" description="Günlük ruh halleriniz ve notlarınız burada birikir." />
+              <EmptyState
+                compact
+                icon="calendar"
+                toneColor={categoryColor.color}
+                toneTint={categoryColor.tint}
+                title="İlk paylaşımınızla başlasın"
+                description="Günlük ruh halleriniz ve notlarınız burada birikir."
+              />
             </Card>
-          ) : historyByDay.map(({ date, entries }) => (
-            <View key={date} style={styles.historyDay}>
-              <Text style={styles.historyDate} accessibilityRole="header">{historyDayLabel(date, currentDate)}</Text>
-              <Card style={[styles.historyCard, { borderColor: categoryColor.color, borderWidth: 1 }]}>
-                {entries.map((entry, index) => (
-                  <View key={entry.id} style={index > 0 ? styles.historyDivider : undefined}>
-                    <HistoryEntry entry={entry} name={entry.ownerId === user?.id ? 'Siz' : partnerName} />
-                  </View>
-                ))}
-              </Card>
-            </View>
-          ))}
+          ) : (
+            historyByDay.map(({ date, entries }) => (
+              <View key={date} style={styles.historyDay}>
+                <Text style={styles.historyDate} accessibilityRole="header">
+                  {historyDayLabel(date, currentDate)}
+                </Text>
+                <Card style={[styles.historyCard, { borderColor: categoryColor.color, borderWidth: 1 }]}>
+                  {entries.map((entry, index) => (
+                    <View key={entry.id} style={index > 0 ? styles.historyDivider : undefined}>
+                      <HistoryEntry entry={entry} name={entry.ownerId === user?.id ? 'Siz' : partnerName} />
+                    </View>
+                  ))}
+                </Card>
+              </View>
+            ))
+          )}
         </>
       )}
     </Screen>
@@ -340,50 +456,177 @@ export default function MoodScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   intro: { marginBottom: spacing.sm, marginTop: spacing.xs },
-  eyebrow: { fontSize: 10, color: colors.textSecondary, fontWeight: '600', letterSpacing: 1, marginBottom: spacing.xs },
+  eyebrow: {
+    fontSize: 10,
+    color: colors.textSecondary,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: spacing.xs,
+  },
   headline: { fontSize: fontSize.xl, color: colors.text, fontWeight: '700', lineHeight: 27 },
   description: { fontSize: fontSize.sm, color: colors.textSecondary, lineHeight: 19, marginTop: spacing.xs },
   section: { marginBottom: spacing.md, padding: spacing.md },
   cardTitle: { fontSize: fontSize.md, fontWeight: '600', color: colors.text },
   date: { fontSize: fontSize.sm, color: colors.textSecondary, marginTop: spacing.xs },
-  cardDescription: { fontSize: fontSize.xs, color: colors.textSecondary, lineHeight: 17, marginTop: spacing.xs },
-  moodGrid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -2, marginTop: spacing.xs, marginBottom: spacing.xs },
+  cardDescription: {
+    fontSize: fontSize.xs,
+    color: colors.textSecondary,
+    lineHeight: 17,
+    marginTop: spacing.xs,
+  },
+  moodGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -2,
+    marginTop: spacing.xs,
+    marginBottom: spacing.xs,
+  },
   moodCell: { padding: 2 },
-  moodOption: { minHeight: 58, borderRadius: radius.control, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 3, paddingVertical: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
-  selectionMark: { position: 'absolute', top: 5, right: 5, zIndex: 1, width: 18, height: 18, alignItems: 'center', justifyContent: 'center', borderRadius: 9, backgroundColor: colors.card },
+  moodOption: {
+    minHeight: 58,
+    borderRadius: radius.control,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 3,
+    paddingVertical: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+  },
+  selectionMark: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    zIndex: 1,
+    width: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 9,
+    backgroundColor: colors.card,
+  },
   moodEmoji: { fontSize: 19, marginBottom: 0 },
-  moodLabel: { fontSize: fontSize.xs, color: colors.text, textAlign: 'center', fontWeight: '500', lineHeight: 16 },
+  moodLabel: {
+    fontSize: fontSize.xs,
+    color: colors.text,
+    textAlign: 'center',
+    fontWeight: '500',
+    lineHeight: 16,
+  },
   moodLabelSelected: { fontWeight: '700' },
   pressed: { opacity: 0.75 },
   disabled: { opacity: 0.6 },
-  noteHeading: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.xs },
+  noteHeading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+    marginBottom: spacing.xs,
+  },
   noteLabel: { fontSize: fontSize.sm, color: colors.text, fontWeight: '600' },
   optional: { fontSize: fontSize.xs, color: colors.textSecondary },
-  noteInput: { minHeight: 68, borderWidth: 1, borderColor: colors.border, borderRadius: radius.control, padding: spacing.sm, color: colors.text, backgroundColor: colors.background, fontSize: fontSize.sm, lineHeight: 20 },
-  counter: { textAlign: 'right', fontSize: 10, color: colors.textSecondary, marginTop: 2, marginBottom: spacing.sm },
-  saveHint: { fontSize: 10, color: colors.textSecondary, textAlign: 'center', lineHeight: 15, marginTop: spacing.xs },
-  successBox: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, padding: spacing.md, borderRadius: radius.control, marginBottom: spacing.md },
+  noteInput: {
+    minHeight: 68,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.control,
+    padding: spacing.sm,
+    color: colors.text,
+    backgroundColor: colors.background,
+    fontSize: fontSize.sm,
+    lineHeight: 20,
+  },
+  counter: {
+    textAlign: 'right',
+    fontSize: 10,
+    color: colors.textSecondary,
+    marginTop: 2,
+    marginBottom: spacing.sm,
+  },
+  saveHint: {
+    fontSize: 10,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 15,
+    marginTop: spacing.xs,
+  },
+  successBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radius.control,
+    marginBottom: spacing.md,
+  },
   successText: { flex: 1, color: colors.text, fontSize: fontSize.sm, lineHeight: 19 },
-  errorBox: { padding: spacing.md, borderWidth: 1, borderColor: colors.error, borderRadius: radius.card, backgroundColor: colors.card, marginBottom: spacing.lg },
+  errorBox: {
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.error,
+    borderRadius: radius.card,
+    backgroundColor: colors.card,
+    marginBottom: spacing.lg,
+  },
   errorText: { color: colors.error, fontSize: fontSize.sm, lineHeight: 20 },
   retry: { alignSelf: 'flex-start', marginTop: spacing.md },
   saveError: { color: colors.error, fontSize: fontSize.sm, lineHeight: 20, marginBottom: spacing.md },
   loading: { minHeight: 100, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   muted: { fontSize: fontSize.sm, color: colors.textSecondary, lineHeight: 20 },
-  partnerMood: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm, marginBottom: spacing.sm },
-  partnerEmojiCircle: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
+  partnerMood: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  partnerEmojiCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   partnerEmoji: { fontSize: 25 },
   partnerLabel: { fontSize: fontSize.md, fontWeight: '600', color: colors.text, marginBottom: 2 },
-  partnerNote: { fontSize: fontSize.sm, color: colors.text, lineHeight: 20, padding: spacing.sm, borderRadius: radius.control, backgroundColor: colors.background },
+  partnerNote: {
+    fontSize: fontSize.sm,
+    color: colors.text,
+    lineHeight: 20,
+    padding: spacing.sm,
+    borderRadius: radius.control,
+    backgroundColor: colors.background,
+  },
   partnerEmpty: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
   waitingIcon: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
   waitingTitle: { fontSize: fontSize.sm, color: colors.text, fontWeight: '500', marginBottom: 2 },
-  historyDescription: { fontSize: fontSize.xs, color: colors.textSecondary, lineHeight: 17, marginTop: -spacing.xs, marginBottom: spacing.sm },
+  historyDescription: {
+    fontSize: fontSize.xs,
+    color: colors.textSecondary,
+    lineHeight: 17,
+    marginTop: -spacing.xs,
+    marginBottom: spacing.sm,
+  },
   historyDay: { marginBottom: spacing.md },
-  historyDate: { fontSize: fontSize.sm, color: colors.textSecondary, fontWeight: '600', marginBottom: spacing.sm },
+  historyDate: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    fontWeight: '600',
+    marginBottom: spacing.sm,
+  },
   historyCard: { paddingVertical: 0 },
-  historyEntry: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, paddingVertical: spacing.sm },
-  historyEmojiCircle: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  historyEntry: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  historyEmojiCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   historyEmoji: { fontSize: 20 },
   historyName: { fontSize: fontSize.sm, color: colors.textSecondary, marginBottom: 2 },
   historyMood: { fontSize: fontSize.md, color: colors.text, fontWeight: '600' },

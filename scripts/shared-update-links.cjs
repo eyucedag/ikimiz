@@ -4,7 +4,7 @@ const { createRequire } = require('node:module');
 
 async function main() {
   const published = JSON.parse(await fs.readFile(process.argv[2], 'utf8'));
-  const updates = Array.isArray(published) ? published : (published.updates || [published]);
+  const updates = Array.isArray(published) ? published : published.updates || [published];
   const first = updates[0];
   const groupValue = first?.group || first?.groupId || first?.updateGroupId;
   const groupId = typeof groupValue === 'string' ? groupValue : groupValue?.id;
@@ -13,7 +13,8 @@ async function main() {
   if (!groupId || !projectId) throw new Error('Published update group or project ID is missing.');
   const channel = 'shared-preview';
   const runtimeVersion = first.runtimeVersion;
-  if (typeof runtimeVersion !== 'string' || !runtimeVersion) throw new Error('Published runtime version is missing.');
+  if (typeof runtimeVersion !== 'string' || !runtimeVersion)
+    throw new Error('Published runtime version is missing.');
   const output = path.resolve('dist/shared-preview');
   await fs.mkdir(output, { recursive: true });
   const qrUrl = new URL('https://qr.expo.dev/eas-update');
@@ -22,8 +23,10 @@ async function main() {
   qrUrl.searchParams.set('runtimeVersion', runtimeVersion);
   qrUrl.searchParams.set('slug', 'exp');
   const connection = {
-    projectId, groupId, account: config.owner,
-    platforms: updates.map(update => update.platform).filter(Boolean),
+    projectId,
+    groupId,
+    account: config.owner,
+    platforms: updates.map((update) => update.platform).filter(Boolean),
     channel,
     runtimeVersion,
     qrUrl: qrUrl.href,
@@ -41,14 +44,19 @@ async function main() {
   try {
     const value = JSON.parse(text);
     launchUrl = typeof value === 'string' ? value : value.url;
-  } catch { /* The QR service can return a plain-text deep link. */ }
+  } catch {
+    /* The QR service can return a plain-text deep link. */
+  }
   if (typeof launchUrl !== 'string' || !/^exps?:\/\//.test(launchUrl)) {
     throw new Error('Expo QR service did not return an Expo Go launch URL.');
   }
   const launch = new URL(launchUrl);
-  if (launch.hostname !== 'u.expo.dev' || launch.pathname !== `/${projectId}` ||
-      launch.searchParams.get('channel-name') !== channel ||
-      launch.searchParams.get('runtime-version') !== runtimeVersion) {
+  if (
+    launch.hostname !== 'u.expo.dev' ||
+    launch.pathname !== `/${projectId}` ||
+    launch.searchParams.get('channel-name') !== channel ||
+    launch.searchParams.get('runtime-version') !== runtimeVersion
+  ) {
     throw new Error('The preview URL must target the persistent channel and compatible runtime.');
   }
   connection.url = launchUrl;
@@ -60,7 +68,7 @@ async function main() {
   console.log(JSON.stringify(connection, null, 2));
 }
 
-main().catch(error => {
+main().catch((error) => {
   console.error(error.message);
   process.exitCode = 1;
 });

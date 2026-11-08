@@ -12,10 +12,27 @@ interface CardProps {
   accessibilityLabel?: string;
 }
 
-export function Card({ children, style, onPress, onLongPress, delayLongPress, accessibilityLabel }: CardProps) {
+export function Card({
+  children,
+  style,
+  onPress,
+  onLongPress,
+  delayLongPress,
+  accessibilityLabel,
+}: CardProps) {
   const { surfaceColor } = useAppAppearance();
   const edgeColor = colors.border;
-  const frameStyle = [styles.card, style, { backgroundColor: surfaceColor, borderColor: edgeColor, borderWidth: 1.5, borderRadius: radius.card, shadowColor: edgeColor }];
+  const frameStyle = [
+    styles.card,
+    style,
+    {
+      backgroundColor: surfaceColor,
+      borderColor: edgeColor,
+      borderWidth: 1.5,
+      borderRadius: radius.card,
+      shadowColor: edgeColor,
+    },
+  ];
   if (onPress || onLongPress) {
     return (
       <Pressable

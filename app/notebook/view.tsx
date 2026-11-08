@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Button, Card, CoupleLoading, EmptyState, IconButton, Screen } from '@/src/components/ui';
@@ -25,25 +25,67 @@ export default function NotebookNoteViewScreen() {
       const notes = await notebookService.list(couple.couple.id);
       setNote(notes.find((item) => item.id === noteId) ?? null);
       setError('');
-    } catch (e) { setError(e instanceof Error ? e.message : 'Not açılamadı.'); }
-    finally { setLoading(false); }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Not açılamadı.');
+    } finally {
+      setLoading(false);
+    }
   }, [couple.couple?.id, noteId]);
 
-  useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
+  useFocusEffect(
+    useCallback(() => {
+      void refresh();
+    }, [refresh]),
+  );
 
-  if (couple.loading || loading) return <Screen title="Not Defteri" toneColor={tone.color}><CoupleLoading /></Screen>;
-  if (!note) return <Screen title="Not Defteri" toneColor={tone.color}><EmptyState icon="file-text" toneColor={tone.color} toneTint={tone.tint} title="Not bulunamadı" description={error || 'Bu not kaldırılmış olabilir.'} /></Screen>;
+  if (couple.loading || loading)
+    return (
+      <Screen title="Not Defteri" toneColor={tone.color}>
+        <CoupleLoading />
+      </Screen>
+    );
+  if (!note)
+    return (
+      <Screen title="Not Defteri" toneColor={tone.color}>
+        <EmptyState
+          icon="file-text"
+          toneColor={tone.color}
+          toneTint={tone.tint}
+          title="Not bulunamadı"
+          description={error || 'Bu not kaldırılmış olabilir.'}
+        />
+      </Screen>
+    );
 
-  return <Screen title="Not Defteri" toneColor={tone.color} headerRight={<IconButton icon="edit-2" accessibilityLabel="Notu düzenle" onPress={() => router.push({ pathname: '/notebook/compose', params: { noteId: note.id } })} />}>
-    {error ? <Text style={styles.error}>{error}</Text> : null}
-    <Card style={[styles.noteCard, { borderColor: tone.color }]}>
-      <Text style={styles.title}>{note.title}</Text>
-      <Text style={styles.updated}>{formatDateTime(note.updatedAt)}</Text>
-      <View style={styles.rule} />
-      <NotebookBody body={note.body} />
-    </Card>
-    <Button title="Düzenle" icon="edit-2" variant="secondary" toneColor={tone.color} onPress={() => router.push({ pathname: '/notebook/compose', params: { noteId: note.id } })} style={styles.editButton} />
-  </Screen>;
+  return (
+    <Screen
+      title="Not Defteri"
+      toneColor={tone.color}
+      headerRight={
+        <IconButton
+          icon="edit-2"
+          accessibilityLabel="Notu düzenle"
+          onPress={() => router.push({ pathname: '/notebook/compose', params: { noteId: note.id } })}
+        />
+      }
+    >
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+      <Card style={[styles.noteCard, { borderColor: tone.color }]}>
+        <Text style={styles.title}>{note.title}</Text>
+        <Text style={styles.updated}>{formatDateTime(note.updatedAt)}</Text>
+        <View style={styles.rule} />
+        <NotebookBody body={note.body} />
+      </Card>
+      <Button
+        title="Düzenle"
+        icon="edit-2"
+        variant="secondary"
+        toneColor={tone.color}
+        onPress={() => router.push({ pathname: '/notebook/compose', params: { noteId: note.id } })}
+        style={styles.editButton}
+      />
+    </Screen>
+  );
 }
 
 const styles = StyleSheet.create({

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, fontSize, spacing } from '@/src/constants/theme';
 import { getCategoryColor } from '@/src/constants/categories';
@@ -40,9 +40,18 @@ export function KissCategoryButton({ ownerId, partnerId, coupleId }: Props) {
         accessibilityRole="button"
         accessibilityLabel="Partnerinize öpücük gönder"
         accessibilityState={{ disabled: !paired || sending }}
-        style={({ pressed }) => [styles.button, { backgroundColor: tone.tint, borderColor: colors.copper, shadowColor: colors.copper }, pressed && styles.pressed, !paired && styles.disabled]}
+        style={({ pressed }) => [
+          styles.button,
+          { backgroundColor: tone.tint, borderColor: colors.copper, shadowColor: colors.copper },
+          pressed && styles.pressed,
+          !paired && styles.disabled,
+        ]}
       >
-        {sending ? <ActivityIndicator color={colors.copper} /> : <Text style={[styles.lips, { color: colors.copper }]}>💋</Text>}
+        {sending ? (
+          <ActivityIndicator color={colors.copper} />
+        ) : (
+          <Text style={[styles.lips, { color: colors.copper }]}>💋</Text>
+        )}
       </Pressable>
       <Text style={[styles.title, { color: colors.text }]}>Öpücük</Text>
       <Text style={styles.usage}>Ne zaman istersen 💖</Text>
@@ -54,8 +63,24 @@ export function KissCategoryButton({ ownerId, partnerId, coupleId }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { alignItems: 'center', marginTop: spacing.xl, marginBottom: spacing.lg, paddingVertical: spacing.lg },
-  button: { width: 104, height: 104, borderRadius: 52, alignItems: 'center', justifyContent: 'center', borderWidth: 1, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 4, elevation: 2 },
+  container: {
+    alignItems: 'center',
+    marginTop: spacing.xl,
+    marginBottom: spacing.lg,
+    paddingVertical: spacing.lg,
+  },
+  button: {
+    width: 104,
+    height: 104,
+    borderRadius: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 2,
+  },
   lips: { fontSize: 60, lineHeight: 70 },
   title: { marginTop: spacing.md, fontSize: fontSize.xl, fontWeight: '800' },
   usage: { marginTop: spacing.xs, color: colors.textSecondary, fontSize: fontSize.sm, fontWeight: '600' },

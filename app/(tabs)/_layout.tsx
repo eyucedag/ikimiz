@@ -1,6 +1,13 @@
-import React from 'react';
-import { ColorValue, GestureResponderEvent, Image, Pressable, PressableProps, StyleSheet, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import {
+  ColorValue,
+  GestureResponderEvent,
+  Image,
+  Pressable,
+  PressableProps,
+  StyleSheet,
+  View,
+} from 'react-native';
+import Feather from '@expo/vector-icons/Feather';
 import { Tabs } from 'expo-router';
 import { colors, fontSize, shadow } from '@/src/constants/theme';
 import { auroraIcons } from '@/src/constants/auroraAssets';
@@ -9,11 +16,16 @@ import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 
 type IconName = 'today' | 'search' | 'notifications' | 'settings';
 
-const tabIcon =
-  (name: IconName) =>
-  ({ color, size, focused }: { color: ColorValue; size: number; focused: boolean }) => (
-    <Image source={auroraIcons[name]} resizeMode="contain" style={{ width: size + 2, height: size + 2, tintColor: color, opacity: focused ? 1 : 0.72 }} />
-  );
+const tabIcon = (name: IconName) =>
+  function TabIcon({ color, size, focused }: { color: ColorValue; size: number; focused: boolean }) {
+    return (
+      <Image
+        source={auroraIcons[name]}
+        resizeMode="contain"
+        style={{ width: size + 2, height: size + 2, tintColor: color, opacity: focused ? 1 : 0.72 }}
+      />
+    );
+  };
 
 type AddTabButtonProps = {
   onPress?: ((e: GestureResponderEvent) => void) | null;
@@ -30,7 +42,11 @@ function AddTabButton({ onPress, accessibilityState }: AddTabButtonProps) {
         accessibilityRole="button"
         accessibilityLabel="Hızlı ekle"
         accessibilityState={accessibilityState}
-        style={({ pressed }) => [styles.addButton, { borderColor: backgroundColor }, pressed && styles.addPressed]}
+        style={({ pressed }) => [
+          styles.addButton,
+          { borderColor: backgroundColor },
+          pressed && styles.addPressed,
+        ]}
       >
         <Image source={auroraIcons.add} resizeMode="contain" style={styles.addIcon} />
       </Pressable>
@@ -48,15 +64,36 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textTertiary,
-        tabBarStyle: { backgroundColor: surfaceColor, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 7, paddingBottom: 8, elevation: 12, shadowColor: '#020D0A', shadowOpacity: 0.22, shadowRadius: 14, shadowOffset: { width: 0, height: -4 } },
+        tabBarStyle: {
+          backgroundColor: surfaceColor,
+          borderTopColor: colors.border,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          paddingTop: 7,
+          paddingBottom: 8,
+          elevation: 12,
+          shadowColor: '#020D0A',
+          shadowOpacity: 0.22,
+          shadowRadius: 14,
+          shadowOffset: { width: 0, height: -4 },
+        },
         tabBarLabelStyle: { fontSize: fontSize.xs, fontWeight: '600' },
       }}
     >
       <Tabs.Screen name="index" options={{ title: 'Bugün', tabBarIcon: tabIcon('today') }} />
-      <Tabs.Screen name="search" options={{ title: 'Kategoriler', tabBarIcon: ({ color, size }) => <Feather name="grid" size={size} color={color as string} /> }} />
+      <Tabs.Screen
+        name="search"
+        options={{
+          title: 'Kategoriler',
+          tabBarIcon: ({ color, size }) => <Feather name="grid" size={size} color={color as string} />,
+        }}
+      />
       <Tabs.Screen
         name="add"
-        options={{ title: 'Ekle', tabBarLabel: () => null, tabBarButton: (props) => <AddTabButton {...props} /> }}
+        options={{
+          title: 'Ekle',
+          tabBarLabel: () => null,
+          tabBarButton: (props) => <AddTabButton {...props} />,
+        }}
       />
       <Tabs.Screen
         name="notifications"

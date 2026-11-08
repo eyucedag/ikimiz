@@ -1,6 +1,5 @@
-import React from 'react';
 import { ActivityIndicator, Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import Feather from '@expo/vector-icons/Feather';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 
@@ -25,12 +24,23 @@ const palette: Record<Variant, { bg: string; fg: string; border: string }> = {
   danger: { bg: colors.card, fg: colors.error, border: colors.error },
 };
 
-export function Button({ title, onPress, variant = 'primary', icon, loading, disabled, style, compact }: ButtonProps) {
+export function Button({
+  title,
+  onPress,
+  variant = 'primary',
+  icon,
+  loading,
+  disabled,
+  style,
+  compact,
+  toneColor = colors.accent,
+}: ButtonProps) {
   const { surfaceColor } = useAppAppearance();
   const p = palette[variant];
-  const backgroundColor = variant === 'secondary' || variant === 'danger' ? surfaceColor : p.bg;
-  const foregroundColor = p.fg;
-  const borderColor = p.border;
+  const backgroundColor =
+    variant === 'primary' ? toneColor : variant === 'secondary' || variant === 'danger' ? surfaceColor : p.bg;
+  const foregroundColor = variant === 'ghost' ? toneColor : p.fg;
+  const borderColor = variant === 'primary' ? toneColor : p.border;
   const inactive = disabled || loading;
   return (
     <Pressable
@@ -48,7 +58,7 @@ export function Button({ title, onPress, variant = 'primary', icon, loading, dis
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={p.fg} />
+        <ActivityIndicator color={foregroundColor} />
       ) : (
         <View style={styles.row}>
           {icon ? <Feather name={icon} size={18} color={foregroundColor} style={styles.icon} /> : null}
@@ -72,7 +82,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
   icon: { marginRight: spacing.sm },
   label: { fontSize: fontSize.md, fontWeight: '700', letterSpacing: 0.1 },
-  labelCompact: { fontSize: fontSize.md },
   pressed: { opacity: 0.8 },
   disabled: { opacity: 0.5 },
 });

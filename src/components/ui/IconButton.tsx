@@ -1,6 +1,5 @@
-import React from 'react';
 import { Pressable, StyleProp, StyleSheet, ViewStyle } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import Feather from '@expo/vector-icons/Feather';
 import { colors, radius } from '@/src/constants/theme';
 
 interface IconButtonProps {
@@ -13,7 +12,15 @@ interface IconButtonProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export function IconButton({ icon, onPress, accessibilityLabel, color = colors.text, size = 22, filled, style }: IconButtonProps) {
+export function IconButton({
+  icon,
+  onPress,
+  accessibilityLabel,
+  color = colors.text,
+  size = 22,
+  filled,
+  style,
+}: IconButtonProps) {
   return (
     <Pressable
       onPress={onPress}
@@ -28,7 +35,13 @@ export function IconButton({ icon, onPress, accessibilityLabel, color = colors.t
 }
 
 const styles = StyleSheet.create({
-  base: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: radius.control },
+  base: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.control,
+  },
   filled: { backgroundColor: colors.beige },
   pressed: { opacity: 0.6 },
 });

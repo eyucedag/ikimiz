@@ -457,7 +457,7 @@ create table if not exists public.mood_entries (
   visibility  text not null default 'shared' check (visibility = 'shared'),
   is_deleted  boolean not null default false,
   entry_date  date not null,
-  mood        text not null check (mood in ('great','good','okay','low','rough')),
+  mood        text not null check (mood in ('great','good','okay','low','rough','tired','energetic','angry','bored')),
   note        text not null default '' check (char_length(note) <= 280),
   constraint mood_entries_owner_day_key unique (owner_id, entry_date)
 );

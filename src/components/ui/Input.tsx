@@ -10,19 +10,33 @@ interface InputProps extends TextInputProps {
   compact?: boolean;
 }
 
-export const Input = forwardRef<React.ComponentRef<typeof TextInput>, InputProps>(({ label, error, hint, compact, style, ...rest }, ref) => {
-  const { surfaceColor } = useAppAppearance();
-  return <View style={[styles.wrapper, compact && styles.wrapperCompact]}>
-    {label ? <Text style={styles.label}>{label}</Text> : null}
-    <TextInput
-      ref={ref}
-      placeholderTextColor={colors.textTertiary}
-      style={[styles.input, { backgroundColor: surfaceColor }, compact && styles.inputCompact, !!error && styles.inputError, style]}
-      {...rest}
-    />
-    {error ? <Text style={styles.error}>{error}</Text> : hint ? <Text style={styles.hint}>{hint}</Text> : null}
-  </View>;
-});
+export const Input = forwardRef<React.ComponentRef<typeof TextInput>, InputProps>(
+  ({ label, error, hint, compact, style, ...rest }, ref) => {
+    const { surfaceColor } = useAppAppearance();
+    return (
+      <View style={[styles.wrapper, compact && styles.wrapperCompact]}>
+        {label ? <Text style={styles.label}>{label}</Text> : null}
+        <TextInput
+          ref={ref}
+          placeholderTextColor={colors.textTertiary}
+          style={[
+            styles.input,
+            { backgroundColor: surfaceColor },
+            compact && styles.inputCompact,
+            !!error && styles.inputError,
+            style,
+          ]}
+          {...rest}
+        />
+        {error ? (
+          <Text style={styles.error}>{error}</Text>
+        ) : hint ? (
+          <Text style={styles.hint}>{hint}</Text>
+        ) : null}
+      </View>
+    );
+  },
+);
 
 Input.displayName = 'Input';
 

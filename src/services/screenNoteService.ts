@@ -1,20 +1,21 @@
-import { nowIso, supabase } from '@/src/lib/supabase';
+import { readFileBytes } from '@/src/utils/files';
+import { supabase } from '@/src/lib/supabase';
 import { ScreenNote, ServiceResult } from '@/src/types';
 import { notificationService } from '@/src/services/notificationService';
 
 export const SCREEN_NOTE_MAX_LENGTH = 140;
 
-const mapNote = (row: any): ScreenNote => ({
-  id: row.id,
-  coupleId: row.couple_id,
-  senderId: row.owner_id,
-  receiverId: row.receiver_id,
-  text: row.text,
-  emoji: row.emoji,
-  backgroundColor: row.background_color,
+const mapNote = (row: Record<string, unknown>): ScreenNote => ({
+  id: String(row.id),
+  coupleId: row.couple_id == null ? null : String(row.couple_id),
+  senderId: String(row.owner_id),
+  receiverId: row.receiver_id == null ? null : String(row.receiver_id),
+  text: String(row.text ?? ''),
+  emoji: String(row.emoji ?? ''),
+  backgroundColor: String(row.background_color ?? '#F2E7DB'),
   imageUrl: null,
-  createdAt: row.created_at,
-  readAt: row.read_at ?? null,
+  createdAt: String(row.created_at),
+  readAt: row.read_at == null ? null : String(row.read_at),
 });
 
 export interface SendNoteInput {
@@ -29,7 +30,7 @@ export interface SendNoteInput {
 }
 
 export const screenNoteService = {
-  async list(userId: string, coupleId: string | null): Promise<ScreenNote[]> {
+  async list(_userId: string, coupleId: string | null): Promise<ScreenNote[]> {
     if (!coupleId) return [];
     const { data, error } = await supabase
       .from('screen_notes')
@@ -39,32 +40,41 @@ export const screenNoteService = {
       .order('created_at', { ascending: false })
       .limit(100);
     if (error) throw new Error(error.message);
-    return Promise.all((data ?? []).map(async (row) => {
-      const note = mapNote(row);
-      if (row.image_path) {
-        const { data: image } = await supabase.storage.from('screen-note-stickers').createSignedUrl(row.image_path, 60 * 60 * 24 * 7);
-        note.imageUrl = image?.signedUrl ?? null;
-      }
-      return note;
-    }));
+    return Promise.all(
+      (data ?? []).map(async (row) => {
+        const note = mapNote(row);
+        if (row.image_path) {
+          const { data: image } = await supabase.storage
+            .from('screen-note-stickers')
+            .createSignedUrl(row.image_path, 60 * 60 * 24 * 7);
+          note.imageUrl = image?.signedUrl ?? null;
+        }
+        return note;
+      }),
+    );
   },
 
   async send(input: SendNoteInput): Promise<ServiceResult<ScreenNote>> {
     const text = input.text.trim();
     if (!text) return { error: 'Lütfen kısa bir not yazın.' };
-    if (text.length > SCREEN_NOTE_MAX_LENGTH) return { error: `Not en fazla ${SCREEN_NOTE_MAX_LENGTH} karakter olabilir.` };
-
+    if (text.length > SCREEN_NOTE_MAX_LENGTH)
+      return { error: `Not en fazla ${SCREEN_NOTE_MAX_LENGTH} karakter olabilir.` };
 
     const client = supabase;
     let imagePath: string | null = null;
     if (input.stickerUri) {
-      const response = await fetch(input.stickerUri);
-      if (!response.ok) return { error: 'Sticker görseli okunamadı.' };
-      const blob = await response.arrayBuffer();
+      const blob = await readFileBytes(input.stickerUri);
       if (blob.byteLength > 5 * 1024 * 1024) return { error: 'Sticker görseli 5 MB’tan küçük olmalı.' };
       const path = `${input.coupleId}/${input.senderId}/${Date.now()}.jpg`;
-      const { error: uploadError } = await client.storage.from('screen-note-stickers').upload(path, blob, { contentType: 'image/jpeg', upsert: false });
-      if (uploadError) return { error: uploadError.message.includes('bucket') ? 'Sticker saklama ayarı henüz kurulmamış. Supabase SQL kurulumunu çalıştırın.' : uploadError.message };
+      const { error: uploadError } = await client.storage
+        .from('screen-note-stickers')
+        .upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+      if (uploadError)
+        return {
+          error: uploadError.message.includes('bucket')
+            ? 'Sticker saklama ayarı henüz kurulmamış. Supabase SQL kurulumunu çalıştırın.'
+            : uploadError.message,
+        };
       imagePath = path;
     }
     const { data, error } = await client
@@ -87,7 +97,9 @@ export const screenNoteService = {
     }
     let note = mapNote(data);
     if (imagePath) {
-      const { data: image } = await client.storage.from('screen-note-stickers').createSignedUrl(imagePath, 60 * 60 * 24 * 7);
+      const { data: image } = await client.storage
+        .from('screen-note-stickers')
+        .createSignedUrl(imagePath, 60 * 60 * 24 * 7);
       note.imageUrl = image?.signedUrl ?? null;
     }
     await notificationService.notifyPartner({
@@ -105,11 +117,17 @@ export const screenNoteService = {
     return error ? { error: error.message } : {};
   },
 
-  async update(noteId: string, textValue: string, backgroundColor: string): Promise<ServiceResult<ScreenNote>> {
+  async update(
+    noteId: string,
+    textValue: string,
+    backgroundColor: string,
+  ): Promise<ServiceResult<ScreenNote>> {
     const text = textValue.trim();
     if (!text) return { error: 'Lütfen kısa bir not yazın.' };
-    if (text.length > SCREEN_NOTE_MAX_LENGTH) return { error: `Not en fazla ${SCREEN_NOTE_MAX_LENGTH} karakter olabilir.` };
-    const { data, error } = await supabase.from('screen_notes')
+    if (text.length > SCREEN_NOTE_MAX_LENGTH)
+      return { error: `Not en fazla ${SCREEN_NOTE_MAX_LENGTH} karakter olabilir.` };
+    const { data, error } = await supabase
+      .from('screen_notes')
       .update({ text, background_color: backgroundColor, emoji: '' })
       .eq('id', noteId)
       .select('*')

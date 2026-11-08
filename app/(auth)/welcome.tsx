@@ -1,6 +1,5 @@
-import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from 'expo-router';
 import { Button, Divider, Screen } from '@/src/components/ui';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
@@ -34,12 +33,27 @@ export default function WelcomeScreen() {
       </View>
 
       <Button title="Giriş Yap" onPress={() => router.push('/(auth)/login')} />
-      <Button title="Hesap Oluştur" variant="secondary" onPress={() => router.push('/(auth)/register')} style={styles.gap} />
+      <Button
+        title="Hesap Oluştur"
+        variant="secondary"
+        onPress={() => router.push('/(auth)/register')}
+        style={styles.gap}
+      />
 
       <Divider spaced />
-      <Button title="Google ile devam et" icon="globe" variant="secondary" onPress={() => showSocialSoon('Google')} />
-      <Button title="Apple ile devam et" icon="smartphone" variant="secondary" onPress={() => showSocialSoon('Apple')} style={styles.gap} />
-
+      <Button
+        title="Google ile devam et"
+        icon="globe"
+        variant="secondary"
+        onPress={() => showSocialSoon('Google')}
+      />
+      <Button
+        title="Apple ile devam et"
+        icon="smartphone"
+        variant="secondary"
+        onPress={() => showSocialSoon('Apple')}
+        style={styles.gap}
+      />
     </Screen>
   );
 }
@@ -56,8 +70,19 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   title: { fontSize: fontSize.xxxl, fontWeight: '700', color: colors.text },
-  subtitle: { fontSize: fontSize.md, color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm, lineHeight: 22 },
-  list: { backgroundColor: colors.beige, borderRadius: radius.card, padding: spacing.lg, marginBottom: spacing.xxl },
+  subtitle: {
+    fontSize: fontSize.md,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginTop: spacing.sm,
+    lineHeight: 22,
+  },
+  list: {
+    backgroundColor: colors.beige,
+    borderRadius: radius.card,
+    padding: spacing.lg,
+    marginBottom: spacing.xxl,
+  },
   item: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs },
   itemText: { marginLeft: spacing.md, fontSize: fontSize.md, color: colors.text },
   gap: { marginTop: spacing.md },

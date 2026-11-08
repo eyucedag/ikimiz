@@ -1,5 +1,15 @@
 This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
 
+## Working copy and checks
+
+The primary working copy for this session is `/workspace/ikimiz`. Do not develop from
+legacy backup directories or recreate an older checkout when the current branch is available.
+Run `npm run validate` (lint, TypeScript, app tests, PostgreSQL tests) before publishing.
+Use `npm run format` after edits. The Expo preview workflow also enforces validation.
+SQL Editor migrations are applied separately; when providing a migration, include the
+project SQL Editor link from `supabase/README.md` and distinguish local validation from
+application to the live database.
+
 ## Expo has changed — do not trust your training data
 
 Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:
