@@ -7,8 +7,9 @@ telefon/tablet desteklenir. Web sürümü yapılandırılmamıştır.
 ## Geliştirme
 
 - Node.js 24 ve npm kullanılır; Expo SDK 58 ve React Native 0.88 sürümleri birbiriyle uyumludur.
-- Bu çalışma ortamındaki ana checkout `/workspace/ikimiz` dizinidir. Eski checkout yedekleri
-  geliştirme veya yayın kaynağı olarak kullanılmaz.
+- Ana çalışma kopyası `/workspace/ikimiz`, tüm uygulamayı içeren Git dalı `codex/ikimiz`'dir.
+  Dal adı uygulamanın tek bir özelliğini belirtmez. Eski checkout yedeği geliştirme veya yayın
+  kaynağı olarak kullanılmaz.
 - Bağımlılıkları `npm ci --legacy-peer-deps` ile kurun; geliştirmeyi `npm start` ile başlatın.
 - Native paket eklerken `npx expo install <paket>` kullanın. `ios/` ve `android/` klasörleri
   Expo tarafından üretilir; elle düzenlenmez.
