@@ -1,10 +1,8 @@
-import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import Feather from '@expo/vector-icons/Feather';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { CategoryTile } from '@/src/components/CategoryTile';
-import { DynamicSky } from '@/src/components/DynamicSky';
-import { Screen, SectionHeader } from '@/src/components/ui';
+import { Screen } from '@/src/components/ui';
 import { categories } from '@/src/constants/categories';
-import { colors, spacing } from '@/src/constants/theme';
+import { spacing } from '@/src/constants/theme';
 import { Category } from '@/src/types';
 
 const fullCategoryList = categories.filter((category) => category.slug !== 'opucuk');
@@ -18,23 +16,12 @@ const moodCategory: Category = {
 };
 export default function CategoriesTabScreen() {
   const { width } = useWindowDimensions();
-  const columns = width >= 1000 ? 4 : width >= 640 ? 3 : 2;
+  const columns = width >= 1200 ? 8 : width >= 900 ? 7 : width >= 600 ? 6 : 4;
   const tileWidth = `${100 / columns}%` as `${number}%`;
 
   return (
     <Screen inTabs>
       <View style={styles.content}>
-        <DynamicSky compact>
-          <View style={styles.sceneHeading}>
-            <View style={styles.headingSpacer} />
-            <View style={styles.sceneTitleGroup}>
-              <Feather name="grid" size={17} color={colors.copper} />
-              <Text style={styles.sceneTitle}>Kategoriler</Text>
-            </View>
-            <View style={styles.headingSpacer} />
-          </View>
-        </DynamicSky>
-        <SectionHeader title="Birlikte alanlarınız" />
         <View style={styles.grid}>
           {fullCategoryList.map((category) => (
             <CategoryTile
@@ -53,15 +40,12 @@ export default function CategoriesTabScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: { width: '100%', maxWidth: 900, alignSelf: 'center' },
-  sceneHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sceneTitleGroup: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  sceneTitle: { color: colors.cream, fontFamily: 'serif', fontSize: 24, fontWeight: '600' },
-  headingSpacer: { width: 40 },
+  content: { width: '100%', maxWidth: 1120, alignSelf: 'center' },
   grid: {
     width: '100%',
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'center',
     marginHorizontal: -spacing.xs,
     marginBottom: spacing.md,
   },
