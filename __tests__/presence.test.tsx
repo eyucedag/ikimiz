@@ -137,6 +137,7 @@ test('sharing survives the iOS inactive phase but closes on background and stays
   expect(view.result.current.sharing).toBe(true);
   await act(async () => {
     listeners.forEach((listener) => listener('background'));
+    jest.advanceTimersByTime(1_500);
   });
   expect(view.result.current.sharing).toBe(false);
   expect(presenceService.clearLocation).toHaveBeenCalledWith('me', 'couple');
@@ -145,6 +146,24 @@ test('sharing survives the iOS inactive phase but closes on background and stays
   });
   expect(view.result.current.sharing).toBe(false);
   expect(Location.watchPositionAsync).toHaveBeenCalledTimes(1);
+  await view.unmount();
+});
+
+test('a brief Android background transition does not stop direction sharing', async () => {
+  const view = await renderHook(useCouplePresence, { wrapper });
+  await act(async () => {
+    await view.result.current.start();
+  });
+  await act(async () => positionCallback(fix));
+  await act(async () => {
+    listeners.forEach((listener) => listener('background'));
+    jest.advanceTimersByTime(500);
+    listeners.forEach((listener) => listener('active'));
+    jest.advanceTimersByTime(1_500);
+  });
+  expect(view.result.current.sharing).toBe(true);
+  expect(presenceService.clearLocation).not.toHaveBeenCalled();
+  expect(removePosition).not.toHaveBeenCalled();
   await view.unmount();
 });
 

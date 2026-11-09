@@ -1001,9 +1001,9 @@ export default function TodayScreen() {
                   name="arrow-up"
                   size={27}
                   color={
-                    direction.bothSharing
+                    direction.bothSharing && direction.angle != null
                       ? '#159447'
-                      : direction.sharing || direction.anySharing
+                      : direction.sharing || direction.starting || direction.anySharing
                         ? '#1676E8'
                         : colors.cream
                   }

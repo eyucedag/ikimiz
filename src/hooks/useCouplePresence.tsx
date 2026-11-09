@@ -23,6 +23,7 @@ interface PresenceValue {
   stop: () => void;
 }
 const PresenceContext = createContext<PresenceValue | null>(null);
+const BACKGROUND_STOP_DELAY_MS = 1_500;
 
 /** The only owner of location/sensor subscriptions for the signed-in couple. */
 export function CouplePresenceProvider({ children }: { children: React.ReactNode }) {
@@ -52,6 +53,7 @@ export function CouplePresenceProvider({ children }: { children: React.ReactNode
   const initializing = useRef<Promise<void> | null>(null);
   const permissionRequesting = useRef(false);
   const activeWaiter = useRef<(() => void) | null>(null);
+  const backgroundStopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const alive = useRef(true);
   const active = useRef(foreground);
   const locationGeneration = useRef(0);
@@ -157,6 +159,10 @@ export function CouplePresenceProvider({ children }: { children: React.ReactNode
     setStarting(false);
     setHeading(null);
     setError('');
+    if (backgroundStopTimer.current) clearTimeout(backgroundStopTimer.current);
+    backgroundStopTimer.current = null;
+    activeWaiter.current?.();
+    activeWaiter.current = null;
     if (userId && coupleId) {
       void enqueueLocation(() => presenceService.clearLocation(userId, coupleId)).catch(() => undefined);
     }
@@ -169,9 +175,19 @@ export function CouplePresenceProvider({ children }: { children: React.ReactNode
     setSharing(true);
     setStarting(true);
     setError('');
-    const current = () => alive.current && active.current && generation === directionGeneration.current;
+    const generationCurrent = () => alive.current && generation === directionGeneration.current;
+    const current = () => generationCurrent() && active.current;
+    const waitForForeground = async () => {
+      if (!active.current) {
+        await new Promise<void>((resolve) => {
+          activeWaiter.current = resolve;
+        });
+      }
+    };
     try {
       await ensureLocation();
+      if (!generationCurrent()) return;
+      await waitForForeground();
       if (!current()) return;
       publish(true);
       // A phone without a compass can still share its position.
@@ -179,19 +195,20 @@ export function CouplePresenceProvider({ children }: { children: React.ReactNode
         const watcher = await Location.watchHeadingAsync((value) => {
           if (current()) setHeading(value.trueHeading >= 0 ? value.trueHeading : value.magHeading);
         });
+        await waitForForeground();
         if (current()) headingWatcher.current = watcher;
         else watcher.remove();
       } catch {
         if (current()) setError('Bu cihazda yön sensörü kullanılamıyor.');
       }
     } catch (cause) {
-      if (alive.current && generation === directionGeneration.current) {
+      if (generationCurrent()) {
         enabled.current = false;
         setSharing(false);
         setError(cause instanceof Error ? cause.message : 'Konum açılamadı. Yeniden deneyin.');
       }
     } finally {
-      if (alive.current && generation === directionGeneration.current) setStarting(false);
+      if (generationCurrent()) setStarting(false);
     }
   }, [userId, coupleId, ensureLocation, publish]);
 
@@ -203,12 +220,19 @@ export function CouplePresenceProvider({ children }: { children: React.ReactNode
       // Android may background the host Activity while its runtime permission sheet is open.
       // Keep the user's explicit start request and resume it after the sheet closes.
       if (permissionRequesting.current) return;
-      locationGeneration.current += 1;
-      initializing.current = null;
-      stop();
-      latestPosition.current = null;
+      if (backgroundStopTimer.current) clearTimeout(backgroundStopTimer.current);
+      backgroundStopTimer.current = setTimeout(() => {
+        backgroundStopTimer.current = null;
+        if (active.current) return;
+        locationGeneration.current += 1;
+        initializing.current = null;
+        stop();
+        latestPosition.current = null;
+      }, BACKGROUND_STOP_DELAY_MS);
     };
     const resume = () => {
+      if (backgroundStopTimer.current) clearTimeout(backgroundStopTimer.current);
+      backgroundStopTimer.current = null;
       active.current = true;
       setForeground(true);
       setNow(Date.now());
@@ -234,9 +258,15 @@ export function CouplePresenceProvider({ children }: { children: React.ReactNode
       alive.current = false;
       listener.remove();
       clearInterval(timer);
+      if (backgroundStopTimer.current) clearTimeout(backgroundStopTimer.current);
+      backgroundStopTimer.current = null;
       activeWaiter.current?.();
       activeWaiter.current = null;
-      suspend();
+      active.current = false;
+      locationGeneration.current += 1;
+      initializing.current = null;
+      stop();
+      latestPosition.current = null;
     };
   }, [coupleId, userId, stop, publish]);
 
