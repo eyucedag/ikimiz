@@ -1,9 +1,9 @@
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from 'expo-router';
 import { Category } from '@/src/types';
 import { getCategoryRoute } from '@/src/constants/categories';
-import { auroraCategoryIcons } from '@/src/constants/auroraAssets';
-import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
+import { colors, fontSize, spacing } from '@/src/constants/theme';
 
 interface CategoryTileProps {
   category: Category;
@@ -12,7 +12,6 @@ interface CategoryTileProps {
 
 export function CategoryTile({ category, width }: CategoryTileProps) {
   const router = useRouter();
-  const icon = auroraCategoryIcons[category.slug] ?? auroraCategoryIcons.takvim;
   return (
     <Pressable
       onPress={() => router.push(getCategoryRoute(category.slug))}
@@ -20,54 +19,40 @@ export function CategoryTile({ category, width }: CategoryTileProps) {
       accessibilityLabel={category.title}
       style={({ pressed }) => [styles.tile, { width }, pressed && styles.pressed]}
     >
-      <View style={styles.surface}>
-        <View style={styles.copy}>
-          <View style={styles.iconFrame}>
-            <Image source={icon} style={styles.iconImage} resizeMode="contain" />
-          </View>
-          <Text style={styles.title} numberOfLines={2}>
-            {category.title}
-          </Text>
-        </View>
+      <View style={styles.iconCircle}>
+        <Feather name={category.icon as keyof typeof Feather.glyphMap} size={25} color={colors.copper} />
       </View>
+      <Text style={styles.title} numberOfLines={3}>
+        {category.title}
+      </Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  tile: { padding: spacing.xs, alignItems: 'center' },
-  surface: {
-    width: '100%',
-    maxWidth: 136,
-    aspectRatio: 1,
-    padding: spacing.sm,
-    flexDirection: 'column',
+  tile: {
+    minHeight: 88,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.xs,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     gap: spacing.xs,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
   },
-  copy: { width: '100%', alignItems: 'center', gap: spacing.xs },
-  iconFrame: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+  iconCircle: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.accentLight,
   },
-  iconImage: { width: 25, height: 25 },
   title: {
-    minHeight: 28,
     maxWidth: '100%',
     fontSize: fontSize.xs,
-    lineHeight: 14,
+    lineHeight: 13,
     fontWeight: '600',
     color: colors.text,
     textAlign: 'center',
   },
-  pressed: { opacity: 0.85, transform: [{ scale: 0.985 }] },
+  pressed: { opacity: 0.72, transform: [{ scale: 0.96 }] },
 });
