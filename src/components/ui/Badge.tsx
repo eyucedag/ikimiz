@@ -7,7 +7,7 @@ const tones: Record<Tone, { bg: string; fg: string }> = {
   accent: { bg: colors.accentLight, fg: colors.accent },
   earth: { bg: colors.beige, fg: colors.earth2 },
   neutral: { bg: colors.beige, fg: colors.textSecondary },
-  danger: { bg: '#F6E0DD', fg: colors.error },
+  danger: { bg: `${colors.error}24`, fg: colors.error },
 };
 
 export function Badge({

@@ -19,8 +19,8 @@ export function CategoryTile({ category, width }: CategoryTileProps) {
       accessibilityLabel={category.title}
       style={({ pressed }) => [styles.tile, { width }, pressed && styles.pressed]}
     >
-      <View style={styles.iconCircle}>
-        <Feather name={category.icon as keyof typeof Feather.glyphMap} size={25} color={colors.copper} />
+      <View style={[styles.iconCircle, { backgroundColor: category.tint }]}>
+        <Feather name={category.icon as keyof typeof Feather.glyphMap} size={25} color={category.color} />
       </View>
       <Text style={styles.title} numberOfLines={3}>
         {category.title}
@@ -44,7 +44,6 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.accentLight,
   },
   title: {
     maxWidth: '100%',

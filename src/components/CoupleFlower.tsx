@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.background,
   },
-  plantOptionSelected: { borderColor: colors.copper, backgroundColor: '#F6E9D7' },
+  plantOptionSelected: { borderColor: colors.copper, backgroundColor: colors.cream },
   actionList: { gap: 9 },
   menuAction: {
     minHeight: 50,

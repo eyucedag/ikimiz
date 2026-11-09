@@ -1,7 +1,7 @@
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { CategoryTile } from '@/src/components/CategoryTile';
 import { Screen } from '@/src/components/ui';
-import { categories } from '@/src/constants/categories';
+import { categories, getCategoryColor } from '@/src/constants/categories';
 import { colors, fontSize, spacing } from '@/src/constants/theme';
 import { Category } from '@/src/types';
 
@@ -10,8 +10,7 @@ const moodCategory: Category = {
   slug: 'ruh-halim',
   title: 'Ruh Halim',
   icon: 'heart',
-  color: '#AD633F',
-  tint: '#F2E7DB',
+  ...getCategoryColor('ruh-halim'),
   description: 'Bugünkü ruh halinizi paylaşın ve geçmişi görün.',
 };
 export default function CategoriesTabScreen() {
@@ -24,7 +23,9 @@ export default function CategoriesTabScreen() {
   return (
     <Screen inTabs>
       <View style={styles.content}>
-        <Text style={styles.heading} accessibilityRole="header">Kategoriler</Text>
+        <Text style={styles.heading} accessibilityRole="header">
+          Kategoriler
+        </Text>
         <View style={[styles.grid, { minHeight: gridMinHeight }]}>
           {fullCategoryList.map((category) => (
             <CategoryTile

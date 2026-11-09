@@ -98,7 +98,11 @@ export function MoodSummaryCard({
             { backgroundColor: overlay ? 'transparent' : categoryColor.tint },
           ]}
         >
-          <Feather name="heart" size={compact ? 15 : 19} color={overlay ? '#F6E9D7' : categoryColor.color} />
+          <Feather
+            name="heart"
+            size={compact ? 15 : 19}
+            color={overlay ? colors.cream : categoryColor.color}
+          />
         </View>
         <View style={styles.flex}>
           <Text style={[styles.title, overlay && styles.overlayText]} accessibilityRole="header">
@@ -109,7 +113,7 @@ export function MoodSummaryCard({
 
       {loading && !today && !partnerToday ? (
         <View style={styles.loading} accessibilityLiveRegion="polite">
-          <ActivityIndicator color={overlay ? '#F6E9D7' : categoryColor.color} />
+          <ActivityIndicator color={overlay ? colors.cream : categoryColor.color} />
           <Text style={[styles.muted, overlay && styles.overlayMutedText]}>Ruh halleri yükleniyor…</Text>
         </View>
       ) : paired ? (
@@ -237,13 +241,13 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   overlayText: {
-    color: '#F6E9D7',
+    color: colors.cream,
     textShadowColor: 'rgba(8,45,37,0.9)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },
   overlayMutedText: {
-    color: 'rgba(246,233,215,0.88)',
+    color: 'rgba(242,231,213,0.88)',
     textShadowColor: 'rgba(8,45,37,0.95)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,

@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
   input: {
     minHeight: 48,
     borderWidth: 1,
-    borderColor: '#E7DDD7',
+    borderColor: colors.border,
     borderRadius: radius.control,
     backgroundColor: colors.card,
     paddingHorizontal: spacing.lg,

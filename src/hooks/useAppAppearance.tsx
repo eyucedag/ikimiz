@@ -21,9 +21,22 @@ const legacyBackgroundColors = [
   '#EEF2F7',
   '#F3EEF6',
 ];
-const previousAuroraBackgroundColors = ['#082D25', '#0E352B', '#123A30', '#173D32', '#1B382F', '#103833'];
+const previousAuroraBackgroundColors = [
+  '#082D25',
+  '#0E352B',
+  '#123A30',
+  '#173D32',
+  '#1B382F',
+  '#103833',
+  '#F3F0E8',
+  '#E9EEE7',
+  '#F5EDE3',
+  '#E8EEEB',
+  '#F1E8E9',
+  '#E9EDF2',
+];
 const previousNeutralBackgroundColors = ['#292F2C', '#303633', '#363C38', '#3A3935', '#343A3B', '#363A35'];
-const neutralSurface = 'rgba(255,252,245,0.96)';
+const neutralSurface = colors.card;
 interface AppearanceValue {
   backgroundColor: string;
   surfaceColor: string;
