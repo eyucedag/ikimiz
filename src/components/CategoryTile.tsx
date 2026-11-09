@@ -31,7 +31,7 @@ export function CategoryTile({ category, width }: CategoryTileProps) {
 
 const styles = StyleSheet.create({
   tile: {
-    minHeight: 88,
+    minHeight: 108,
     paddingHorizontal: spacing.xs,
     paddingVertical: spacing.xs,
     alignItems: 'center',
@@ -39,9 +39,9 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   iconCircle: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.accentLight,
