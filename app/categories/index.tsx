@@ -19,7 +19,7 @@ export default function CategoriesScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const couple = useCouple();
-  const columns = width >= 900 ? 4 : width >= 600 ? 3 : 2;
+  const columns = width >= 1100 ? 6 : width >= 800 ? 5 : width >= 600 ? 4 : 3;
   const tablet = Math.min(width, height) >= 600;
   const landscapeTablet = tablet && width > height;
   const contentMaxWidth = landscapeTablet ? 1120 : tablet ? 900 : 600;
@@ -62,6 +62,7 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'center',
     marginHorizontal: -spacing.xs,
     marginBottom: spacing.md,
   },

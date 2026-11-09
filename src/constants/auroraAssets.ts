@@ -22,6 +22,27 @@ export const auroraIcons = {
   kiss: require('../../assets/aurora/icons/opucuk.png'),
 } as const;
 
+/** Shared category-to-app-icon map keeps the home and category grids identical. */
+export const auroraCategoryIcons: Record<string, ImageSourcePropType> = {
+  takvim: auroraIcons.calendar,
+  'ozel-gunler': auroraIcons.specialDates,
+  listeler: auroraIcons.lists,
+  notlar: auroraIcons.notebook,
+  'onemli-belgeler': auroraIcons.documents,
+  galeri: auroraIcons.gallery,
+  'sesli-anilar': auroraIcons.audioMemories,
+  gorevler: auroraIcons.tasks,
+  'ekrana-not': auroraIcons.notebook,
+  'gunun-sarkisi': auroraIcons.today,
+  'hediye-radari': auroraIcons.giftRadar,
+  'bilinmesi-gerekenler': auroraIcons.importantFacts,
+  opucuk: auroraIcons.kiss,
+  'gezilen-yerler': auroraIcons.places,
+  'birlikte-adimlar': auroraIcons.steps,
+  'ruh-halim': auroraIcons.today,
+  yaklasanlar: auroraIcons.calendar,
+};
+
 export const auroraCategoryIllustrations: Record<string, ImageSourcePropType> = {
   takvim: require('../../assets/aurora/illustrations/takvim.png'),
   'ozel-gunler': require('../../assets/aurora/illustrations/ozel_gunler.png'),

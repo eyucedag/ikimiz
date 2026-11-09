@@ -27,7 +27,7 @@ import { MoodSummaryCard } from '@/src/components/MoodSummaryCard';
 import { DynamicSky } from '@/src/components/DynamicSky';
 import { CoupleFlower } from '@/src/components/CoupleFlower';
 import { categories, getCategoryColor, getCategoryRoute } from '@/src/constants/categories';
-import { auroraIcons } from '@/src/constants/auroraAssets';
+import { auroraCategoryIcons } from '@/src/constants/auroraAssets';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useAppState } from '@/src/hooks/useAppState';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -116,23 +116,6 @@ const DEFAULT_HOME_CATEGORY_ORDER = [
     (category) => !['gunun-sarkisi', 'ekrana-not', 'ruh-halim'].includes(category.slug),
   ).map((category) => category.slug),
 ];
-const HOME_CATEGORY_ICONS: Record<string, typeof auroraIcons.calendar> = {
-  takvim: auroraIcons.calendar,
-  'ozel-gunler': auroraIcons.specialDates,
-  listeler: auroraIcons.lists,
-  notlar: auroraIcons.notebook,
-  'onemli-belgeler': auroraIcons.documents,
-  galeri: auroraIcons.gallery,
-  'sesli-anilar': auroraIcons.audioMemories,
-  gorevler: auroraIcons.tasks,
-  'hediye-radari': auroraIcons.giftRadar,
-  'bilinmesi-gerekenler': auroraIcons.importantFacts,
-  'gezilen-yerler': auroraIcons.places,
-  'birlikte-adimlar': auroraIcons.steps,
-  'ekrana-not': auroraIcons.notebook,
-  yaklasanlar: auroraIcons.calendar,
-};
-
 export default function TodayScreen() {
   const noteColor = getCategoryColor('ekrana-not');
   const calendarColor = getCategoryColor('takvim');
@@ -635,7 +618,7 @@ export default function TodayScreen() {
         <View style={styles.richCategoryHeader}>
           <View style={[styles.homeCategoryIcon, { backgroundColor: categoryTone.tint }]}>
             <Image
-              source={HOME_CATEGORY_ICONS[category.slug] ?? auroraIcons.calendar}
+              source={auroraCategoryIcons[category.slug] ?? auroraCategoryIcons.takvim}
               style={styles.homeCategoryIconImage}
               resizeMode="contain"
               tintColor={categoryTone.color}
