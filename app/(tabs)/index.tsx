@@ -361,10 +361,15 @@ export default function TodayScreen() {
   const renderCategoryPreview = (category: Category, toneColor: string) => {
     const labelStyle = [styles.previewMainText, { color: toneColor }];
     const detailStyle = styles.previewDetailText;
-    const empty = (message: string) => (
-      <Text numberOfLines={2} style={styles.homeCategoryDescription}>
-        {message}
-      </Text>
+    const empty = (message: string, icon: keyof typeof Feather.glyphMap = 'heart') => (
+      <View style={styles.previewWidget}>
+        <View style={[styles.previewBadge, { backgroundColor: colors.card }]}>
+          <Feather name={icon} size={20} color={toneColor} />
+        </View>
+        <Text numberOfLines={2} style={[styles.homeCategoryDescription, styles.previewEmptyCopy]}>
+          {message}
+        </Text>
+      </View>
     );
     switch (category.slug) {
       case 'galeri':
@@ -380,21 +385,37 @@ export default function TodayScreen() {
             ))}
           </View>
         ) : (
-          empty('İlk ortak fotoğrafınızı ekleyin.')
+          empty('İlk ortak fotoğrafınızı ekleyin.', 'image')
         );
       case 'listeler': {
         const list = homePreviews.lists[0];
         return list ? (
-          <View style={styles.previewCopy}>
-            <Text style={labelStyle} numberOfLines={1}>
-              {list.title}
-            </Text>
-            <Text style={detailStyle}>
-              {list.checkedCount}/{list.itemCount} madde tamamlandı · {homePreviews.lists.length} liste
-            </Text>
+          <View style={styles.previewWidget}>
+            <View style={[styles.previewBadge, { backgroundColor: colors.card }]}>
+              <Feather name="check-square" size={20} color={toneColor} />
+            </View>
+            <View style={styles.previewCopy}>
+              <Text style={labelStyle} numberOfLines={1}>
+                {list.title}
+              </Text>
+              <Text style={detailStyle}>
+                {list.checkedCount}/{list.itemCount} madde tamamlandı · {homePreviews.lists.length} liste
+              </Text>
+              <View style={styles.progressTrack}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    {
+                      backgroundColor: toneColor,
+                      width: `${list.itemCount ? Math.min(100, (list.checkedCount / list.itemCount) * 100) : 0}%`,
+                    },
+                  ]}
+                />
+              </View>
+            </View>
           </View>
         ) : (
-          empty('Birlikte kullanacağınız ilk listeyi oluşturun.')
+          empty('Birlikte kullanacağınız ilk listeyi oluşturun.', 'check-square')
         );
       }
       case 'notlar': {
@@ -409,110 +430,159 @@ export default function TodayScreen() {
             </Text>
           </View>
         ) : (
-          empty('Önemli bilgilerinizi ortak not defterinize ekleyin.')
+          empty('Önemli bilgilerinizi ortak not defterinize ekleyin.', 'book-open')
         );
       }
       case 'onemli-belgeler': {
         const file = homePreviews.documents[0];
         const link = homePreviews.links[0];
         return file || link ? (
-          <View style={styles.previewCopy}>
-            <Text style={labelStyle} numberOfLines={1}>
-              {file?.displayName ?? link?.displayName}
-            </Text>
-            <Text style={detailStyle}>Son eklenen ortak doküman veya bağlantı</Text>
+          <View style={styles.previewWidget}>
+            <View style={[styles.previewBadge, { backgroundColor: colors.card }]}>
+              <Feather name={file ? 'file-text' : 'link'} size={20} color={toneColor} />
+            </View>
+            <View style={styles.previewCopy}>
+              <Text style={labelStyle} numberOfLines={1}>
+                {file?.displayName ?? link?.displayName}
+              </Text>
+              <Text style={detailStyle}>
+                {file ? 'En son eklenen ortak dosya' : 'Kaydedilmiş ortak bağlantı'}
+              </Text>
+            </View>
           </View>
         ) : (
-          empty('Dosya veya bağlantılarınızı burada saklayın.')
+          empty('Dosya veya bağlantılarınızı burada saklayın.', 'file-text')
         );
       }
       case 'sesli-anilar': {
         const memory = homePreviews.audio[0];
         return memory ? (
-          <View style={styles.previewCopy}>
-            <Text style={labelStyle} numberOfLines={1}>
-              {memory.title || 'Sesli anı'}
-            </Text>
-            <Text style={detailStyle}>
-              {Math.floor(memory.durationSeconds / 60)} dk {memory.durationSeconds % 60} sn · Son ses kaydı
-            </Text>
+          <View style={styles.previewWidget}>
+            <Pressable
+              onPress={() => void Linking.openURL(memory.audioUrl)}
+              accessibilityRole="button"
+              accessibilityLabel={`${memory.title || 'Sesli anı'} kaydını aç`}
+              style={[styles.previewBadge, { backgroundColor: colors.card }]}
+            >
+              <Feather name="play" size={18} color={toneColor} />
+            </Pressable>
+            <View style={styles.previewCopy}>
+              <Text style={labelStyle} numberOfLines={1}>
+                {memory.title || 'Sesli anı'}
+              </Text>
+              <View style={styles.waveform} accessibilityLabel="Ses kaydı dalga görünümü">
+                {[12, 19, 10, 24, 15, 21, 9, 17, 12, 22, 14, 18, 10, 16].map((height, index) => (
+                  <View key={index} style={[styles.waveBar, { height, backgroundColor: toneColor }]} />
+                ))}
+                <Text style={detailStyle}>
+                  {Math.floor(memory.durationSeconds / 60)}:
+                  {String(memory.durationSeconds % 60).padStart(2, '0')} · Son kayıt
+                </Text>
+              </View>
+            </View>
           </View>
         ) : (
-          empty('Birbirinize ilk sesli anınızı bırakın.')
+          empty('Birbirinize ilk sesli anınızı bırakın.', 'mic')
         );
       }
       case 'gorevler': {
         const task = homePreviews.tasks.find((item) => !item.completed_at);
         return task ? (
-          <View style={styles.previewCopy}>
-            <Text style={labelStyle} numberOfLines={1}>
-              □ {task.title}
-            </Text>
-            <Text style={detailStyle}>
-              {homePreviews.tasks.filter((item) => !item.completed_at).length} bekleyen görev
-            </Text>
+          <View style={styles.previewWidget}>
+            <View style={[styles.taskCheck, { borderColor: toneColor }]}>
+              <Feather name="check" size={14} color={colors.card} />
+            </View>
+            <View style={styles.previewCopy}>
+              <Text style={labelStyle} numberOfLines={1}>
+                {task.title}
+              </Text>
+              <Text style={detailStyle}>
+                {homePreviews.tasks.filter((item) => !item.completed_at).length} bekleyen görev
+              </Text>
+            </View>
           </View>
         ) : (
           empty(
             homePreviews.tasks.length
               ? 'Bütün görevler tamamlandı. Harikasınız!'
               : 'Birlikte tamamlayacağınız ilk işi ekleyin.',
+            'check-circle',
           )
         );
       }
       case 'hediye-radari': {
         const gift = homePreviews.gifts[0];
         return gift ? (
-          <View style={styles.previewCopy}>
-            <Text style={labelStyle} numberOfLines={1}>
-              {gift.title}
-            </Text>
-            <Text style={detailStyle}>
-              {homePreviews.gifts.length} gizli hediye fikri
-              {gift.price ? ` · ${gift.price.toLocaleString('tr-TR')} ₺` : ''}
-            </Text>
+          <View style={styles.previewWidget}>
+            <View style={[styles.previewBadge, { backgroundColor: colors.card }]}>
+              <Feather name="gift" size={20} color={toneColor} />
+            </View>
+            <View style={styles.previewCopy}>
+              <Text style={labelStyle} numberOfLines={1}>
+                {gift.title}
+              </Text>
+              <Text style={detailStyle}>
+                {homePreviews.gifts.length} gizli hediye fikri
+                {gift.price ? ` · ${gift.price.toLocaleString('tr-TR')} ₺` : ''}
+              </Text>
+            </View>
           </View>
         ) : (
-          empty('Aklınıza gelen hediye fikirlerini kaydedin.')
+          empty('Aklınıza gelen hediye fikirlerini kaydedin.', 'gift')
         );
       }
       case 'bilinmesi-gerekenler': {
         const fact = homePreviews.facts[0];
         return fact ? (
-          <View style={styles.previewCopy}>
-            <Text style={labelStyle} numberOfLines={1}>
-              {fact.label}
-            </Text>
-            <Text style={detailStyle} numberOfLines={2}>
-              {fact.value || `${homePreviews.facts.length} önemli bilgi kayıtlı`}
-            </Text>
+          <View style={styles.previewWidget}>
+            <View style={[styles.previewBadge, { backgroundColor: colors.card }]}>
+              <Feather name="heart" size={20} color={toneColor} />
+            </View>
+            <View style={styles.previewCopy}>
+              <Text style={labelStyle} numberOfLines={1}>
+                {fact.label}
+              </Text>
+              <Text style={detailStyle} numberOfLines={2}>
+                {fact.value || `${homePreviews.facts.length} önemli bilgi kayıtlı`}
+              </Text>
+            </View>
           </View>
         ) : (
-          empty('Birbiriniz için önemli bilgileri kaydedin.')
+          empty('Birbiriniz için önemli bilgileri kaydedin.', 'heart')
         );
       }
       case 'gezilen-yerler': {
         const place = homePreviews.places[0];
         return place ? (
-          <View style={styles.previewCopy}>
-            <Text style={labelStyle} numberOfLines={1}>
-              {place.city}, {place.country}
-            </Text>
-            <Text style={detailStyle}>{homePreviews.places.length} birlikte keşfedilen yer</Text>
+          <View style={styles.previewWidget}>
+            <View style={[styles.placeBadge, { backgroundColor: colors.card }]}>
+              <Feather name="map-pin" size={20} color={toneColor} />
+            </View>
+            <View style={styles.previewCopy}>
+              <Text style={labelStyle} numberOfLines={1}>
+                {place.city}, {place.country}
+              </Text>
+              <Text style={detailStyle}>{homePreviews.places.length} birlikte keşfedilen yer</Text>
+            </View>
           </View>
         ) : (
-          empty('Birlikte gittiğiniz ilk yeri haritaya ekleyin.')
+          empty('Birlikte gittiğiniz ilk yeri haritaya ekleyin.', 'map-pin')
         );
       }
       case 'birlikte-adimlar': {
         const total = homePreviews.steps.reduce((sum, row) => sum + row.steps, 0);
         return homePreviews.steps.length ? (
-          <View style={styles.previewCopy}>
-            <Text style={labelStyle}>{total.toLocaleString('tr-TR')} adım</Text>
-            <Text style={detailStyle}>Bugün birlikte atılan adımlar</Text>
+          <View style={styles.previewWidget}>
+            <View style={[styles.previewBadge, { backgroundColor: colors.card }]}>
+              <Feather name="activity" size={20} color={toneColor} />
+            </View>
+            <View style={styles.previewCopy}>
+              <Text style={labelStyle}>{total.toLocaleString('tr-TR')} adım</Text>
+              <Text style={detailStyle}>Bugün birlikte atılan adımlar</Text>
+            </View>
           </View>
         ) : (
-          empty('Bugünkü ortak adımlarınız burada görünür.')
+          empty('Bugünkü ortak adımlarınız burada görünür.', 'activity')
         );
       }
       case 'takvim':
@@ -528,7 +598,7 @@ export default function TodayScreen() {
             <Text style={detailStyle}>{nextItem.subtitle}</Text>
           </View>
         ) : (
-          empty('Henüz yaklaşan plan yok. Yeni etkinliklerinizi burada göreceksiniz.')
+          empty('Henüz yaklaşan plan yok. Yeni etkinliklerinizi burada göreceksiniz.', 'calendar')
         );
       }
       case 'ozel-gunler': {
@@ -541,7 +611,7 @@ export default function TodayScreen() {
             <Text style={detailStyle}>{nextSpecial.subtitle}</Text>
           </View>
         ) : (
-          empty('Size özel tarihleri birlikte biriktirin.')
+          empty('Size özel tarihleri birlikte biriktirin.', 'gift')
         );
       }
       default:
@@ -574,16 +644,9 @@ export default function TodayScreen() {
           <Text numberOfLines={1} style={styles.homeCategoryTitle}>
             {category.title}
           </Text>
-          <View style={[styles.homeCategoryArrow, { backgroundColor: categoryTone.tint }]}>
-            <Feather name="chevron-right" size={16} color={categoryTone.color} />
-          </View>
         </View>
         <View style={[styles.richCategoryPreview, { backgroundColor: categoryTone.tint }]}>
           {renderCategoryPreview(category, categoryTone.color)}
-        </View>
-        <View style={[styles.richCategoryAction, { backgroundColor: categoryTone.color }]}>
-          <Feather name="arrow-right" size={16} color={colors.cream} />
-          <Text style={styles.richCategoryActionText}>Bölümü aç</Text>
         </View>
       </Card>
     );
@@ -1511,9 +1574,53 @@ const styles = StyleSheet.create({
     borderRadius: radius.control,
     overflow: 'hidden',
   },
+  previewWidget: {
+    width: '100%',
+    minHeight: 60,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  previewBadge: {
+    width: 42,
+    height: 42,
+    flexShrink: 0,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   previewCopy: { flex: 1, minWidth: 0, justifyContent: 'center', gap: 4 },
+  previewEmptyCopy: { flex: 1, minWidth: 0, marginTop: 0 },
   previewMainText: { fontSize: fontSize.md, fontWeight: '700' },
   previewDetailText: { color: colors.textSecondary, fontSize: fontSize.xs, lineHeight: 16 },
+  progressTrack: {
+    height: 5,
+    marginTop: spacing.xs,
+    overflow: 'hidden',
+    borderRadius: 3,
+    backgroundColor: colors.card,
+  },
+  progressFill: { height: '100%', borderRadius: 3 },
+  waveform: { flexDirection: 'row', alignItems: 'center', gap: 2, marginTop: 3 },
+  waveBar: { width: 3, borderRadius: 2 },
+  taskCheck: {
+    width: 24,
+    height: 24,
+    flexShrink: 0,
+    borderRadius: 7,
+    borderWidth: 1.5,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placeBadge: {
+    width: 42,
+    height: 42,
+    flexShrink: 0,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   galleryPreviewStrip: { flex: 1, flexDirection: 'row', gap: spacing.xs, justifyContent: 'flex-start' },
   galleryPreviewPhoto: {
     width: 58,
@@ -1522,16 +1629,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.card,
   },
-  richCategoryAction: {
-    minHeight: 38,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    marginTop: spacing.sm,
-    borderRadius: radius.control,
-  },
-  richCategoryActionText: { color: colors.cream, fontSize: fontSize.sm, fontWeight: '700' },
   homeCategoryIcon: {
     width: 42,
     height: 42,
@@ -1543,11 +1640,4 @@ const styles = StyleSheet.create({
   homeCategoryIconImage: { width: 28, height: 28 },
   homeCategoryTitle: { flex: 1, color: colors.text, fontSize: fontSize.md, fontWeight: '600' },
   homeCategoryDescription: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 3 },
-  homeCategoryArrow: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
 });
