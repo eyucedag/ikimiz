@@ -147,7 +147,8 @@ export default function TodayScreen() {
   const tabletLayout = Math.min(width, height) >= 600;
   const landscapeTablet = tabletLayout && width > height;
   const portraitTablet = tabletLayout && !landscapeTablet;
-  const homeContentMaxWidth = landscapeTablet ? 1120 : portraitTablet ? 820 : 900;
+  const twoColumnHome = tabletLayout && width >= 700;
+  const homeContentMaxWidth = landscapeTablet ? 1080 : portraitTablet ? 820 : 900;
   const [refreshing, setRefreshing] = useState(false);
   const [homeLayoutVisible, setHomeLayoutVisible] = useState(false);
   const [homeCategoryOrder, setHomeCategoryOrder] = useState<string[]>(DEFAULT_HOME_CATEGORY_ORDER);
@@ -941,7 +942,7 @@ export default function TodayScreen() {
 
   const listHeader = (
     <View
-      style={[styles.responsiveContent, { maxWidth: landscapeTablet ? 1080 : portraitTablet ? 790 : 650 }]}
+      style={[styles.responsiveContent, { maxWidth: landscapeTablet ? 1040 : portraitTablet ? 790 : 650 }]}
     >
       <View style={styles.homeTopBar}>
         <View style={styles.homeTopTitleGroup}>
@@ -1069,14 +1070,16 @@ export default function TodayScreen() {
   return (
     <Screen inTabs scroll={false} contentMaxWidth={homeContentMaxWidth}>
       <FlatList
-        key={landscapeTablet ? 'home-tablet-landscape' : 'home-single-column'}
+        key={
+          twoColumnHome ? `home-tablet-${landscapeTablet ? 'landscape' : 'portrait'}` : 'home-single-column'
+        }
         style={styles.homeList}
-        numColumns={landscapeTablet ? 2 : 1}
-        columnWrapperStyle={landscapeTablet ? styles.landscapeCategoryRow : undefined}
+        numColumns={twoColumnHome ? 2 : 1}
+        columnWrapperStyle={twoColumnHome ? styles.tabletCategoryRow : undefined}
         data={homeCategoryOrder.filter((slug) => !hiddenHomeCategories.includes(slug))}
         keyExtractor={(slug) => slug}
         renderItem={({ item: slug }) => (
-          <View style={[styles.homeCardItem, landscapeTablet && styles.landscapeHomeItem]}>
+          <View style={[styles.homeCardItem, twoColumnHome && styles.tabletHomeItem]}>
             {renderCategorySlug(slug)}
           </View>
         )}
@@ -1290,8 +1293,8 @@ const styles = StyleSheet.create({
   homeList: { width: '100%', flex: 1 },
   homeListContent: { width: '100%', paddingBottom: spacing.xxxl },
   homeCardItem: { width: '100%', alignSelf: 'stretch' },
-  landscapeCategoryRow: { alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.md },
-  landscapeHomeItem: { width: '48.5%', alignSelf: 'auto' },
+  tabletCategoryRow: { alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.md },
+  tabletHomeItem: { width: '48.5%', alignSelf: 'auto' },
   layoutBackdrop: {
     flex: 1,
     justifyContent: 'flex-end',
