@@ -25,6 +25,7 @@ jest.mock('@/src/services/presenceService', () => ({
 }));
 jest.mock('expo-location', () => ({
   Accuracy: { Balanced: 3 },
+  hasServicesEnabledAsync: jest.fn(),
   requestForegroundPermissionsAsync: jest.fn(),
   watchPositionAsync: jest.fn(),
   watchHeadingAsync: jest.fn(),
@@ -75,6 +76,7 @@ beforeEach(() => {
   jest
     .mocked(Location.requestForegroundPermissionsAsync)
     .mockResolvedValue({ granted: true } as Location.LocationPermissionResponse);
+  jest.mocked(Location.hasServicesEnabledAsync).mockResolvedValue(true);
   jest.mocked(Location.watchPositionAsync).mockImplementation(async (_options, callback) => {
     positionCallback = callback;
     return { remove: removePosition };
@@ -108,6 +110,18 @@ test('location is requested only by the direction control and stop clears the sh
   expect(presenceService.clearLocation).toHaveBeenCalledWith('me', 'couple');
   expect(removePosition).toHaveBeenCalledTimes(1);
   expect(removeHeading).toHaveBeenCalledTimes(1);
+  await view.unmount();
+});
+
+test('a granted permission with Android location services disabled shows a useful error and stays off', async () => {
+  jest.mocked(Location.hasServicesEnabledAsync).mockResolvedValue(false);
+  const view = await renderHook(useCouplePresence, { wrapper });
+  await act(async () => {
+    await view.result.current.start();
+  });
+  expect(view.result.current.sharing).toBe(false);
+  expect(view.result.current.error).toBe('Telefonun konum servisini açıp yeniden deneyin.');
+  expect(Location.watchPositionAsync).not.toHaveBeenCalled();
   await view.unmount();
 });
 

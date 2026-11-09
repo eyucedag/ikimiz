@@ -77,3 +77,22 @@ test('a temporary network error retains the valid partner instead of pretending 
   expect(view.result.current.error).toBeNull();
   await view.unmount();
 });
+
+test('foreground refresh keeps the existing signed couple photo URL stable', async () => {
+  const withPhoto: CoupleState = {
+    ...state,
+    couple: { ...state.couple!, photoPath: 'couple/photo', photoUrl: 'https://storage/photo?token=first' },
+  };
+  jest.mocked(coupleService.getState).mockResolvedValue(withPhoto);
+  const view = await renderHook(useCouple, { wrapper });
+  expect(view.result.current.couple?.photoUrl).toBe('https://storage/photo?token=first');
+  jest.mocked(coupleService.getState).mockResolvedValueOnce({
+    ...withPhoto,
+    couple: { ...withPhoto.couple!, photoUrl: 'https://storage/photo?token=second' },
+  });
+  await act(async () => {
+    await view.result.current.refresh();
+  });
+  expect(view.result.current.couple?.photoUrl).toBe('https://storage/photo?token=first');
+  await view.unmount();
+});

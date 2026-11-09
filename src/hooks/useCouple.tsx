@@ -6,6 +6,7 @@ import { supabase } from '@/src/lib/supabase';
 import { useAuth } from './useAuth';
 
 const EMPTY: CoupleState = { couple: null, partner: null, pendingInvitation: null };
+const PHOTO_URL_CACHE_MS = 6 * 24 * 60 * 60 * 1000;
 interface CoupleValue extends CoupleState {
   loading: boolean;
   error: string | null;
@@ -29,6 +30,7 @@ export function CoupleProvider({ children }: { children: React.ReactNode }) {
   const mounted = useRef(true);
   const pending = useRef<Promise<CoupleState> | null>(null);
   const snapshot = useRef(state);
+  const photoUrlCache = useRef<{ path: string; url: string; expiresAt: number } | null>(null);
   snapshot.current = state;
 
   const refresh = useCallback((): Promise<CoupleState> => {
@@ -38,6 +40,22 @@ export function CoupleProvider({ children }: { children: React.ReactNode }) {
       .getState(userId)
       .then((next) => {
         if (mounted.current) {
+          const path = next.couple?.photoPath;
+          const cached = photoUrlCache.current;
+          let reusedPhotoUrl = false;
+          if (!path) {
+            photoUrlCache.current = null;
+          } else if (cached?.path === path && cached.expiresAt > Date.now()) {
+            next = { ...next, couple: { ...next.couple!, photoUrl: cached.url } };
+            reusedPhotoUrl = true;
+          }
+          if (next.couple?.photoPath && next.couple.photoUrl && !reusedPhotoUrl) {
+            photoUrlCache.current = {
+              path: next.couple.photoPath,
+              url: next.couple.photoUrl,
+              expiresAt: Date.now() + PHOTO_URL_CACHE_MS,
+            };
+          }
           setState(next);
           setError(null);
         }

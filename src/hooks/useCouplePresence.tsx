@@ -98,35 +98,44 @@ export function CouplePresenceProvider({ children }: { children: React.ReactNode
       try {
         const permission = await Location.requestForegroundPermissionsAsync();
         if (!alive.current || locationGeneration.current !== generation) return;
-        if (!permission.granted) throw new Error('Konum izni gerekli.');
+        if (!permission.granted) {
+          throw new Error(
+            permission.canAskAgain
+              ? 'Konum izni verilmedi. Yeniden deneyin.'
+              : 'İkimiz için konum iznini Android Ayarları’ndan açın.',
+          );
+        }
         if (!active.current) {
           await new Promise<void>((resolve) => {
             activeWaiter.current = resolve;
           });
         }
+        if (!current()) return;
+        if (!(await Location.hasServicesEnabledAsync())) {
+          throw new Error('Telefonun konum servisini açıp yeniden deneyin.');
+        }
+        const watcher = await Location.watchPositionAsync(
+          { accuracy: Location.Accuracy.Balanced, timeInterval: 10_000, distanceInterval: 25 },
+          (position) => {
+            if (!current()) return;
+            latestPosition.current = position;
+            publish();
+          },
+          () => {
+            if (current()) {
+              latestPosition.current = null;
+              setError('Konum alınamıyor. Konum servislerini kontrol edin.');
+            }
+          },
+        );
+        if (!current()) {
+          watcher.remove();
+          return;
+        }
+        locationWatcher.current = watcher;
       } finally {
         permissionRequesting.current = false;
       }
-      if (!current()) return;
-      const watcher = await Location.watchPositionAsync(
-        { accuracy: Location.Accuracy.Balanced, timeInterval: 10_000, distanceInterval: 25 },
-        (position) => {
-          if (!current()) return;
-          latestPosition.current = position;
-          publish();
-        },
-        () => {
-          if (current()) {
-            latestPosition.current = null;
-            setError('Konum alınamıyor. Konum servislerini kontrol edin.');
-          }
-        },
-      );
-      if (!current()) {
-        watcher.remove();
-        return;
-      }
-      locationWatcher.current = watcher;
     })().finally(() => {
       if (initializing.current === operation) initializing.current = null;
     });
