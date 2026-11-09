@@ -81,7 +81,7 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="index" options={{ title: 'Bugün', tabBarIcon: tabIcon('today') }} />
       <Tabs.Screen
-        name="search"
+        name="categories"
         options={{
           title: 'Kategoriler',
           tabBarIcon: ({ color, size }) => <Feather name="grid" size={size} color={color as string} />,
