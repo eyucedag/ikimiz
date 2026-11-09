@@ -206,6 +206,23 @@ export const documentService = {
     return data.signedUrl;
   },
 
+  async rename(documentId: string, displayName: string): Promise<void> {
+    const name = displayName.trim();
+    if (!name) throw new Error('Dosyanın görünen adını yazın.');
+    const { data, error } = await supabase
+      .from('couple_documents')
+      .update({ display_name: name })
+      .eq('id', documentId)
+      .select('id')
+      .maybeSingle();
+    if (error || !data)
+      throw new Error(
+        error?.message?.toLowerCase().includes('display_name')
+          ? 'Dosya adını düzenlemek için 20261105_shared_documents.sql güncellemesini çalıştırın.'
+          : (error?.message ?? 'Dosya adı değiştirilemedi. Yalnızca ekleyen kişi düzenleyebilir.'),
+      );
+  },
+
   async remove(document: CoupleDocument): Promise<void> {
     const { data, error } = await supabase
       .from('couple_documents')

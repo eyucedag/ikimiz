@@ -57,6 +57,15 @@ export default function DocumentsScreen() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [pendingFile, setPendingFile] = useState<{
+    uri: string;
+    name: string;
+    mimeType?: string | null;
+    size?: number | null;
+  } | null>(null);
+  const [editingDocumentId, setEditingDocumentId] = useState<string | null>(null);
+  const [editingDocumentName, setEditingDocumentName] = useState('');
+  const [savingDocumentName, setSavingDocumentName] = useState(false);
   const [linkName, setLinkName] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
   const [savingLink, setSavingLink] = useState(false);
@@ -128,6 +137,7 @@ export default function DocumentsScreen() {
       });
       setDocuments((current) => [saved, ...current.filter((entry) => entry.id !== saved.id)]);
       setDisplayName('');
+      setPendingFile(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Dosya eklenemedi.');
     } finally {
@@ -147,7 +157,8 @@ export default function DocumentsScreen() {
       });
       if (!result.canceled && result.assets[0]) {
         const file = result.assets[0];
-        await upload({ uri: file.uri, name: file.name, mimeType: file.mimeType, size: file.size });
+        setPendingFile({ uri: file.uri, name: file.name, mimeType: file.mimeType, size: file.size });
+        setDisplayName(file.name.replace(/\.[^.]+$/, '').trim());
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Dosya seçilemedi.');
@@ -165,9 +176,31 @@ export default function DocumentsScreen() {
       if (result.canceled || !result.assets[0]) return;
       const image = result.assets[0];
       const name = image.fileName || `fotoğraf.${extension(image.uri) || 'jpg'}`;
-      await upload({ uri: image.uri, name, mimeType: image.mimeType, size: image.fileSize });
+      setPendingFile({ uri: image.uri, name, mimeType: image.mimeType, size: image.fileSize });
+      setDisplayName(name.replace(/\.[^.]+$/, '').trim());
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Fotoğraf seçilemedi.');
+    }
+  };
+
+  const saveDocumentName = async (document: CoupleDocument) => {
+    const name = editingDocumentName.trim();
+    if (!name) {
+      setError('Dosyanın görünen adını yazın.');
+      return;
+    }
+    setSavingDocumentName(true);
+    setError('');
+    try {
+      await documentService.rename(document.id, name);
+      setDocuments((current) =>
+        current.map((item) => (item.id === document.id ? { ...item, displayName: name } : item)),
+      );
+      setEditingDocumentId(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Dosya adı değiştirilemedi.');
+    } finally {
+      setSavingDocumentName(false);
     }
   };
 
@@ -293,13 +326,6 @@ export default function DocumentsScreen() {
             Belgeleriniz yalnızca ikinizin erişebildiği ortak alanda saklanır. Tek dosya en fazla 25 MB
             olabilir.
           </Text>
-          <Input
-            label="Görünen ad"
-            value={displayName}
-            onChangeText={setDisplayName}
-            placeholder="…"
-            compact
-          />
           <View style={styles.actions}>
             <Button
               title="Word veya PDF ekle"
@@ -326,6 +352,41 @@ export default function DocumentsScreen() {
               style={styles.actionButton}
             />
           </View>
+          {pendingFile ? (
+            <Card style={[styles.pendingFile, { borderColor: tone.color }]}>
+              <Text style={styles.fileName} numberOfLines={1}>
+                Seçilen dosya: {pendingFile.name}
+              </Text>
+              <Input
+                label="Görünen ad"
+                value={displayName}
+                onChangeText={setDisplayName}
+                placeholder="Dosya adı"
+                compact
+              />
+              <View style={styles.pendingActions}>
+                <Button
+                  title="Vazgeç"
+                  variant="secondary"
+                  toneColor={tone.color}
+                  onPress={() => setPendingFile(null)}
+                  disabled={uploading}
+                  compact
+                />
+                <Button
+                  title="Yükle"
+                  icon="upload"
+                  toneColor={tone.color}
+                  onPress={() => {
+                    if (pendingFile) void upload(pendingFile);
+                  }}
+                  loading={uploading}
+                  disabled={uploading || !displayName.trim()}
+                  compact
+                />
+              </View>
+            </Card>
+          ) : null}
           <Card style={[styles.linkForm, { borderColor: tone.color }]}>
             <Text style={[styles.linkFormTitle, { color: tone.color }]}>Bağlantı ekle</Text>
             <Input label="Görünen ad" value={linkName} onChangeText={setLinkName} placeholder="…" compact />
@@ -431,44 +492,94 @@ export default function DocumentsScreen() {
             const docLabel = isPdf ? 'PDF' : 'DOC';
             return (
               <Card key={document.id} style={[styles.fileCard, { borderColor: tone.color }]}>
-                <Pressable
-                  onPress={() => {
-                    void open(document);
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${document.displayName} belgesini aç`}
-                  style={styles.fileRow}
-                >
-                  {isImage && document.previewUrl ? (
-                    <Image source={{ uri: document.previewUrl }} style={styles.preview} resizeMode="cover" />
-                  ) : (
-                    <View style={[styles.preview, styles.docPreview, { backgroundColor: tone.tint }]}>
-                      <Feather name={isImage ? 'image' : 'file-text'} size={18} color={tone.color} />
-                      {!isImage ? (
-                        <Text style={[styles.docLabel, { color: tone.color }]}>{docLabel}</Text>
-                      ) : null}
+                {editingDocumentId === document.id ? (
+                  <View style={styles.renameForm}>
+                    <Input
+                      label="Görünen ad"
+                      value={editingDocumentName}
+                      onChangeText={setEditingDocumentName}
+                      compact
+                    />
+                    <View style={styles.pendingActions}>
+                      <Button
+                        title="Vazgeç"
+                        variant="secondary"
+                        toneColor={tone.color}
+                        onPress={() => setEditingDocumentId(null)}
+                        disabled={savingDocumentName}
+                        compact
+                      />
+                      <Button
+                        title="Kaydet"
+                        icon="check"
+                        toneColor={tone.color}
+                        onPress={() => {
+                          void saveDocumentName(document);
+                        }}
+                        loading={savingDocumentName}
+                        disabled={savingDocumentName || !editingDocumentName.trim()}
+                        compact
+                      />
                     </View>
-                  )}
-                  <View style={styles.fileCopy}>
-                    <Text style={styles.fileName} numberOfLines={2}>
-                      {document.displayName}
-                    </Text>
-                    <Text style={styles.meta}>
-                      {sizeLabel(document.sizeBytes)} · {formatDateTime(document.createdAt)}
-                    </Text>
                   </View>
-                  <Feather name="download" size={18} color={tone.color} />
-                </Pressable>
-                {document.ownerId === user?.id ? (
+                ) : (
                   <Pressable
-                    onPress={() => remove(document)}
-                    hitSlop={10}
+                    onPress={() => {
+                      void open(document);
+                    }}
                     accessibilityRole="button"
-                    accessibilityLabel={`${document.displayName} dosyasını kaldır`}
-                    style={styles.delete}
+                    accessibilityLabel={`${document.displayName} belgesini aç`}
+                    style={styles.fileRow}
                   >
-                    <Feather name="trash-2" size={15} color={colors.error} />
+                    {isImage && document.previewUrl ? (
+                      <Image
+                        source={{ uri: document.previewUrl }}
+                        style={styles.preview}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View style={[styles.preview, styles.docPreview, { backgroundColor: tone.tint }]}>
+                        <Feather name={isImage ? 'image' : 'file-text'} size={18} color={tone.color} />
+                        {!isImage ? (
+                          <Text style={[styles.docLabel, { color: tone.color }]}>{docLabel}</Text>
+                        ) : null}
+                      </View>
+                    )}
+                    <View style={styles.fileCopy}>
+                      <Text style={styles.fileName} numberOfLines={2}>
+                        {document.displayName}
+                      </Text>
+                      <Text style={styles.meta}>
+                        {sizeLabel(document.sizeBytes)} · {formatDateTime(document.createdAt)}
+                      </Text>
+                    </View>
+                    <Feather name="download" size={18} color={tone.color} />
                   </Pressable>
+                )}
+                {document.ownerId === user?.id ? (
+                  <View style={styles.ownerActions}>
+                    <Pressable
+                      onPress={() => {
+                        setEditingDocumentId(document.id);
+                        setEditingDocumentName(document.displayName);
+                      }}
+                      hitSlop={10}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${document.displayName} adını düzenle`}
+                      style={styles.ownerAction}
+                    >
+                      <Feather name="edit-2" size={15} color={tone.color} />
+                    </Pressable>
+                    <Pressable
+                      onPress={() => remove(document)}
+                      hitSlop={10}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${document.displayName} dosyasını kaldır`}
+                      style={styles.ownerAction}
+                    >
+                      <Feather name="trash-2" size={15} color={colors.error} />
+                    </Pressable>
+                  </View>
                 ) : null}
               </Card>
             );
@@ -482,6 +593,11 @@ export default function DocumentsScreen() {
 const styles = StyleSheet.create({
   intro: { color: colors.textSecondary, fontSize: fontSize.sm, lineHeight: 20, marginBottom: spacing.md },
   actions: { gap: spacing.sm, marginBottom: spacing.md },
+  pendingFile: { borderWidth: 1, padding: spacing.md, marginBottom: spacing.md, gap: spacing.sm },
+  pendingActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm },
+  renameForm: { flex: 1, minWidth: 0 },
+  ownerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  ownerAction: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   actionButton: { width: '100%' },
   uploading: {
     flexDirection: 'row',

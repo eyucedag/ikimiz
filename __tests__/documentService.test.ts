@@ -66,3 +66,22 @@ test('PDF metadata saves on older installations without the optional display nam
   expect(result.displayName).toBe('sample.pdf');
   expect(notificationService.notifyPartner).toHaveBeenCalledTimes(1);
 });
+
+test('renaming a document updates the visible name only for its owner', async () => {
+  const builder = {} as {
+    update: jest.Mock;
+    eq: jest.Mock;
+    select: jest.Mock;
+    maybeSingle: jest.Mock;
+  };
+  builder.update = jest.fn().mockReturnValue(builder);
+  builder.eq = jest.fn().mockReturnValue(builder);
+  builder.select = jest.fn().mockReturnValue(builder);
+  builder.maybeSingle = jest.fn().mockResolvedValue({ data: { id: 'document-1' }, error: null });
+  jest.mocked(supabase.from).mockReturnValue(builder as never);
+
+  await documentService.rename('document-1', 'Kimlik belgeleri');
+
+  expect(builder.update).toHaveBeenCalledWith({ display_name: 'Kimlik belgeleri' });
+  expect(builder.eq).toHaveBeenCalledWith('id', 'document-1');
+});
