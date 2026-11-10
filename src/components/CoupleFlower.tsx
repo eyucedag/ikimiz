@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
     width: 5,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#77BDE5',
+    backgroundColor: '#71B4CF',
   },
   waterDropSecond: { left: 8, top: 27 },
   lowerBooksTap: { position: 'absolute', width: '100%', height: 58, bottom: -2, zIndex: 3 },

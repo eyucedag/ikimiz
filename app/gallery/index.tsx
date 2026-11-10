@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
   error: { color: colors.error, fontSize: fontSize.sm, marginBottom: spacing.md },
   emptyCard: { borderWidth: 1 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: spacing.sm },
-  polaroid: { padding: spacing.sm, borderWidth: 1, backgroundColor: '#FFFEFC' },
+  polaroid: { padding: spacing.sm, borderWidth: 1, backgroundColor: colors.card },
   tileImage: { width: '100%', aspectRatio: 1, backgroundColor: colors.beige },
   captionRow: {
     flexDirection: 'row',
@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     textAlignVertical: 'center',
   },
-  modalError: { color: '#FFD3D3', fontSize: fontSize.xs, marginTop: spacing.sm, textAlign: 'center' },
+  modalError: { color: colors.error, fontSize: fontSize.xs, marginTop: spacing.sm, textAlign: 'center' },
   editActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
   editCaption: {
     flexDirection: 'row',

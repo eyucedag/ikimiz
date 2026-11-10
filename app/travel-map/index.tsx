@@ -256,7 +256,7 @@ export default function TravelMapScreen() {
                 design="material"
                 title="Ziyaret tarihi"
                 positiveButton={{ label: 'Tamam', textColor: travelTone.color }}
-                negativeButton={{ label: 'Vazgeç', textColor: '#6B6763' }}
+                negativeButton={{ label: 'Vazgeç', textColor: colors.textSecondary }}
                 maximumDate={new Date()}
                 onChange={onDateChange}
               />
@@ -295,7 +295,7 @@ export default function TravelMapScreen() {
                     display="spinner"
                     locale="tr-TR"
                     themeVariant="light"
-                    textColor="#2D2D2D"
+                    textColor={colors.text}
                     accentColor={travelTone.color}
                     maximumDate={new Date()}
                     onChange={onDateChange}
@@ -363,7 +363,7 @@ export default function TravelMapScreen() {
                     variant="ghost"
                     compact
                     onPress={() => removePlace(place)}
-                    toneColor="#A64B58"
+                    toneColor={travelTone.color}
                   />
                 ) : null}
               </View>

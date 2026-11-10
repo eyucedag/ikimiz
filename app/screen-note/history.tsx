@@ -128,7 +128,10 @@ export default function NoteHistoryScreen() {
                 </Text>
                 <View style={styles.metaActions}>
                   {mine && n.readAt ? (
-                    <Text style={styles.readChecks} accessibilityLabel="Partneriniz notu gördü">
+                    <Text
+                      style={[styles.readChecks, { color: categoryColor.color }]}
+                      accessibilityLabel="Partneriniz notu gördü"
+                    >
                       ✓✓
                     </Text>
                   ) : null}
@@ -178,5 +181,5 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
   metaActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   editButton: { width: 28, height: 28 },
-  readChecks: { color: '#34B7F1', fontSize: fontSize.md, fontWeight: '800', marginTop: spacing.sm },
+  readChecks: { fontSize: fontSize.md, fontWeight: '800', marginTop: spacing.sm },
 });

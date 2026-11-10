@@ -34,6 +34,12 @@ const previousAuroraBackgroundColors = [
   '#E8EEEB',
   '#F1E8E9',
   '#E9EDF2',
+  '#F2E7D5',
+  '#B1AD80',
+  '#D8B88A',
+  '#668B87',
+  '#AD7774',
+  '#6E7591',
 ];
 const previousNeutralBackgroundColors = ['#292F2C', '#303633', '#363C38', '#3A3935', '#343A3B', '#363A35'];
 const neutralSurface = colors.card;
@@ -62,12 +68,16 @@ export function AppAppearanceProvider({ children }: { children: React.ReactNode 
         }
         const previousAuroraIndex = previousAuroraBackgroundColors.indexOf(stored);
         if (previousAuroraIndex >= 0) {
-          setBackgroundColorState(appBackgroundColors[previousAuroraIndex].color);
+          setBackgroundColorState(
+            appBackgroundColors[previousAuroraIndex % appBackgroundColors.length].color,
+          );
           return;
         }
         const previousNeutralIndex = previousNeutralBackgroundColors.indexOf(stored);
         if (previousNeutralIndex >= 0) {
-          setBackgroundColorState(appBackgroundColors[previousNeutralIndex].color);
+          setBackgroundColorState(
+            appBackgroundColors[previousNeutralIndex % appBackgroundColors.length].color,
+          );
           return;
         }
         const legacyIndex = legacyBackgroundColors.indexOf(stored);

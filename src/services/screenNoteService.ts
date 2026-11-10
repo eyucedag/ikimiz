@@ -12,7 +12,7 @@ const mapNote = (row: Record<string, unknown>): ScreenNote => ({
   receiverId: row.receiver_id == null ? null : String(row.receiver_id),
   text: String(row.text ?? ''),
   emoji: String(row.emoji ?? ''),
-  backgroundColor: String(row.background_color ?? '#D8B88A'),
+  backgroundColor: String(row.background_color ?? '#F5EDDE'),
   imageUrl: null,
   createdAt: String(row.created_at),
   readAt: row.read_at == null ? null : String(row.read_at),

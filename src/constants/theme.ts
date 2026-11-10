@@ -1,36 +1,36 @@
-/** Uygulamanın tüm ekranlarında kullanılan ortak çift palet teması. */
+/** Akdeniz: kırık beyaz zemin, Ege mavisi, mercan ve zeytin vurguları. */
 export const colors = {
-  background: '#F2E7D5',
-  card: '#F2E7D5',
-  accent: '#B96845',
-  accentLight: '#D8B88A',
-  beige: '#B1AD80',
-  earth1: '#B96845',
-  earth2: '#AD7774',
-  text: '#34312B',
-  textSecondary: '#5B392C',
-  textTertiary: '#777B3D',
-  border: '#B1AD80',
-  error: '#8C3F32',
-  success: '#365844',
-  white: '#F2E7D5',
-  forestDeep: '#34312B',
-  forest: '#365844',
-  pine: '#668B87',
-  sage: '#777B3D',
-  cream: '#F2E7D5',
-  copper: '#B96845',
-  mauve: '#773D49',
+  background: '#FBF7EF',
+  card: '#FFFCF6',
+  accent: '#D7684D',
+  accentLight: '#F7E1D6',
+  beige: '#E8E5D1',
+  earth1: '#D7684D',
+  earth2: '#477B91',
+  text: '#173D56',
+  textSecondary: '#53676F',
+  textTertiary: '#718052',
+  border: '#D9D8C9',
+  error: '#B94F46',
+  success: '#5D7A4E',
+  white: '#FFFCF6',
+  forestDeep: '#173D56',
+  forest: '#3D6D58',
+  pine: '#438C99',
+  sage: '#87945C',
+  cream: '#FBF5E9',
+  copper: '#D7684D',
+  mauve: '#906A82',
 };
 
-// Mevcut Ayarlar > Arka plan seçimi korunurken Aurora paletinde kalır.
+// Ayarlar > Arka plan için Akdeniz tonları.
 export const appBackgroundColors = [
-  { label: 'Krem', color: '#F2E7D5' },
-  { label: 'Adaçayı', color: '#B1AD80' },
-  { label: 'Keten', color: '#D8B88A' },
-  { label: 'Sis', color: '#668B87' },
-  { label: 'Pudra', color: '#AD7774' },
-  { label: 'Gökyüzü', color: '#6E7591' },
+  { label: 'Kırık Beyaz', color: '#FBF7EF' },
+  { label: 'Deniz Köpüğü', color: '#EEF5F0' },
+  { label: 'Kum', color: '#F5EDDE' },
+  { label: 'Gün Batımı', color: '#F8E9E1' },
+  { label: 'Zeytin', color: '#F0F1E6' },
+  { label: 'Ege', color: '#EAF3F5' },
 ];
 
 export const fontSize = {
@@ -60,7 +60,7 @@ export const radius = {
 };
 
 export const shadow = {
-  shadowColor: '#34382F',
+  shadowColor: '#35515C',
   shadowOffset: { width: 0, height: 4 },
   shadowOpacity: 0.12,
   shadowRadius: 10,
@@ -72,6 +72,6 @@ export const layout = {
 };
 
 /** Ekrana Not renkleri mevcut kayıtlarla aynı kalır. */
-export const noteColors = ['#D8B88A', '#C89A32', '#B96845', '#AD7774', '#B1AD80', '#668B87', '#6E7591'];
+export const noteColors = ['#F3DED1', '#F1E5C8', '#E1EBE0', '#DCECEF', '#EEE0E8', '#E8EBD9', '#F4EBDD'];
 
 export const noteEmojis = ['🌿', '☕', '✨', '🌙', '🌻', '🍂', '😊', '🤗'];

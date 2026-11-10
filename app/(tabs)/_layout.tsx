@@ -72,7 +72,7 @@ export default function TabsLayout() {
           paddingTop: 7,
           paddingBottom: 8,
           elevation: 12,
-          shadowColor: '#020D0A',
+          shadowColor: colors.forestDeep,
           shadowOpacity: 0.22,
           shadowRadius: 14,
           shadowOffset: { width: 0, height: -4 },
@@ -94,8 +94,8 @@ export default function TabsLayout() {
         options={{
           title: 'Kategoriler',
           tabBarIcon: ({ color, size }) => <Feather name="grid" size={size} color={color as string} />,
-          tabBarActiveTintColor: getCategoryColor('ozel-gunler').color,
-          tabBarInactiveTintColor: getCategoryColor('ozel-gunler').color,
+          tabBarActiveTintColor: getCategoryColor('gorevler').color,
+          tabBarInactiveTintColor: getCategoryColor('gorevler').color,
         }}
       />
       <Tabs.Screen
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: getCategoryColor('listeler').color,
+    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: -18,

@@ -614,12 +614,12 @@ export default function TodayScreen() {
         style={[styles.section, styles.richCategoryCard, { borderColor: categoryTone.color }]}
       >
         <View style={styles.richCategoryHeader}>
-          <View style={[styles.homeCategoryIcon, { backgroundColor: categoryTone.color }]}>
+          <View style={[styles.homeCategoryIcon, { backgroundColor: categoryTone.tint }]}>
             <Image
               source={auroraCategoryIcons[category.slug] ?? auroraCategoryIcons.takvim}
               style={styles.homeCategoryIconImage}
               resizeMode="contain"
-              tintColor={colors.white}
+              tintColor={categoryTone.color}
             />
           </View>
           <Text numberOfLines={1} style={[styles.homeCategoryTitle, { color: categoryTone.color }]}>
@@ -645,8 +645,8 @@ export default function TodayScreen() {
                 accessibilityLabel="Günün Şarkısını aç"
                 style={styles.songHeading}
               >
-                <View style={[styles.songIcon, { backgroundColor: songColor.color }]}>
-                  <Feather name="music" size={21} color={colors.white} />
+                <View style={[styles.songIcon, { backgroundColor: songColor.tint }]}>
+                  <Feather name="music" size={21} color={songColor.color} />
                 </View>
                 <View style={styles.upcomingCopy}>
                   <Text style={[styles.songEyebrow, { color: songColor.color }]}>Günün Şarkısı</Text>
@@ -762,8 +762,8 @@ export default function TodayScreen() {
                     <Text style={[styles.noteHeaderTitle, { color: noteColor.color }]}>Partnerinden Not</Text>
                   </View>
                   <View style={styles.connectRow}>
-                    <View style={[styles.connectIcon, { backgroundColor: noteColor.color }]}>
-                      <Feather name="link" size={20} color={colors.white} />
+                    <View style={[styles.connectIcon, { backgroundColor: noteColor.tint }]}>
+                      <Feather name="link" size={20} color={noteColor.color} />
                     </View>
                     <Text style={styles.connectText}>
                       {couple.pendingInvitation
@@ -820,8 +820,8 @@ export default function TodayScreen() {
                   accessibilityLabel="Takvimi aç"
                   style={styles.upcomingCompact}
                 >
-                  <View style={[styles.upcomingIcon, { backgroundColor: calendarColor.color }]}>
-                    <Feather name="sun" size={18} color={colors.white} />
+                  <View style={[styles.upcomingIcon, { backgroundColor: calendarColor.tint }]}>
+                    <Feather name="sun" size={18} color={calendarColor.color} />
                   </View>
                   <View style={styles.upcomingCopy}>
                     <Text style={styles.upcomingTitle}>Önünüz açık</Text>
@@ -846,11 +846,11 @@ export default function TodayScreen() {
                     accessibilityLabel={`${item.title}, ${item.kind === 'special' ? 'özel günler' : 'takvim'} sayfasını aç`}
                     style={styles.upcomingRow}
                   >
-                    <View style={[styles.upcomingIcon, { backgroundColor: calendarColor.color }]}>
+                    <View style={[styles.upcomingIcon, { backgroundColor: calendarColor.tint }]}>
                       <Feather
                         name={item.kind === 'special' ? 'gift' : 'calendar'}
                         size={17}
-                        color={colors.white}
+                        color={calendarColor.color}
                       />
                     </View>
                     <View style={styles.upcomingCopy}>
