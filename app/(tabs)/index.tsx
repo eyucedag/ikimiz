@@ -102,8 +102,7 @@ const HOME_CATEGORY_ITEMS: Category[] = [
     slug: 'yaklasanlar',
     title: 'Yaklaşanlar',
     icon: 'calendar',
-    color: '#C89A32',
-    tint: '#C89A3224',
+    ...getCategoryColor('ozel-gunler'),
     description: 'Yaklaşan etkinliklerinizi ve özel günlerinizi görün.',
   },
 ];

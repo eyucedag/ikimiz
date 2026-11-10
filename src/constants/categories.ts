@@ -1,23 +1,21 @@
 import { Category } from '@/src/types';
-import { colors } from './theme';
-
 const categoryTones: Record<string, { color: string; tint: string }> = {
-  takvim: { color: '#D8B88A', tint: '#F2E7D5' },
-  'ozel-gunler': { color: '#C89A32', tint: '#C89A3224' },
-  listeler: { color: '#B96845', tint: '#B9684524' },
-  notlar: { color: '#8C3F32', tint: '#8C3F3224' },
-  'onemli-belgeler': { color: '#AD7774', tint: '#AD777424' },
-  galeri: { color: '#773D49', tint: '#773D4924' },
-  'sesli-anilar': { color: '#9E704C', tint: '#9E704C24' },
-  gorevler: { color: '#5B392C', tint: '#5B392C24' },
-  'ekrana-not': { color: '#B1AD80', tint: '#B1AD8024' },
-  'gunun-sarkisi': { color: '#777B3D', tint: '#777B3D24' },
-  'hediye-radari': { color: '#365844', tint: '#36584424' },
-  'bilinmesi-gerekenler': { color: '#668B87', tint: '#668B8724' },
-  opucuk: { color: '#6E7591', tint: '#6E759124' },
-  'gezilen-yerler': { color: '#6E7591', tint: '#6E759124' },
-  'birlikte-adimlar': { color: '#34312B', tint: '#34312B24' },
-  'ruh-halim': { color: '#AD7774', tint: '#F2E7D5' },
+  takvim: { color: '#34302E', tint: '#34302E20' },
+  'ozel-gunler': { color: '#4B413A', tint: '#4B413A20' },
+  listeler: { color: '#3F2A22', tint: '#3F2A2220' },
+  notlar: { color: '#5A3B2B', tint: '#5A3B2B20' },
+  'onemli-belgeler': { color: '#8B4A2F', tint: '#8B4A2F20' },
+  galeri: { color: '#7A332A', tint: '#7A332A20' },
+  'sesli-anilar': { color: '#6A2F27', tint: '#6A2F2720' },
+  gorevler: { color: '#8C5A32', tint: '#8C5A3220' },
+  'ekrana-not': { color: '#5B602C', tint: '#5B602C20' },
+  'gunun-sarkisi': { color: '#425337', tint: '#42533720' },
+  'hediye-radari': { color: '#3E4A32', tint: '#3E4A3220' },
+  'bilinmesi-gerekenler': { color: '#2F4E50', tint: '#2F4E5020' },
+  opucuk: { color: '#7A332A', tint: '#7A332A20' },
+  'gezilen-yerler': { color: '#45515A', tint: '#45515A20' },
+  'birlikte-adimlar': { color: '#583847', tint: '#58384720' },
+  'ruh-halim': { color: '#4A2E3A', tint: '#4A2E3A20' },
 };
 
 export const categories: Category[] = [
@@ -131,9 +129,11 @@ export const categories: Category[] = [
 export const getCategory = (slug?: string) => categories.find((c) => c.slug === slug);
 const hiddenCategoryColors: Record<string, { color: string; tint: string }> = {
   'ruh-halim': categoryTones['ruh-halim'],
+  yaklasanlar: categoryTones['ozel-gunler'],
+  'birbirimizi-taniyalim': categoryTones['bilinmesi-gerekenler'],
 };
 export const getCategoryColor = (slug?: string) =>
-  getCategory(slug) ?? hiddenCategoryColors[slug ?? ''] ?? { color: colors.accent, tint: colors.accentLight };
+  getCategory(slug) ?? hiddenCategoryColors[slug ?? ''] ?? categoryTones['bilinmesi-gerekenler'];
 
 const readyRoutes: Record<string, string> = {
   'ekrana-not': '/screen-note/compose',
