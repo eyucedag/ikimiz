@@ -33,14 +33,26 @@ export function Button({
   disabled,
   style,
   compact,
-  toneColor = colors.accent,
+  toneColor,
 }: ButtonProps) {
   const { surfaceColor } = useAppAppearance();
   const p = palette[variant];
+  const hasCustomTone = toneColor !== undefined;
+  const resolvedToneColor = toneColor ?? colors.accent;
   const backgroundColor =
-    variant === 'primary' ? toneColor : variant === 'secondary' || variant === 'danger' ? surfaceColor : p.bg;
-  const foregroundColor = variant === 'ghost' ? toneColor : p.fg;
-  const borderColor = variant === 'primary' ? toneColor : p.border;
+    variant === 'primary'
+      ? hasCustomTone
+        ? surfaceColor
+        : resolvedToneColor
+      : variant === 'secondary' || variant === 'danger'
+        ? surfaceColor
+        : p.bg;
+  const foregroundColor = variant === 'ghost' || hasCustomTone ? resolvedToneColor : p.fg;
+  const borderColor = hasCustomTone
+    ? resolvedToneColor
+    : variant === 'primary'
+      ? resolvedToneColor
+      : p.border;
   const inactive = disabled || loading;
   return (
     <Pressable

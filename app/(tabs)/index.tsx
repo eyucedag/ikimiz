@@ -622,7 +622,7 @@ export default function TodayScreen() {
               tintColor={categoryTone.color}
             />
           </View>
-          <Text numberOfLines={1} style={styles.homeCategoryTitle}>
+          <Text numberOfLines={1} style={[styles.homeCategoryTitle, { color: categoryTone.color }]}>
             {category.title}
           </Text>
         </View>

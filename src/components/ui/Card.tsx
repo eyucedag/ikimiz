@@ -24,7 +24,6 @@ export function Card({
   const edgeColor = colors.border;
   const frameStyle = [
     styles.card,
-    style,
     {
       backgroundColor: surfaceColor,
       borderColor: edgeColor,
@@ -32,6 +31,7 @@ export function Card({
       borderRadius: radius.card,
       shadowColor: edgeColor,
     },
+    style,
   ];
   if (onPress || onLongPress) {
     return (
