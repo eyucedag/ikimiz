@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
 import { Tabs } from 'expo-router';
+import { getCategoryColor } from '@/src/constants/categories';
 import { colors, fontSize, shadow } from '@/src/constants/theme';
 import { auroraIcons } from '@/src/constants/auroraAssets';
 import { useAppState } from '@/src/hooks/useAppState';
@@ -79,12 +80,22 @@ export default function TabsLayout() {
         tabBarLabelStyle: { fontSize: fontSize.xs, fontWeight: '600' },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Bugün', tabBarIcon: tabIcon('today') }} />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Bugün',
+          tabBarIcon: tabIcon('today'),
+          tabBarActiveTintColor: getCategoryColor('takvim').color,
+          tabBarInactiveTintColor: getCategoryColor('takvim').color,
+        }}
+      />
       <Tabs.Screen
         name="categories"
         options={{
           title: 'Kategoriler',
           tabBarIcon: ({ color, size }) => <Feather name="grid" size={size} color={color as string} />,
+          tabBarActiveTintColor: getCategoryColor('ozel-gunler').color,
+          tabBarInactiveTintColor: getCategoryColor('ozel-gunler').color,
         }}
       />
       <Tabs.Screen
@@ -93,6 +104,8 @@ export default function TabsLayout() {
           title: 'Ekle',
           tabBarLabel: () => null,
           tabBarButton: (props) => <AddTabButton {...props} />,
+          tabBarActiveTintColor: getCategoryColor('listeler').color,
+          tabBarInactiveTintColor: getCategoryColor('listeler').color,
         }}
       />
       <Tabs.Screen
@@ -101,10 +114,20 @@ export default function TabsLayout() {
           title: 'Bildirimler',
           tabBarIcon: tabIcon('notifications'),
           tabBarBadge: unreadCount > 0 ? (unreadCount > 9 ? '9+' : unreadCount) : undefined,
-          tabBarBadgeStyle: { backgroundColor: colors.mauve, fontSize: 10 },
+          tabBarBadgeStyle: { backgroundColor: getCategoryColor('gorevler').color, fontSize: 10 },
+          tabBarActiveTintColor: getCategoryColor('gorevler').color,
+          tabBarInactiveTintColor: getCategoryColor('gorevler').color,
         }}
       />
-      <Tabs.Screen name="profile" options={{ title: 'Ayarlar', tabBarIcon: tabIcon('settings') }} />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Ayarlar',
+          tabBarIcon: tabIcon('settings'),
+          tabBarActiveTintColor: getCategoryColor('onemli-belgeler').color,
+          tabBarInactiveTintColor: getCategoryColor('onemli-belgeler').color,
+        }}
+      />
     </Tabs>
   );
 }
@@ -115,7 +138,7 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: colors.accent,
+    backgroundColor: getCategoryColor('listeler').color,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: -18,

@@ -614,12 +614,12 @@ export default function TodayScreen() {
         style={[styles.section, styles.richCategoryCard, { borderColor: categoryTone.color }]}
       >
         <View style={styles.richCategoryHeader}>
-          <View style={[styles.homeCategoryIcon, { backgroundColor: categoryTone.tint }]}>
+          <View style={[styles.homeCategoryIcon, { backgroundColor: categoryTone.color }]}>
             <Image
               source={auroraCategoryIcons[category.slug] ?? auroraCategoryIcons.takvim}
               style={styles.homeCategoryIconImage}
               resizeMode="contain"
-              tintColor={categoryTone.color}
+              tintColor={colors.white}
             />
           </View>
           <Text numberOfLines={1} style={[styles.homeCategoryTitle, { color: categoryTone.color }]}>
@@ -645,8 +645,8 @@ export default function TodayScreen() {
                 accessibilityLabel="Günün Şarkısını aç"
                 style={styles.songHeading}
               >
-                <View style={[styles.songIcon, { backgroundColor: songColor.tint }]}>
-                  <Feather name="music" size={21} color={songColor.color} />
+                <View style={[styles.songIcon, { backgroundColor: songColor.color }]}>
+                  <Feather name="music" size={21} color={colors.white} />
                 </View>
                 <View style={styles.upcomingCopy}>
                   <Text style={[styles.songEyebrow, { color: songColor.color }]}>Günün Şarkısı</Text>
@@ -709,25 +709,27 @@ export default function TodayScreen() {
             >
               {couple.loading ? (
                 <View style={styles.noteHeader}>
-                  <Text style={styles.noteHeaderTitle}>Partnerinden Not</Text>
+                  <Text style={[styles.noteHeaderTitle, { color: noteColor.color }]}>Partnerinden Not</Text>
                   <ActivityIndicator color={noteColor.color} />
                 </View>
               ) : couple.isPaired ? (
                 <>
                   <View style={styles.noteHeader}>
-                    <Text style={styles.noteHeaderTitle}>Partnerinden Not</Text>
+                    <Text style={[styles.noteHeaderTitle, { color: noteColor.color }]}>Partnerinden Not</Text>
                     <View style={styles.noteHeaderActions}>
-                      <View style={styles.allNotesAction}>
-                        <Pressable
-                          onPress={() => router.push('/screen-note/history')}
-                          accessibilityRole="button"
-                          accessibilityLabel="Bütün notları gör"
-                          style={[styles.allNotesButton, { backgroundColor: noteColor.tint }]}
-                        >
-                          <Feather name="list" size={15} color={noteColor.color} />
-                        </Pressable>
-                        <Text style={[styles.allNotesLabel, { color: noteColor.color }]}>Bütün Notlar</Text>
-                      </View>
+                      <Pressable
+                        onPress={() => router.push('/screen-note/history')}
+                        accessibilityRole="button"
+                        accessibilityLabel="Bütün notları gör"
+                        style={[
+                          styles.allNotesAction,
+                          styles.allNotesPill,
+                          { backgroundColor: noteColor.color },
+                        ]}
+                      >
+                        <Feather name="list" size={15} color={colors.white} />
+                        <Text style={[styles.allNotesLabel, { color: colors.white }]}>Bütün Notlar</Text>
+                      </Pressable>
                     </View>
                   </View>
                   {latestFromPartner ? (
@@ -757,11 +759,11 @@ export default function TodayScreen() {
               ) : (
                 <>
                   <View style={styles.noteHeader}>
-                    <Text style={styles.noteHeaderTitle}>Partnerinden Not</Text>
+                    <Text style={[styles.noteHeaderTitle, { color: noteColor.color }]}>Partnerinden Not</Text>
                   </View>
                   <View style={styles.connectRow}>
-                    <View style={[styles.connectIcon, { backgroundColor: noteColor.tint }]}>
-                      <Feather name="link" size={20} color={noteColor.color} />
+                    <View style={[styles.connectIcon, { backgroundColor: noteColor.color }]}>
+                      <Feather name="link" size={20} color={colors.white} />
                     </View>
                     <Text style={styles.connectText}>
                       {couple.pendingInvitation
@@ -818,8 +820,8 @@ export default function TodayScreen() {
                   accessibilityLabel="Takvimi aç"
                   style={styles.upcomingCompact}
                 >
-                  <View style={[styles.upcomingIcon, { backgroundColor: calendarColor.tint }]}>
-                    <Feather name="sun" size={18} color={calendarColor.color} />
+                  <View style={[styles.upcomingIcon, { backgroundColor: calendarColor.color }]}>
+                    <Feather name="sun" size={18} color={colors.white} />
                   </View>
                   <View style={styles.upcomingCopy}>
                     <Text style={styles.upcomingTitle}>Önünüz açık</Text>
@@ -844,11 +846,11 @@ export default function TodayScreen() {
                     accessibilityLabel={`${item.title}, ${item.kind === 'special' ? 'özel günler' : 'takvim'} sayfasını aç`}
                     style={styles.upcomingRow}
                   >
-                    <View style={[styles.upcomingIcon, { backgroundColor: calendarColor.tint }]}>
+                    <View style={[styles.upcomingIcon, { backgroundColor: calendarColor.color }]}>
                       <Feather
                         name={item.kind === 'special' ? 'gift' : 'calendar'}
                         size={17}
-                        color={calendarColor.color}
+                        color={colors.white}
                       />
                     </View>
                     <View style={styles.upcomingCopy}>
@@ -1504,7 +1506,7 @@ const styles = StyleSheet.create({
   noteHeaderActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   allNotesAction: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   allNotesLabel: { fontSize: 10, fontWeight: '600', lineHeight: 14 },
-  allNotesButton: { width: 24, height: 22, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
+  allNotesPill: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: 12 },
   note: { borderRadius: radius.card, paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
   noteEmoji: { fontSize: fontSize.xxl, marginBottom: spacing.xs },
   noteText: { fontSize: fontSize.md, color: colors.text, lineHeight: 20 },

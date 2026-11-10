@@ -54,8 +54,8 @@ export default function CategoryScreen() {
   return (
     <Screen title={category.title} toneColor={category.color}>
       <View style={styles.hero}>
-        <View style={[styles.heroIcon, { backgroundColor: category.tint }]}>
-          <Feather name={category.icon as keyof typeof Feather.glyphMap} size={32} color={category.color} />
+        <View style={[styles.heroIcon, { backgroundColor: category.color }]}>
+          <Feather name={category.icon as keyof typeof Feather.glyphMap} size={32} color={colors.white} />
         </View>
         <Badge label="Yakında · Aşama 2" tone="earth" />
         <Text style={styles.description}>{category.description}</Text>

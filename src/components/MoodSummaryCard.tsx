@@ -95,17 +95,20 @@ export function MoodSummaryCard({
             styles.headingIcon,
             compact && styles.compactHeadingIcon,
             overlay && styles.overlayHeadingIcon,
-            { backgroundColor: overlay ? 'transparent' : categoryColor.tint },
+            { backgroundColor: overlay ? 'transparent' : categoryColor.color },
           ]}
         >
-          <Feather
-            name="heart"
-            size={compact ? 15 : 19}
-            color={overlay ? colors.cream : categoryColor.color}
-          />
+          <Feather name="heart" size={compact ? 15 : 19} color={colors.white} />
         </View>
         <View style={styles.flex}>
-          <Text style={[styles.title, overlay && styles.overlayText]} accessibilityRole="header">
+          <Text
+            style={[
+              styles.title,
+              { color: overlay ? colors.cream : categoryColor.color },
+              overlay && styles.overlayText,
+            ]}
+            accessibilityRole="header"
+          >
             Ruh Halim
           </Text>
         </View>
