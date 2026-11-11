@@ -24,6 +24,15 @@ const palette: Record<Variant, { bg: string; fg: string; border: string }> = {
   danger: { bg: colors.card, fg: colors.error, border: colors.error },
 };
 
+function contrastingInk(hexColor: string): string {
+  if (!/^#[0-9a-f]{6}$/i.test(hexColor)) return colors.white;
+  const channels = [1, 3, 5]
+    .map((index) => parseInt(hexColor.slice(index, index + 2), 16) / 255)
+    .map((value) => (value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4));
+  const luminance = channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+  return 1.05 / (luminance + 0.05) >= 4.5 ? colors.white : colors.text;
+}
+
 export function Button({
   title,
   onPress,
@@ -39,7 +48,8 @@ export function Button({
   const p = palette[variant];
   const backgroundColor =
     variant === 'primary' ? toneColor : variant === 'secondary' || variant === 'danger' ? surfaceColor : p.bg;
-  const foregroundColor = variant === 'ghost' ? toneColor : p.fg;
+  const foregroundColor =
+    variant === 'ghost' ? toneColor : variant === 'primary' ? contrastingInk(toneColor) : p.fg;
   const borderColor = variant === 'primary' ? toneColor : p.border;
   const inactive = disabled || loading;
   return (

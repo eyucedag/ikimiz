@@ -271,17 +271,15 @@ export default function SharedListScreen() {
                       {item.content}
                     </Text>
                   </Pressable>
-                  {item.ownerId === user?.id ? (
-                    <Pressable
-                      onPress={() => removeItem(item)}
-                      hitSlop={8}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${item.content} maddesini kaldır`}
-                      style={styles.deleteButton}
-                    >
-                      <Feather name="trash-2" size={15} color={colors.error} />
-                    </Pressable>
-                  ) : null}
+                  <Pressable
+                    onPress={() => removeItem(item)}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${item.content} maddesini kaldır`}
+                    style={styles.deleteButton}
+                  >
+                    <Feather name="trash-2" size={15} color={colors.error} />
+                  </Pressable>
                 </View>
               ))}
             </Card>

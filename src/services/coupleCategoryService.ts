@@ -74,7 +74,7 @@ export const giftService = {
       title: title.trim(),
       url: url.trim() ? normalizeHttpUrl(url) : null,
       price: amount,
-      visibility: 'personal',
+      visibility: 'shared',
     });
     fail(error, 'Hediye fikri eklenemedi');
   },

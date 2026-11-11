@@ -614,12 +614,12 @@ export default function TodayScreen() {
         style={[styles.section, styles.richCategoryCard, { borderColor: categoryTone.color }]}
       >
         <View style={styles.richCategoryHeader}>
-          <View style={[styles.homeCategoryIcon, { backgroundColor: categoryTone.tint }]}>
+          <View style={[styles.homeCategoryIcon, { backgroundColor: categoryTone.color }]}>
             <Image
               source={auroraCategoryIcons[category.slug] ?? auroraCategoryIcons.takvim}
               style={styles.homeCategoryIconImage}
               resizeMode="contain"
-              tintColor={categoryTone.color}
+              tintColor={categoryTone.ink ?? colors.white}
             />
           </View>
           <Text numberOfLines={1} style={[styles.homeCategoryTitle, { color: categoryTone.color }]}>
@@ -645,8 +645,8 @@ export default function TodayScreen() {
                 accessibilityLabel="Günün Şarkısını aç"
                 style={styles.songHeading}
               >
-                <View style={[styles.songIcon, { backgroundColor: songColor.tint }]}>
-                  <Feather name="music" size={21} color={songColor.color} />
+                <View style={[styles.songIcon, { backgroundColor: songColor.color }]}>
+                  <Feather name="music" size={21} color={songColor.ink ?? colors.white} />
                 </View>
                 <View style={styles.upcomingCopy}>
                   <Text style={[styles.songEyebrow, { color: songColor.color }]}>Günün Şarkısı</Text>
@@ -727,8 +727,10 @@ export default function TodayScreen() {
                           { backgroundColor: noteColor.color },
                         ]}
                       >
-                        <Feather name="list" size={15} color={colors.white} />
-                        <Text style={[styles.allNotesLabel, { color: colors.white }]}>Bütün Notlar</Text>
+                        <Feather name="list" size={15} color={noteColor.ink ?? colors.white} />
+                        <Text style={[styles.allNotesLabel, { color: noteColor.ink ?? colors.white }]}>
+                          Bütün Notlar
+                        </Text>
                       </Pressable>
                     </View>
                   </View>
@@ -820,8 +822,8 @@ export default function TodayScreen() {
                   accessibilityLabel="Takvimi aç"
                   style={styles.upcomingCompact}
                 >
-                  <View style={[styles.upcomingIcon, { backgroundColor: calendarColor.tint }]}>
-                    <Feather name="sun" size={18} color={calendarColor.color} />
+                  <View style={[styles.upcomingIcon, { backgroundColor: calendarColor.color }]}>
+                    <Feather name="sun" size={18} color={calendarColor.ink ?? colors.white} />
                   </View>
                   <View style={styles.upcomingCopy}>
                     <Text style={styles.upcomingTitle}>Önünüz açık</Text>
@@ -846,11 +848,11 @@ export default function TodayScreen() {
                     accessibilityLabel={`${item.title}, ${item.kind === 'special' ? 'özel günler' : 'takvim'} sayfasını aç`}
                     style={styles.upcomingRow}
                   >
-                    <View style={[styles.upcomingIcon, { backgroundColor: calendarColor.tint }]}>
+                    <View style={[styles.upcomingIcon, { backgroundColor: calendarColor.color }]}>
                       <Feather
                         name={item.kind === 'special' ? 'gift' : 'calendar'}
                         size={17}
-                        color={calendarColor.color}
+                        color={calendarColor.ink ?? colors.white}
                       />
                     </View>
                     <View style={styles.upcomingCopy}>
@@ -1028,7 +1030,7 @@ export default function TodayScreen() {
       <DynamicSky
         sideContent={
           couple.isPaired && couple.couple?.id ? (
-            <CoupleFlower coupleId={couple.couple.id} partnerId={couple.partner?.id} />
+            <CoupleFlower coupleId={couple.couple.id} partnerId={couple.partner?.id} compact />
           ) : null
         }
         treeContent={
@@ -1075,6 +1077,7 @@ export default function TodayScreen() {
             </View>
           ) : null
         }
+        compact
       >
         <View style={styles.header}>
           <View style={styles.identityRow}>
@@ -1303,7 +1306,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   kissTopEmoji: { fontSize: 17, lineHeight: 21 },
-  homeTopTitle: { color: colors.text, fontFamily: 'serif', fontSize: fontSize.xxl, fontWeight: '600' },
+  homeTopTitle: { color: colors.text, fontSize: fontSize.xxl, fontWeight: '700', letterSpacing: -0.7 },
   durationTopPill: {
     minWidth: 0,
     maxWidth: 250,
@@ -1407,7 +1410,7 @@ const styles = StyleSheet.create({
   layoutDoneText: { color: colors.white, fontSize: fontSize.md, fontWeight: '700' },
   treeControls: { width: '100%', alignItems: 'center', gap: 1 },
   directionButton: {
-    minHeight: 40,
+    minHeight: 36,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1418,7 +1421,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(41,47,44,0.82)',
     borderWidth: 1,
     borderColor: 'rgba(246,233,215,0.52)',
-    transform: [{ translateY: 14 }],
   },
   directionLabel: { color: colors.cream, fontSize: fontSize.sm, fontWeight: '700' },
   directionHintOverlay: {
@@ -1433,7 +1435,6 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(8,45,37,0.96)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
-    transform: [{ translateY: 14 }],
   },
   couplePhoto: { width: 54, height: 54, borderRadius: 27, borderWidth: 2, borderColor: colors.copper },
   photoPlaceholder: {

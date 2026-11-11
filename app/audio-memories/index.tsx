@@ -368,14 +368,12 @@ export default function AudioMemoriesScreen() {
                       {formatDateTime(memory.createdAt)}
                     </Text>
                   </View>
-                  {mine ? (
-                    <IconButton
-                      icon="trash-2"
-                      color={colors.error}
-                      accessibilityLabel="Sesli anıyı kaldır"
-                      onPress={() => remove(memory)}
-                    />
-                  ) : null}
+                  <IconButton
+                    icon="trash-2"
+                    color={colors.error}
+                    accessibilityLabel="Sesli anıyı kaldır"
+                    onPress={() => remove(memory)}
+                  />
                 </Card>
               );
             })

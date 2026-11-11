@@ -144,4 +144,21 @@ export const screenNoteService = {
     }
     return { data: mapNote(data) };
   },
+
+  async remove(noteId: string): Promise<ServiceResult> {
+    const { data, error } = await supabase
+      .from('screen_notes')
+      .update({ is_deleted: true })
+      .eq('id', noteId)
+      .select('image_path')
+      .single();
+    if (error) return { error: error.message };
+    if (data.image_path) {
+      const { error: storageError } = await supabase.storage
+        .from('screen-note-stickers')
+        .remove([String(data.image_path)]);
+      if (storageError) return { error: 'Not silindi ancak görsel dosyası kaldırılamadı.' };
+    }
+    return {};
+  },
 };

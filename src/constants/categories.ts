@@ -1,21 +1,23 @@
 import { Category } from '@/src/types';
-const categoryTones: Record<string, { color: string; tint: string }> = {
-  takvim: { color: '#2F718C', tint: '#2F718C35' },
-  'ozel-gunler': { color: '#DA7055', tint: '#DA705535' },
-  listeler: { color: '#75864D', tint: '#75864D35' },
-  notlar: { color: '#A78350', tint: '#A7835035' },
-  'onemli-belgeler': { color: '#368589', tint: '#36858935' },
-  galeri: { color: '#5C9AB4', tint: '#5C9AB435' },
-  'sesli-anilar': { color: '#886C9C', tint: '#886C9C35' },
-  gorevler: { color: '#89934E', tint: '#89934E35' },
-  'ekrana-not': { color: '#B45258', tint: '#B4525835' },
-  'gunun-sarkisi': { color: '#B9793F', tint: '#B9793F35' },
-  'hediye-radari': { color: '#527A96', tint: '#527A9635' },
-  'bilinmesi-gerekenler': { color: '#657D75', tint: '#657D7535' },
-  opucuk: { color: '#B45258', tint: '#B4525835' },
-  'gezilen-yerler': { color: '#4F8262', tint: '#4F826235' },
-  'birlikte-adimlar': { color: '#CD765F', tint: '#CD765F35' },
-  'ruh-halim': { color: '#805A78', tint: '#805A7835' },
+
+/** Kategori renkleri zip içindeki uygulama referansından aktarılmıştır. */
+const categoryTones: Record<string, { color: string; tint: string; ink: string }> = {
+  takvim: { color: '#3D6796', tint: '#3D679626', ink: '#FFFFFF' },
+  'ozel-gunler': { color: '#93485F', tint: '#93485F26', ink: '#FFFFFF' },
+  listeler: { color: '#346C59', tint: '#346C5926', ink: '#FFFFFF' },
+  notlar: { color: '#BCBA67', tint: '#BCBA6726', ink: '#17243B' },
+  'onemli-belgeler': { color: '#66758C', tint: '#66758C26', ink: '#FFFFFF' },
+  galeri: { color: '#62458A', tint: '#62458A26', ink: '#FFFFFF' },
+  'sesli-anilar': { color: '#A66F59', tint: '#A66F5926', ink: '#FFFFFF' },
+  gorevler: { color: '#2C6E72', tint: '#2C6E7226', ink: '#FFFFFF' },
+  'ekrana-not': { color: '#C9A1BF', tint: '#C9A1BF26', ink: '#17243B' },
+  'gunun-sarkisi': { color: '#2C3A65', tint: '#2C3A6526', ink: '#FFFFFF' },
+  'hediye-radari': { color: '#68584D', tint: '#68584D26', ink: '#FFFFFF' },
+  'bilinmesi-gerekenler': { color: '#706D69', tint: '#706D6926', ink: '#FFFFFF' },
+  opucuk: { color: '#93485F', tint: '#93485F26', ink: '#FFFFFF' },
+  'gezilen-yerler': { color: '#8BB8C9', tint: '#8BB8C926', ink: '#17243B' },
+  'birlikte-adimlar': { color: '#80935B', tint: '#80935B26', ink: '#17243B' },
+  'ruh-halim': { color: '#AEADD0', tint: '#AEADD026', ink: '#17243B' },
 };
 
 export const categories: Category[] = [
@@ -45,14 +47,14 @@ export const categories: Category[] = [
     title: 'Not Defteri',
     icon: 'file-text',
     ...categoryTones.notlar,
-    description: 'Resmi ve önemli bilgileri partnerinizle ortak kaydedin.',
+    description: 'Önemli notlarınızı partnerinizle ortak kaydedin.',
   },
   {
     slug: 'onemli-belgeler',
     title: 'Dokümanlar',
     icon: 'folder',
     ...categoryTones['onemli-belgeler'],
-    description: 'Dosyaları ve önemli bağlantıları güvenle ortak saklayın.',
+    description: 'Dosyaları ve önemli bağlantıları ortak alanda saklayın.',
   },
   {
     slug: 'galeri',
@@ -77,7 +79,7 @@ export const categories: Category[] = [
   },
   {
     slug: 'ekrana-not',
-    title: 'Ekrana Not',
+    title: 'Partnerinden Not',
     icon: 'edit-3',
     ...categoryTones['ekrana-not'],
     description: 'Partnerinizin ana ekranına kısa bir not bırakın.',
@@ -94,14 +96,14 @@ export const categories: Category[] = [
     title: 'Hediye Radarı',
     icon: 'gift',
     ...categoryTones['hediye-radari'],
-    description: 'Hediye fikirlerini partnerinizden gizli biriktirin.',
+    description: 'Hediye fikirlerini ortak alanda biriktirin.',
   },
   {
     slug: 'bilinmesi-gerekenler',
     title: 'Bilinmesi Gerekenler',
-    icon: 'heart',
+    icon: 'info',
     ...categoryTones['bilinmesi-gerekenler'],
-    description: 'Beden ölçüleri, alerjiler, sevdiği şeyler gibi önemli bilgiler.',
+    description: 'Birbiriniz için önemli bilgileri kaydedin.',
   },
   {
     slug: 'opucuk',
@@ -126,14 +128,23 @@ export const categories: Category[] = [
   },
 ];
 
-export const getCategory = (slug?: string) => categories.find((c) => c.slug === slug);
-const hiddenCategoryColors: Record<string, { color: string; tint: string }> = {
+export const getCategory = (slug?: string) => categories.find((category) => category.slug === slug);
+
+const hiddenCategoryColors: Record<string, { color: string; tint: string; ink: string }> = {
   'ruh-halim': categoryTones['ruh-halim'],
-  yaklasanlar: categoryTones['ozel-gunler'],
+  yaklasanlar: {
+    color: '#414A56',
+    tint: '#414A5626',
+    ink: '#FFFFFF',
+  },
   'birbirimizi-taniyalim': categoryTones['bilinmesi-gerekenler'],
 };
-export const getCategoryColor = (slug?: string) =>
-  getCategory(slug) ?? hiddenCategoryColors[slug ?? ''] ?? categoryTones['bilinmesi-gerekenler'];
+
+export const getCategoryColor = (slug?: string) => {
+  const category = getCategory(slug);
+  if (category) return { color: category.color, tint: category.tint, ink: category.ink ?? '#FFFFFF' };
+  return hiddenCategoryColors[slug ?? ''] ?? hiddenCategoryColors['birbirimizi-taniyalim'];
+};
 
 const readyRoutes: Record<string, string> = {
   'ekrana-not': '/screen-note/compose',

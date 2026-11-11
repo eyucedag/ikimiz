@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { CoupleLoading, EmptyState, IconButton, Screen } from '@/src/components/ui';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
@@ -22,7 +22,7 @@ export default function NoteHistoryScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const couple = useCouple();
-  const { notes, refresh, markRead } = useScreenNotes(couple);
+  const { notes, refresh, markRead, remove } = useScreenNotes(couple);
   const [filter, setFilter] = useState<Filter>('all');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -135,7 +135,7 @@ export default function NoteHistoryScreen() {
                       ✓✓
                     </Text>
                   ) : null}
-                  {mine ? (
+                  <>
                     <IconButton
                       icon="edit-2"
                       size={16}
@@ -146,7 +146,27 @@ export default function NoteHistoryScreen() {
                       }
                       style={styles.editButton}
                     />
-                  ) : null}
+                    <IconButton
+                      icon="trash-2"
+                      size={16}
+                      color={colors.error}
+                      accessibilityLabel="Notu sil"
+                      onPress={() =>
+                        Alert.alert('Notu sil', 'Bu ortak not silinsin mi?', [
+                          { text: 'Vazgeç', style: 'cancel' },
+                          {
+                            text: 'Sil',
+                            style: 'destructive',
+                            onPress: async () => {
+                              const result = await remove(n.id);
+                              if (result.error) Alert.alert('Not silinemedi', result.error);
+                            },
+                          },
+                        ])
+                      }
+                      style={styles.editButton}
+                    />
+                  </>
                 </View>
               </View>
             </View>

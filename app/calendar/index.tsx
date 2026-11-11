@@ -287,7 +287,7 @@ export default function CalendarScreen() {
         onPress: async () => {
           try {
             if (!user?.id) throw new Error('Oturum açmanız gerekiyor.');
-            await calendarService.remove(entry.id.replace('event-', ''), user.id);
+            await calendarService.remove(entry.id.replace('event-', ''));
             setEvents((previous) => previous.filter((event) => `event-${event.id}` !== entry.id));
             setError('');
             void refreshUpcoming();
@@ -391,7 +391,7 @@ export default function CalendarScreen() {
                   <Text style={styles.entryTitle}>{entry.title}</Text>
                   <Text style={styles.entryDetail}>{entry.detail}</Text>
                 </View>
-                {entry.kind === 'event' && entry.ownerId === user?.id ? (
+                {entry.kind === 'event' ? (
                   <Pressable
                     onPress={(event) => {
                       event.stopPropagation();

@@ -33,7 +33,7 @@ interface ScreenProps {
 }
 
 /**
- * Tüm ekranların ortak kabuğu: güvenli alan, krem zemin ve tabletlerde
+ * Tüm ekranların ortak kabuğu: güvenli alan, nötr zemin ve tabletlerde
  * en fazla 600pt genişliğinde ortalanmış içerik.
  */
 export function Screen({
@@ -129,7 +129,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     textAlign: 'center',
-    fontFamily: 'serif',
     fontSize: fontSize.lg,
     fontWeight: '700',
     color: colors.text,

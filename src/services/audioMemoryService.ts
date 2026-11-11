@@ -118,7 +118,8 @@ export const audioMemoryService = {
       .eq('id', memory.id)
       .select('id')
       .maybeSingle();
-    if (error || !data) throw new Error(error?.message ?? 'Kaydı yalnızca ekleyen kişi kaldırabilir.');
+    if (error || !data)
+      throw new Error(error?.message ?? 'Sesli anı bulunamadı veya ortak alandan kaldırılmış.');
     const { error: storageError } = await storage.remove([memory.storagePath]);
     if (storageError)
       throw new Error(`Kayıt silindi ancak depodaki ses dosyası kaldırılamadı: ${storageError.message}`);

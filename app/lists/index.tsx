@@ -283,17 +283,15 @@ export default function ListsScreen() {
                   </View>
                   <Feather name="chevron-right" size={18} color={listColor.color} />
                 </Pressable>
-                {list.ownerId === user?.id ? (
-                  <Pressable
-                    onPress={() => remove(list)}
-                    hitSlop={10}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${list.title} listesini kaldır`}
-                    style={styles.removeButton}
-                  >
-                    <Feather name="trash-2" size={16} color={colors.error} />
-                  </Pressable>
-                ) : null}
+                <Pressable
+                  onPress={() => remove(list)}
+                  hitSlop={10}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${list.title} listesini kaldır`}
+                  style={styles.removeButton}
+                >
+                  <Feather name="trash-2" size={16} color={colors.error} />
+                </Pressable>
               </Card>
             ))
           )}

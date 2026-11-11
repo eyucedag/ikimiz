@@ -365,20 +365,18 @@ export default function GalleryScreen() {
                     </Text>
                     <Text style={styles.date}>{formatDate(photo.takenAt)}</Text>
                   </View>
-                  {photo.ownerId === user?.id ? (
-                    <Pressable
-                      onPress={(event) => {
-                        event.stopPropagation();
-                        removePhoto(photo);
-                      }}
-                      hitSlop={8}
-                      accessibilityRole="button"
-                      accessibilityLabel="Fotoğrafı kaldır"
-                      style={styles.delete}
-                    >
-                      <Feather name="trash-2" size={16} color={colors.error} />
-                    </Pressable>
-                  ) : null}
+                  <Pressable
+                    onPress={(event) => {
+                      event.stopPropagation();
+                      removePhoto(photo);
+                    }}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel="Fotoğrafı kaldır"
+                    style={styles.delete}
+                  >
+                    <Feather name="trash-2" size={16} color={colors.error} />
+                  </Pressable>
                 </View>
               </Card>
             ))}

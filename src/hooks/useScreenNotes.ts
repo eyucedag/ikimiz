@@ -99,5 +99,11 @@ export function useScreenNotes(coupleState: Pick<CoupleState, 'couple' | 'partne
     return result;
   }, []);
 
-  return { notes, latestFromPartner, loading, refresh, send, markRead, update };
+  const remove = useCallback(async (noteId: string) => {
+    const result = await screenNoteService.remove(noteId);
+    if (!result.error) setNotes((previous) => previous.filter((note) => note.id !== noteId));
+    return result;
+  }, []);
+
+  return { notes, latestFromPartner, loading, refresh, send, markRead, update, remove };
 }

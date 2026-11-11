@@ -8,7 +8,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import { colors, spacing } from '@/src/constants/theme';
+import { colors } from '@/src/constants/theme';
 
 export type SkyPhase = 'morning' | 'day' | 'sunset' | 'evening' | 'night';
 
@@ -64,7 +64,10 @@ export function DynamicSky({ children, compact = false, treeContent, sideContent
   const rowWidth = measuredWidth ?? Math.min(rowMaxWidth, windowWidth - 36);
   const sceneWidth = Math.max(0, Math.min(maxSceneWidth, rowWidth - (sideContent ? sideWidth + 6 : 0)));
   const skyHeight = compact
-    ? Math.min(landscapeTablet ? 300 : 240, Math.max(150, sceneWidth * (landscapeTablet ? 0.3 : 0.34)))
+    ? Math.min(
+        landscapeTablet ? 190 : tablet ? 165 : 124,
+        Math.max(112, sceneWidth * (landscapeTablet ? 0.24 : 0.3)),
+      )
     : landscapeTablet
       ? Math.min(560, Math.max(320, (sceneWidth * 9) / 16))
       : Math.min(tablet ? 390 : 350, Math.max(228, sceneWidth / 1.58 + 4));
@@ -125,7 +128,7 @@ export function DynamicSky({ children, compact = false, treeContent, sideContent
 
   return (
     <View
-      style={[styles.sceneRow, { width: '100%', maxWidth: rowMaxWidth }]}
+      style={[styles.sceneRow, compact && styles.compactSceneRow, { width: '100%', maxWidth: rowMaxWidth }]}
       onLayout={({ nativeEvent }) => {
         const width = nativeEvent.layout.width;
         setMeasuredWidth((previous) =>
@@ -180,6 +183,7 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     marginBottom: 18,
   },
+  compactSceneRow: { marginBottom: 10 },
   container: {
     alignSelf: 'center',
     borderRadius: 22,
@@ -187,7 +191,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     backgroundColor: colors.background,
   },
-  compactContainer: { marginBottom: spacing.lg },
+  compactContainer: { marginBottom: 0 },
   image: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
   readabilityScrim: {
     position: 'absolute',
@@ -199,7 +203,7 @@ const styles = StyleSheet.create({
   },
   forestOverlay: { opacity: 0.82 },
   content: { width: '100%', zIndex: 1, padding: 14, paddingBottom: 8 },
-  compactContent: { padding: 14, paddingBottom: 24 },
+  compactContent: { padding: 10, paddingBottom: 24 },
   treeContent: { position: 'absolute', zIndex: 2, left: 14, right: 14, bottom: 8 },
   sideContent: { flexShrink: 0, marginLeft: 6, justifyContent: 'center', alignItems: 'center' },
 });

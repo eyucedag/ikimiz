@@ -77,6 +77,7 @@ export interface Category {
   description: string;
   color: string;
   tint: string;
+  ink?: string;
 }
 
 export interface SearchResult {

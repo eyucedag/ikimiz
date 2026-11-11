@@ -292,16 +292,14 @@ export default function SpecialDatesScreen() {
                   toneColor={categoryColor}
                   onPress={() => edit(item)}
                 />
-                {item.ownerId === user?.id ? (
-                  <Pressable
-                    onPress={() => remove(item)}
-                    hitSlop={8}
-                    accessibilityRole="button"
-                    accessibilityLabel="Özel günü kaldır"
-                  >
-                    <Feather name="trash-2" size={16} color={colors.error} />
-                  </Pressable>
-                ) : null}
+                <Pressable
+                  onPress={() => remove(item)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Özel günü kaldır"
+                >
+                  <Feather name="trash-2" size={16} color={colors.error} />
+                </Pressable>
               </Card>
             ))
           )}

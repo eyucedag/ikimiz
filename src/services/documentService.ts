@@ -131,7 +131,7 @@ export const documentService = {
       .select('id')
       .maybeSingle();
     if (error || !data)
-      throw new Error(error?.message ?? 'Bağlantı kaldırılamadı. Yalnızca ekleyen kişi kaldırabilir.');
+      throw new Error(error?.message ?? 'Bağlantı bulunamadı veya ortak alandan kaldırılmış.');
   },
 
   async add(input: {
@@ -230,7 +230,7 @@ export const documentService = {
       .eq('id', document.id)
       .select('id')
       .maybeSingle();
-    if (error || !data) throw new Error('Belge kaydı kaldırılamadı. Yalnızca ekleyen kişi kaldırabilir.');
+    if (error || !data) throw new Error('Belge kaydı bulunamadı veya ortak alandan kaldırılmış.');
     // Check ownership/RLS before deleting the underlying file.
     const { error: storageError } = await supabase.storage
       .from('couple-documents')

@@ -14,6 +14,11 @@ canlı veritabanına kendiliğinden uygulamaz.
 
 Bu iki dosya mevcut kayıtları silmez ve tekrar çalıştırılabilir.
 
+3. `migrations/20261111_equal_shared_content_permissions.sql`: ortak içeriklerde iki
+   partnerin de düzenleme/silme yetkisini açar. Mevcut kişisel hediye fikirlerini
+   ortak kayda dönüştürür; hesap tercihleri ve bildirimleri kişi bazında kalır.
+   Galeri, belge, ses ve ekran notu dosyalarını da çift üyeliğine göre korur.
+
 ## Yeni kurulum / geçmiş dosyalar
 
 `schema.sql` temel kullanıcı, eşleşme ve ortak kategori tablolarını kurar. Özellik

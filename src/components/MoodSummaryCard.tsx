@@ -95,13 +95,13 @@ export function MoodSummaryCard({
             styles.headingIcon,
             compact && styles.compactHeadingIcon,
             overlay && styles.overlayHeadingIcon,
-            { backgroundColor: overlay ? 'transparent' : categoryColor.tint },
+            { backgroundColor: overlay ? 'transparent' : categoryColor.color },
           ]}
         >
           <Feather
             name="heart"
             size={compact ? 15 : 19}
-            color={overlay ? colors.cream : categoryColor.color}
+            color={overlay ? colors.cream : (categoryColor.ink ?? colors.white)}
           />
         </View>
         <View style={styles.flex}>

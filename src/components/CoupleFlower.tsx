@@ -25,15 +25,33 @@ import {
 import { notificationService } from '@/src/services/notificationService';
 import { supabase } from '@/src/lib/supabase';
 
-export function CoupleFlower({ coupleId, partnerId }: { coupleId: string; partnerId?: string }) {
+export function CoupleFlower({
+  coupleId,
+  partnerId,
+  compact = false,
+}: {
+  coupleId: string;
+  partnerId?: string;
+  compact?: boolean;
+}) {
   const router = useRouter();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const tablet = Math.min(windowWidth, windowHeight) >= 600;
   const landscapeTablet = tablet && windowWidth > windowHeight;
-  const artworkWidth = landscapeTablet ? 154 : tablet ? 128 : Math.min(110, Math.max(76, windowWidth * 0.27));
+  const artworkWidth = compact
+    ? landscapeTablet
+      ? 105
+      : tablet
+        ? 90
+        : Math.min(76, Math.max(58, windowWidth * 0.19))
+    : landscapeTablet
+      ? 154
+      : tablet
+        ? 128
+        : Math.min(110, Math.max(76, windowWidth * 0.27));
   const artworkHeight = (artworkWidth * 4) / 3;
   const booksHeight = (artworkHeight * 392) / ((512 * 4) / 3);
-  const plantAreaHeight = artworkHeight + 40;
+  const plantAreaHeight = artworkHeight + (compact ? 18 : 40);
   const [flower, setFlower] = useState<CoupleFlowerState | null>(null);
   const [loading, setLoading] = useState(true);
   const [watering, setWatering] = useState(false);

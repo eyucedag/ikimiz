@@ -470,17 +470,15 @@ export default function DocumentsScreen() {
                   <Feather name="copy" size={18} color={tone.color} />
                 </Pressable>
               </View>
-              {link.ownerId === user?.id ? (
-                <Pressable
-                  onPress={() => removeLink(link)}
-                  hitSlop={10}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${link.displayName} bağlantısını kaldır`}
-                  style={styles.delete}
-                >
-                  <Feather name="trash-2" size={15} color={colors.error} />
-                </Pressable>
-              ) : null}
+              <Pressable
+                onPress={() => removeLink(link)}
+                hitSlop={10}
+                accessibilityRole="button"
+                accessibilityLabel={`${link.displayName} bağlantısını kaldır`}
+                style={styles.delete}
+              >
+                <Feather name="trash-2" size={15} color={colors.error} />
+              </Pressable>
             </Card>
           ))}
           {documents.length ? (
@@ -556,31 +554,29 @@ export default function DocumentsScreen() {
                     <Feather name="download" size={18} color={tone.color} />
                   </Pressable>
                 )}
-                {document.ownerId === user?.id ? (
-                  <View style={styles.ownerActions}>
-                    <Pressable
-                      onPress={() => {
-                        setEditingDocumentId(document.id);
-                        setEditingDocumentName(document.displayName);
-                      }}
-                      hitSlop={10}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${document.displayName} adını düzenle`}
-                      style={styles.ownerAction}
-                    >
-                      <Feather name="edit-2" size={15} color={tone.color} />
-                    </Pressable>
-                    <Pressable
-                      onPress={() => remove(document)}
-                      hitSlop={10}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${document.displayName} dosyasını kaldır`}
-                      style={styles.ownerAction}
-                    >
-                      <Feather name="trash-2" size={15} color={colors.error} />
-                    </Pressable>
-                  </View>
-                ) : null}
+                <View style={styles.ownerActions}>
+                  <Pressable
+                    onPress={() => {
+                      setEditingDocumentId(document.id);
+                      setEditingDocumentName(document.displayName);
+                    }}
+                    hitSlop={10}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${document.displayName} adını düzenle`}
+                    style={styles.ownerAction}
+                  >
+                    <Feather name="edit-2" size={15} color={tone.color} />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => remove(document)}
+                    hitSlop={10}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${document.displayName} dosyasını kaldır`}
+                    style={styles.ownerAction}
+                  >
+                    <Feather name="trash-2" size={15} color={colors.error} />
+                  </Pressable>
+                </View>
               </Card>
             );
           })}

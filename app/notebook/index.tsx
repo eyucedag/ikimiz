@@ -6,14 +6,12 @@ import { Button, Card, CoupleLoading, EmptyState, Screen } from '@/src/component
 import { NotebookBody } from '@/src/components/NotebookBody';
 import { getCategoryColor } from '@/src/constants/categories';
 import { colors, fontSize, spacing } from '@/src/constants/theme';
-import { useAuth } from '@/src/hooks/useAuth';
 import { useCouple } from '@/src/hooks/useCouple';
 import { notebookService, NotebookNote } from '@/src/services/notebookService';
 import { formatDateTime } from '@/src/utils/date';
 
 export default function NotebookScreen() {
   const router = useRouter();
-  const { user } = useAuth();
   const couple = useCouple();
   const tone = getCategoryColor('notlar');
   const [notes, setNotes] = useState<NotebookNote[]>([]);
@@ -158,17 +156,15 @@ export default function NotebookScreen() {
                   </View>
                   <Text style={styles.meta}>{formatDateTime(note.updatedAt)}</Text>
                 </Pressable>
-                {note.ownerId === user?.id ? (
-                  <Pressable
-                    onPress={() => remove(note)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${note.title} notunu kaldır`}
-                    hitSlop={10}
-                    style={styles.delete}
-                  >
-                    <Feather name="trash-2" size={15} color={colors.error} />
-                  </Pressable>
-                ) : null}
+                <Pressable
+                  onPress={() => remove(note)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${note.title} notunu kaldır`}
+                  hitSlop={10}
+                  style={styles.delete}
+                >
+                  <Feather name="trash-2" size={15} color={colors.error} />
+                </Pressable>
               </Card>
             ))
           )}

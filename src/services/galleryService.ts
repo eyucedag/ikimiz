@@ -155,7 +155,8 @@ export const galleryService = {
       .eq('id', photo.id)
       .select('id')
       .maybeSingle();
-    if (error || !data) throw new Error(error?.message ?? 'Fotoğrafı yalnızca ekleyen kişi kaldırabilir.');
+    if (error || !data)
+      throw new Error(error?.message ?? 'Fotoğraf bulunamadı veya ortak alandan kaldırılmış.');
     const { error: storageError } = await supabase.storage.from('couple-gallery').remove([photo.storagePath]);
     if (storageError)
       throw new Error(`Fotoğraf kaydı silindi ancak depodaki dosya kaldırılamadı: ${storageError.message}`);

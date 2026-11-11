@@ -115,12 +115,11 @@ export const calendarService = {
     });
     return event;
   },
-  async remove(id: string, ownerId: string): Promise<void> {
+  async remove(id: string): Promise<void> {
     const { data, error } = await supabase
       .from('calendar_events')
       .delete()
       .eq('id', id)
-      .eq('owner_id', ownerId)
       .select('id')
       .maybeSingle();
     if (error) {
@@ -131,6 +130,6 @@ export const calendarService = {
           : `Etkinlik kaldırılamadı: ${error.message}`,
       );
     }
-    if (!data) throw new Error('Etkinlik bulunamadı veya yalnızca ekleyen kişi silebilir.');
+    if (!data) throw new Error('Etkinlik bulunamadı veya ortak alandan kaldırılmış.');
   },
 };

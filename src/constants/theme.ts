@@ -1,36 +1,36 @@
-/** Akdeniz: kırık beyaz zemin, Ege mavisi, mercan ve zeytin vurguları. */
+/** Ortak Yuva: serin nötr yüzeyler, koyu petrol marka rengi ve kategori renkleri. */
 export const colors = {
-  background: '#FBF7EF',
-  card: '#FFFCF6',
-  accent: '#D7684D',
-  accentLight: '#F7E1D6',
-  beige: '#E8E5D1',
-  earth1: '#D7684D',
-  earth2: '#477B91',
-  text: '#173D56',
-  textSecondary: '#53676F',
-  textTertiary: '#718052',
-  border: '#D9D8C9',
-  error: '#B94F46',
-  success: '#5D7A4E',
-  white: '#FFFCF6',
-  forestDeep: '#173D56',
-  forest: '#3D6D58',
-  pine: '#438C99',
-  sage: '#87945C',
-  cream: '#FBF5E9',
-  copper: '#D7684D',
-  mauve: '#906A82',
+  background: '#F1F3F6',
+  card: '#FAFBFC',
+  accent: '#3E6465',
+  accentLight: '#E2EAE9',
+  beige: '#E6EAEE',
+  earth1: '#3E6465',
+  earth2: '#3E6465',
+  text: '#17243B',
+  textSecondary: '#68778A',
+  textTertiary: '#778394',
+  border: '#D9E0E5',
+  error: '#A84F62',
+  success: '#346C59',
+  white: '#FFFFFF',
+  forestDeep: '#263B50',
+  forest: '#346C59',
+  pine: '#2C6E72',
+  sage: '#80935B',
+  cream: '#F8FAFC',
+  copper: '#A66F59',
+  mauve: '#785B9F',
 };
 
-// Ayarlar > Arka plan için Akdeniz tonları.
+// Ayarlar > Arka plan seçenekleri.
 export const appBackgroundColors = [
-  { label: 'Kırık Beyaz', color: '#FBF7EF' },
-  { label: 'Deniz Köpüğü', color: '#EEF5F0' },
-  { label: 'Kum', color: '#F5EDDE' },
-  { label: 'Gün Batımı', color: '#F8E9E1' },
-  { label: 'Zeytin', color: '#F0F1E6' },
-  { label: 'Ege', color: '#EAF3F5' },
+  { label: 'Serin Gri', color: '#F1F3F6' },
+  { label: 'Sis', color: '#EDF1F4' },
+  { label: 'Buz', color: '#EAF1F3' },
+  { label: 'Lavanta', color: '#F1EFF5' },
+  { label: 'Taş', color: '#F3F2EF' },
+  { label: 'Adaçayı', color: '#EEF2EF' },
 ];
 
 export const fontSize = {
@@ -60,7 +60,7 @@ export const radius = {
 };
 
 export const shadow = {
-  shadowColor: '#35515C',
+  shadowColor: '#263B50',
   shadowOffset: { width: 0, height: 4 },
   shadowOpacity: 0.12,
   shadowRadius: 10,
@@ -71,7 +71,7 @@ export const layout = {
   maxContentWidth: 900,
 };
 
-/** Ekrana Not renkleri mevcut kayıtlarla aynı kalır. */
-export const noteColors = ['#F3DED1', '#F1E5C8', '#E1EBE0', '#DCECEF', '#EEE0E8', '#E8EBD9', '#F4EBDD'];
+/** Ekrana Not için okunaklı, yumuşak arka plan seçenekleri. */
+export const noteColors = ['#F0E6EB', '#E6EAF1', '#E3ECE8', '#ECE9F2', '#F0ECE2', '#E3EEF0', '#E8EBDD'];
 
 export const noteEmojis = ['🌿', '☕', '✨', '🌙', '🌻', '🍂', '😊', '🤗'];

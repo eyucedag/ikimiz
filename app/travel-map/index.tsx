@@ -357,15 +357,13 @@ export default function TravelMapScreen() {
                   onPress={() => startEditing(place)}
                   toneColor={travelTone.color}
                 />
-                {place.ownerId === user?.id ? (
-                  <Button
-                    title="Kaldır"
-                    variant="ghost"
-                    compact
-                    onPress={() => removePlace(place)}
-                    toneColor={travelTone.color}
-                  />
-                ) : null}
+                <Button
+                  title="Kaldır"
+                  variant="ghost"
+                  compact
+                  onPress={() => removePlace(place)}
+                  toneColor={travelTone.color}
+                />
               </View>
             </Card>
           ))}
