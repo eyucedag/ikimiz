@@ -1,12 +1,16 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider, useAuth } from '@/src/hooks/useAuth';
 import { AppStateProvider } from '@/src/hooks/useAppState';
+import { CoupleProvider, useCouple } from '@/src/hooks/useCouple';
+import { CouplePresenceProvider } from '@/src/hooks/useCouplePresence';
 import { colors } from '@/src/constants/theme';
+import { AppAppearanceProvider, useAppAppearance } from '@/src/hooks/useAppAppearance';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -17,6 +21,7 @@ function RootNavigator() {
   const { user, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const { backgroundColor } = useAppAppearance();
 
   useEffect(() => {
     if (loading) return;
@@ -27,8 +32,8 @@ function RootNavigator() {
   }, [user, loading, segments, router]);
 
   return (
-    <View style={styles.root}>
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+    <View style={[styles.root, { backgroundColor }]}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor } }}>
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="couple/invite" />
@@ -36,10 +41,23 @@ function RootNavigator() {
         <Stack.Screen name="couple/status" />
         <Stack.Screen name="screen-note/compose" options={{ presentation: 'modal' }} />
         <Stack.Screen name="screen-note/history" />
+        <Stack.Screen name="mood/index" />
+        <Stack.Screen name="travel-map/index" />
+        <Stack.Screen name="categories/index" />
         <Stack.Screen name="categories/[slug]" />
+        <Stack.Screen name="calendar/index" />
+        <Stack.Screen name="special-dates/index" />
+        <Stack.Screen name="song-of-the-day/index" />
+        <Stack.Screen name="lists/index" />
+        <Stack.Screen name="lists/[id]" />
+        <Stack.Screen name="notebook/index" />
+        <Stack.Screen name="notebook/view" />
+        <Stack.Screen name="notebook/compose" />
+        <Stack.Screen name="documents/index" />
+        <Stack.Screen name="gallery/index" />
       </Stack>
       {loading ? (
-        <View style={styles.loading}>
+        <View style={[styles.loading, { backgroundColor }]}>
           <ActivityIndicator color={colors.accent} />
         </View>
       ) : null}
@@ -49,18 +67,46 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
-        <AppStateProvider>
-          <StatusBar style="dark" />
-          <RootNavigator />
-        </AppStateProvider>
-      </AuthProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={styles.root}>
+      <SafeAreaProvider>
+        <AppAppearanceProvider>
+          <AuthProvider>
+            <SessionProviders />
+          </AuthProvider>
+        </AppAppearanceProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
+}
+
+function SessionProviders() {
+  const { user } = useAuth();
+  return (
+    <CoupleProvider key={user?.id ?? 'anonymous'}>
+      <CoupleSession />
+    </CoupleProvider>
+  );
+}
+
+function CoupleSession() {
+  const { couple } = useCouple();
+  // Drop screen drafts and cached partner data when the session/couple changes.
+  return (
+    <CouplePresenceProvider key={couple?.id ?? 'unpaired'}>
+      <AppStateProvider>
+        <StatusBar style="dark" />
+        <RootNavigator />
+      </AppStateProvider>
+    </CouplePresenceProvider>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
-  loading: { ...StyleSheet.absoluteFill, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
+  loading: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

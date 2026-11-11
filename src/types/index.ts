@@ -13,6 +13,9 @@ export interface Couple {
   memberIds: string[];
   createdAt: string;
   endedAt?: string | null;
+  photoPath?: string | null;
+  photoUrl?: string | null;
+  relationshipStartedAt?: string | null;
 }
 
 export type InvitationStatus = 'pending' | 'accepted' | 'rejected' | 'cancelled';
@@ -41,10 +44,13 @@ export interface ScreenNote {
   text: string;
   emoji: string;
   backgroundColor: string;
+  imageUrl?: string | null;
   createdAt: string;
+  readAt?: string | null;
 }
 
-export type NotificationCategory = 'system' | 'invitation' | 'couple' | 'screen_note';
+export type NotificationCategory =
+  'system' | 'invitation' | 'couple' | 'screen_note' | 'event' | 'task' | 'reminder';
 
 export interface AppNotification {
   id: string;
@@ -61,6 +67,7 @@ export interface UpcomingItem {
   title: string;
   subtitle: string;
   date: string;
+  kind?: 'event' | 'special';
 }
 
 export interface Category {
@@ -68,6 +75,9 @@ export interface Category {
   title: string;
   icon: string;
   description: string;
+  color: string;
+  tint: string;
+  ink?: string;
 }
 
 export interface SearchResult {

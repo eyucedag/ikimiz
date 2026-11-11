@@ -16,6 +16,7 @@ export default function LoginScreen() {
   const passwordRef = useRef<React.ComponentRef<typeof TextInput>>(null);
 
   const submit = async () => {
+    if (loading) return;
     setError('');
     setLoading(true);
     const result = await signIn(email, password);
@@ -30,7 +31,7 @@ export default function LoginScreen() {
         label="E-posta"
         value={email}
         onChangeText={setEmail}
-        placeholder="ornek@eposta.com"
+        placeholder="…"
         keyboardType="email-address"
         autoCapitalize="none"
         autoComplete="email"
@@ -56,8 +57,19 @@ export default function LoginScreen() {
       <Button title="Giriş Yap" onPress={submit} loading={loading} />
 
       <Divider spaced />
-      <Button title="Google ile devam et" icon="globe" variant="secondary" onPress={() => showSocialSoon('Google')} />
-      <Button title="Apple ile devam et" icon="smartphone" variant="secondary" onPress={() => showSocialSoon('Apple')} style={styles.gap} />
+      <Button
+        title="Google ile devam et"
+        icon="globe"
+        variant="secondary"
+        onPress={() => showSocialSoon('Google')}
+      />
+      <Button
+        title="Apple ile devam et"
+        icon="smartphone"
+        variant="secondary"
+        onPress={() => showSocialSoon('Apple')}
+        style={styles.gap}
+      />
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>Hesabınız yok mu? </Text>

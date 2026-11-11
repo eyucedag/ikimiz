@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button, EmptyState, Input, Screen } from '@/src/components/ui';
@@ -14,6 +14,7 @@ export default function ForgotPasswordScreen() {
   const [sent, setSent] = useState(false);
 
   const submit = async () => {
+    if (loading) return;
     setError('');
     setLoading(true);
     const result = await resetPassword(email);
@@ -38,12 +39,14 @@ export default function ForgotPasswordScreen() {
 
   return (
     <Screen title="Şifre Sıfırlama">
-      <Text style={styles.lead}>Hesabınıza ait e-posta adresini girin; size şifrenizi yenilemeniz için bir bağlantı gönderelim.</Text>
+      <Text style={styles.lead}>
+        Hesabınıza ait e-posta adresini girin; size şifrenizi yenilemeniz için bir bağlantı gönderelim.
+      </Text>
       <Input
         label="E-posta"
         value={email}
         onChangeText={setEmail}
-        placeholder="ornek@eposta.com"
+        placeholder="…"
         keyboardType="email-address"
         autoCapitalize="none"
         error={error || undefined}

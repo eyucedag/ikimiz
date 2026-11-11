@@ -28,7 +28,8 @@ async function main() {
   const identity = spawnSync(process.execPath, [expoCli, 'whoami'], { encoding: 'utf8' });
   if (identity.status !== 0 || !identity.stdout.trim()) {
     const detail = (identity.stderr || identity.stdout || 'No Expo account returned.')
-      .replaceAll(process.env.EXPO_TOKEN, '***').trim();
+      .replaceAll(process.env.EXPO_TOKEN, '***')
+      .trim();
     throw new Error('Expo authentication failed: ' + detail);
   }
   const signedInAs = identity.stdout.trim();
@@ -37,8 +38,11 @@ async function main() {
     stdio: 'inherit',
     env: { ...process.env, CI: '1', EXPO_NO_TELEMETRY: '1' },
   });
-  server.on('error', () => { stop(); process.exitCode = 1; });
-  server.on('exit', code => {
+  server.on('error', () => {
+    stop();
+    process.exitCode = 1;
+  });
+  server.on('exit', (code) => {
     if (!stopped) process.exit(code || 1);
   });
   const deadline = Date.now() + 180000;
@@ -51,14 +55,18 @@ async function main() {
       if (response.ok) {
         const result = await response.json();
         const url = new URL(result.url);
-        if (['exp:', 'exps:'].includes(url.protocol) &&
-            !['localhost', '127.0.0.1', '0.0.0.0'].includes(url.hostname)) {
+        if (
+          ['exp:', 'exps:'].includes(url.protocol) &&
+          !['localhost', '127.0.0.1', '0.0.0.0'].includes(url.hostname)
+        ) {
           previewUrl = result.url;
           break;
         }
       }
-    } catch { /* Metro and its tunnel are still starting. */ }
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    } catch {
+      /* Metro and its tunnel are still starting. */
+    }
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
   if (!previewUrl) throw new Error('Expo tunnel did not become ready within three minutes.');
   const requireFromExpo = createRequire(expoPackage);
@@ -75,13 +83,13 @@ async function main() {
   await writeFile(path.join(outputDirectory, 'preview.json'), JSON.stringify(preview, null, 2));
   console.log('iPhone preview: ' + previewUrl);
   const lifetime = setTimeout(stop, durationMs);
-  await new Promise(resolve => server.once('exit', resolve));
+  await new Promise((resolve) => server.once('exit', resolve));
   clearTimeout(lifetime);
 }
 
 process.once('SIGINT', stop);
 process.once('SIGTERM', stop);
-main().catch(error => {
+main().catch((error) => {
   console.error(error.message);
   stop();
   process.exitCode = 1;

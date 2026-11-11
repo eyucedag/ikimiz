@@ -1,0 +1,367 @@
+import { localDateKey as toKey, parseLocalDate as toDate } from '@/src/utils/date';
+import { useCallback, useState } from 'react';
+import { Alert, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import Feather from '@expo/vector-icons/Feather';
+import { useFocusEffect } from 'expo-router';
+import { Button, Card, CoupleLoading, EmptyState, Input, Screen } from '@/src/components/ui';
+import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
+import { useAuth } from '@/src/hooks/useAuth';
+import { useCouple } from '@/src/hooks/useCouple';
+import { ImportantDate, ImportantDateKind, importantDateService } from '@/src/services/importantDateService';
+import { useAppAppearance } from '@/src/hooks/useAppAppearance';
+import { getCategoryColor } from '@/src/constants/categories';
+
+const kinds: { value: ImportantDateKind; label: string }[] = [
+  { value: 'anniversary', label: 'Yıl dönümü' },
+  { value: 'birthday', label: 'Doğum günü' },
+  { value: 'other', label: 'Diğer' },
+];
+const today = () => toKey(new Date());
+const dateLabel = (value: string) => {
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(value) ? toDate(value) : new Date(value);
+  if (!Number.isFinite(date.getTime())) return 'Tarih belirtilmemiş';
+  return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+};
+
+export default function SpecialDatesScreen() {
+  const { user } = useAuth();
+  const couple = useCouple();
+  const appearance = useAppAppearance();
+  const [items, setItems] = useState<ImportantDate[]>([]);
+  const [title, setTitle] = useState('');
+  const [date, setDate] = useState(today());
+  const [kind, setKind] = useState<ImportantDateKind>('other');
+  const [editing, setEditing] = useState<ImportantDate | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [draftDate, setDraftDate] = useState(toDate(today()));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const categoryTone = getCategoryColor('ozel-gunler');
+  const categoryColor = categoryTone.color;
+
+  const refresh = useCallback(async () => {
+    if (!couple.couple?.id) return;
+    try {
+      setItems(await importantDateService.list(couple.couple.id));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Özel günler yüklenemedi.');
+    }
+  }, [couple.couple?.id]);
+  useFocusEffect(
+    useCallback(() => {
+      void refresh();
+    }, [refresh]),
+  );
+
+  const save = async () => {
+    if (!user || !couple.couple || !couple.partner || saving) return;
+    setSaving(true);
+    setError('');
+    try {
+      const item = await importantDateService.save({
+        id: editing?.id,
+        ownerId: user.id,
+        partnerId: couple.partner.id,
+        coupleId: couple.couple.id,
+        title,
+        date,
+        kind,
+      });
+      setItems((previous) =>
+        [...previous.filter((entry) => entry.id !== item.id), item].sort((a, b) =>
+          a.date.localeCompare(b.date),
+        ),
+      );
+      setTitle('');
+      setDate(today());
+      setKind('other');
+      setEditing(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Özel gün kaydedilemedi.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const edit = (item: ImportantDate) => {
+    setEditing(item);
+    setTitle(item.title);
+    setDate(item.date);
+    setKind(item.kind);
+  };
+  const remove = (item: ImportantDate) =>
+    Alert.alert('Özel günü kaldır', `${item.title} kaldırılsın mı?`, [
+      { text: 'Vazgeç', style: 'cancel' },
+      {
+        text: 'Kaldır',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await importantDateService.remove(item.id);
+            setItems((previous) => previous.filter((entry) => entry.id !== item.id));
+          } catch (e) {
+            setError(e instanceof Error ? e.message : 'Özel gün kaldırılamadı.');
+          }
+        },
+      },
+    ]);
+
+  const relationshipStart = couple.couple?.relationshipStartedAt ?? null;
+
+  if (couple.loading)
+    return (
+      <Screen title="Özel Günler" toneColor={categoryColor}>
+        <CoupleLoading />
+      </Screen>
+    );
+
+  return (
+    <Screen title="Özel Günler" toneColor={categoryColor} refreshing={false} onRefresh={refresh}>
+      {!couple.isPaired ? (
+        <EmptyState
+          icon="users"
+          toneColor={categoryColor}
+          toneTint={categoryTone.tint}
+          title="Önce eşleşin"
+          description="Özel günlerinizi birlikte kaydetmek için partnerinizle eşleşin."
+        />
+      ) : (
+        <>
+          <Card style={[styles.form, { borderColor: categoryColor }]}>
+            <Text style={styles.formTitle}>{editing ? 'Özel günü düzenle' : 'Özel gün ekle'}</Text>
+            <Input label="Özel gün" compact placeholder="…" value={title} onChangeText={setTitle} />
+            <Text style={styles.label}>Tür</Text>
+            <View style={styles.kindRow}>
+              {kinds.map((entry) => (
+                <Pressable
+                  key={entry.value}
+                  onPress={() => setKind(entry.value)}
+                  style={[
+                    styles.kindChip,
+                    kind === entry.value && {
+                      borderColor: categoryColor,
+                      backgroundColor: categoryTone.tint,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.kindText, kind === entry.value && { color: categoryColor }]}>
+                    {entry.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+            <Text style={styles.label}>Tarih</Text>
+            <Pressable
+              onPress={() => {
+                setDraftDate(toDate(date));
+                setPickerOpen(true);
+              }}
+              style={styles.dateButton}
+              accessibilityRole="button"
+            >
+              <Feather name="calendar" size={16} color={categoryColor} />
+              <Text style={styles.dateText}>{dateLabel(date)}</Text>
+            </Pressable>
+            {pickerOpen && Platform.OS === 'android' ? (
+              <DateTimePicker
+                value={draftDate}
+                mode="date"
+                display="default"
+                onChange={(_, selected) => {
+                  if (selected) setDate(toKey(selected));
+                  setPickerOpen(false);
+                }}
+              />
+            ) : null}
+            <Modal
+              transparent
+              visible={pickerOpen && Platform.OS === 'ios'}
+              animationType="slide"
+              onRequestClose={() => setPickerOpen(false)}
+            >
+              <View style={styles.modalBackdrop}>
+                <View style={[styles.dateModal, { backgroundColor: appearance.surfaceColor }]}>
+                  <View style={styles.modalHeader}>
+                    <Button
+                      title="Vazgeç"
+                      compact
+                      variant="ghost"
+                      toneColor={categoryColor}
+                      onPress={() => setPickerOpen(false)}
+                    />
+                    <Text style={styles.formTitle}>Tarih seç</Text>
+                    <Button
+                      title="Tamam"
+                      compact
+                      variant="ghost"
+                      toneColor={categoryColor}
+                      onPress={() => {
+                        setDate(toKey(draftDate));
+                        setPickerOpen(false);
+                      }}
+                    />
+                  </View>
+                  <DateTimePicker
+                    value={draftDate}
+                    mode="date"
+                    display="spinner"
+                    locale="tr-TR"
+                    themeVariant="light"
+                    textColor={colors.text}
+                    onChange={(_, selected) => {
+                      if (selected) setDraftDate(selected);
+                    }}
+                  />
+                </View>
+              </View>
+            </Modal>
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+            <Button
+              title={editing ? 'Değişiklikleri kaydet' : 'Özel günü ekle'}
+              icon={editing ? 'save' : 'plus'}
+              toneColor={categoryColor}
+              compact
+              loading={saving}
+              onPress={() => {
+                void save();
+              }}
+              disabled={!title.trim()}
+            />
+            {editing ? (
+              <Button
+                title="Vazgeç"
+                variant="ghost"
+                compact
+                toneColor={categoryColor}
+                onPress={() => {
+                  setEditing(null);
+                  setTitle('');
+                  setDate(today());
+                  setKind('other');
+                }}
+              />
+            ) : null}
+          </Card>
+          <Text style={[styles.listTitle, { color: categoryColor }]}>
+            Kaydedilen özel günler · {items.length + (relationshipStart ? 1 : 0)}
+          </Text>
+          {relationshipStart ? (
+            <Card style={[styles.row, { borderColor: categoryColor }]}>
+              <View style={[styles.icon, { backgroundColor: categoryTone.tint }]}>
+                <Feather name="heart" size={18} color={categoryColor} />
+              </View>
+              <View style={styles.copy}>
+                <Text style={styles.itemTitle}>İlişki yıl dönümümüz</Text>
+                <Text style={styles.itemMeta}>{dateLabel(relationshipStart)} · Her yıl</Text>
+              </View>
+            </Card>
+          ) : null}
+          {items.length === 0 && !relationshipStart ? (
+            <Card style={[styles.empty, { borderColor: categoryColor }]}>
+              <EmptyState
+                compact
+                icon="gift"
+                toneColor={categoryColor}
+                toneTint={categoryTone.tint}
+                title="Henüz özel gün eklenmedi"
+                description="İkiniz için anlamlı tarihleri buraya kaydedin."
+              />
+            </Card>
+          ) : (
+            items.map((item) => (
+              <Card key={item.id} style={[styles.row, { borderColor: categoryColor }]}>
+                <View style={[styles.icon, { backgroundColor: categoryTone.tint }]}>
+                  <Feather
+                    name={item.kind === 'birthday' ? 'gift' : 'heart'}
+                    size={18}
+                    color={categoryColor}
+                  />
+                </View>
+                <View style={styles.copy}>
+                  <Text style={styles.itemTitle}>{item.title}</Text>
+                  <Text style={styles.itemMeta}>
+                    {dateLabel(item.date)} · {kinds.find((entry) => entry.value === item.kind)?.label}
+                  </Text>
+                </View>
+                <Button
+                  title="Düzenle"
+                  icon="edit-2"
+                  compact
+                  variant="ghost"
+                  toneColor={categoryColor}
+                  onPress={() => edit(item)}
+                />
+                <Pressable
+                  onPress={() => remove(item)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Özel günü kaldır"
+                >
+                  <Feather name="trash-2" size={16} color={colors.error} />
+                </Pressable>
+              </Card>
+            ))
+          )}
+        </>
+      )}
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  form: { padding: spacing.md, marginBottom: spacing.md, borderWidth: 1 },
+  formTitle: { fontSize: fontSize.md, fontWeight: '700', color: colors.text },
+  label: { fontSize: fontSize.xs, color: colors.textSecondary, fontWeight: '600', marginBottom: spacing.xs },
+  kindRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.sm },
+  kindChip: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  kindText: { color: colors.textSecondary, fontSize: fontSize.xs },
+  dateButton: {
+    minHeight: 40,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.control,
+    paddingHorizontal: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  dateText: { color: colors.text, fontSize: fontSize.sm },
+  error: { color: colors.error, fontSize: fontSize.xs, marginBottom: spacing.sm },
+  listTitle: { fontSize: fontSize.sm, fontWeight: '700', marginVertical: spacing.sm },
+  empty: { padding: spacing.sm, borderWidth: 1 },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.sm,
+    marginBottom: spacing.sm,
+    borderWidth: 1,
+  },
+  icon: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  copy: { flex: 1 },
+  itemTitle: { color: colors.text, fontSize: fontSize.sm, fontWeight: '600' },
+  itemMeta: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 2 },
+  modalBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' },
+  dateModal: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: radius.card,
+    borderTopRightRadius: radius.card,
+    paddingBottom: spacing.xl,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    paddingHorizontal: spacing.sm,
+  },
+});

@@ -1,7 +1,7 @@
-import React from 'react';
 import { ActivityIndicator, Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import Feather from '@expo/vector-icons/Feather';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
+import { useAppAppearance } from '@/src/hooks/useAppAppearance';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -14,6 +14,7 @@ interface ButtonProps {
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
   compact?: boolean;
+  toneColor?: string;
 }
 
 const palette: Record<Variant, { bg: string; fg: string; border: string }> = {
@@ -23,8 +24,33 @@ const palette: Record<Variant, { bg: string; fg: string; border: string }> = {
   danger: { bg: colors.card, fg: colors.error, border: colors.error },
 };
 
-export function Button({ title, onPress, variant = 'primary', icon, loading, disabled, style, compact }: ButtonProps) {
+function contrastingInk(hexColor: string): string {
+  if (!/^#[0-9a-f]{6}$/i.test(hexColor)) return colors.white;
+  const channels = [1, 3, 5]
+    .map((index) => parseInt(hexColor.slice(index, index + 2), 16) / 255)
+    .map((value) => (value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4));
+  const luminance = channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+  return 1.05 / (luminance + 0.05) >= 4.5 ? colors.white : colors.text;
+}
+
+export function Button({
+  title,
+  onPress,
+  variant = 'primary',
+  icon,
+  loading,
+  disabled,
+  style,
+  compact,
+  toneColor = colors.accent,
+}: ButtonProps) {
+  const { surfaceColor } = useAppAppearance();
   const p = palette[variant];
+  const backgroundColor =
+    variant === 'primary' ? toneColor : variant === 'secondary' || variant === 'danger' ? surfaceColor : p.bg;
+  const foregroundColor =
+    variant === 'ghost' ? toneColor : variant === 'primary' ? contrastingInk(toneColor) : p.fg;
+  const borderColor = variant === 'primary' ? toneColor : p.border;
   const inactive = disabled || loading;
   return (
     <Pressable
@@ -35,18 +61,18 @@ export function Button({ title, onPress, variant = 'primary', icon, loading, dis
       style={({ pressed }) => [
         styles.base,
         compact && styles.compact,
-        { backgroundColor: p.bg, borderColor: p.border },
+        { backgroundColor, borderColor },
         pressed && styles.pressed,
         inactive && styles.disabled,
         style,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={p.fg} />
+        <ActivityIndicator color={foregroundColor} />
       ) : (
         <View style={styles.row}>
-          {icon ? <Feather name={icon} size={compact ? 16 : 18} color={p.fg} style={styles.icon} /> : null}
-          <Text style={[styles.label, compact && styles.labelCompact, { color: p.fg }]}>{title}</Text>
+          {icon ? <Feather name={icon} size={18} color={foregroundColor} style={styles.icon} /> : null}
+          <Text style={[styles.label, { color: foregroundColor }]}>{title}</Text>
         </View>
       )}
     </Pressable>
@@ -57,16 +83,15 @@ const styles = StyleSheet.create({
   base: {
     minHeight: 48,
     borderRadius: radius.control,
-    borderWidth: 1,
+    borderWidth: 1.25,
     paddingHorizontal: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  compact: { minHeight: 38, paddingHorizontal: spacing.md },
+  compact: { minHeight: 48, paddingHorizontal: spacing.lg },
   row: { flexDirection: 'row', alignItems: 'center' },
   icon: { marginRight: spacing.sm },
-  label: { fontSize: fontSize.md, fontWeight: '600' },
-  labelCompact: { fontSize: fontSize.sm },
+  label: { fontSize: fontSize.md, fontWeight: '700', letterSpacing: 0.1 },
   pressed: { opacity: 0.8 },
   disabled: { opacity: 0.5 },
 });

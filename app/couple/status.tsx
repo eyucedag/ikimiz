@@ -1,21 +1,20 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from 'expo-router';
-import { Badge, Button, Card, Divider, EmptyState, Screen } from '@/src/components/ui';
+import { Button, Card, CoupleLoading, EmptyState, Screen } from '@/src/components/ui';
 import { colors, fontSize, radius, spacing } from '@/src/constants/theme';
 import { useCouple } from '@/src/hooks/useCouple';
-import { formatDate } from '@/src/utils/date';
 
-export default function CoupleStatusScreen() {
+export default function PartnerScreen() {
   const router = useRouter();
   const couple = useCouple();
   const [ending, setEnding] = useState(false);
 
   const confirmEnd = () =>
     Alert.alert(
-      'Eşleşmeyi sonlandır',
-      'Eşleşme sonlandırıldığında ortak alana erişiminiz kapanır. Kişisel verileriniz korunur. Emin misiniz?',
+      'Partner bağlantısını sonlandır',
+      'Ortak alana erişiminiz kapanır. Kişisel verileriniz korunur. Emin misiniz?',
       [
         { text: 'Vazgeç', style: 'cancel' },
         {
@@ -31,62 +30,66 @@ export default function CoupleStatusScreen() {
       ],
     );
 
-  if (couple.loading) return <Screen title="Eşleşme Durumu">{null}</Screen>;
-
-  if (!couple.isPaired) {
+  if (couple.loading)
     return (
-      <Screen title="Eşleşme Durumu">
-        <EmptyState
-          icon="link-2"
-          title={couple.pendingInvitation ? 'Davetiniz bekliyor' : 'Henüz eşleşmediniz'}
-          description={
-            couple.pendingInvitation
-              ? `${couple.pendingInvitation.code} kodlu davetiniz partnerinizin onayını bekliyor.`
-              : 'Partnerinizi davet edin ya da size verilen kodu girin.'
-          }
-        />
-        <Button title={couple.pendingInvitation ? 'Davete Git' : 'Partner Davet Et'} icon="send" onPress={() => router.push('/couple/invite')} />
-        <Button title="Kodum Var" variant="secondary" onPress={() => router.push('/couple/accept')} style={styles.gap} />
+      <Screen title="Partner">
+        <CoupleLoading />
       </Screen>
     );
-  }
+
+  if (!couple.isPaired)
+    return (
+      <Screen title="Partner">
+        <EmptyState
+          icon="user-plus"
+          title={couple.pendingInvitation ? 'Davetiniz bekliyor' : 'Partner ekleyin'}
+          description={
+            couple.pendingInvitation
+              ? 'Davet kodunuzu partnerinizle paylaşın veya kod girerek gelen daveti kabul edin.'
+              : 'Partnerinizi davet edin ya da size verilen davet kodunu girin.'
+          }
+        />
+        <Button
+          title={couple.pendingInvitation ? 'Davet kodunu aç' : 'Partner davet et'}
+          icon="user-plus"
+          onPress={() => router.push('/couple/invite')}
+        />
+        <Button
+          title="Davet kodum var"
+          variant="secondary"
+          onPress={() => router.push('/couple/accept')}
+          style={styles.secondary}
+        />
+      </Screen>
+    );
 
   return (
-    <Screen title="Eşleşme Durumu">
+    <Screen title="Partner">
       <Card style={styles.card}>
-        <View style={styles.headerRow}>
+        <View style={styles.partnerRow}>
           <View style={styles.icon}>
-            <Feather name="users" size={22} color={colors.accent} />
+            <Feather name="user" size={22} color={colors.accent} />
           </View>
-          <View style={styles.flex}>
-            <Text style={styles.name}>{couple.partner?.fullName ?? 'Partneriniz'}</Text>
-            <Text style={styles.meta}>{couple.partner?.email}</Text>
+          <View style={styles.copy}>
+            <Text style={styles.name}>{couple.partner?.displayName ?? 'Partneriniz'}</Text>
+            {couple.partner?.email ? <Text style={styles.meta}>{couple.partner.email}</Text> : null}
           </View>
-          <Badge label="Aktif" />
-        </View>
-        <Divider spaced />
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Eşleşme tarihi</Text>
-          <Text style={styles.infoValue}>{couple.couple ? formatDate(couple.couple.createdAt) : '-'}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Paylaşılan alan</Text>
-          <Text style={styles.infoValue}>Ortak kayıtlar ve ekran notları</Text>
         </View>
       </Card>
-
-      <Text style={styles.note}>
-        Kişisel olarak işaretlediğiniz kayıtlar yalnızca size görünür; ortak kayıtlar ikinizin de erişimine açıktır.
-      </Text>
-
-      <Button title="Eşleşmeyi Sonlandır" variant="danger" icon="x-circle" onPress={confirmEnd} loading={ending} />
+      <Button
+        title="Partner bağlantısını sonlandır"
+        variant="danger"
+        icon="x-circle"
+        onPress={confirmEnd}
+        loading={ending}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { marginBottom: spacing.lg },
-  headerRow: { flexDirection: 'row', alignItems: 'center' },
+  card: { marginBottom: spacing.md },
+  partnerRow: { flexDirection: 'row', alignItems: 'center' },
   icon: {
     width: 44,
     height: 44,
@@ -96,12 +99,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: spacing.md,
   },
-  flex: { flex: 1 },
+  copy: { flex: 1 },
   name: { fontSize: fontSize.lg, fontWeight: '600', color: colors.text },
   meta: { fontSize: fontSize.sm, color: colors.textSecondary, marginTop: 2 },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.xs },
-  infoLabel: { fontSize: fontSize.sm, color: colors.textSecondary },
-  infoValue: { fontSize: fontSize.sm, color: colors.text, fontWeight: '500', flexShrink: 1, textAlign: 'right', marginLeft: spacing.md },
-  note: { fontSize: fontSize.sm, color: colors.textTertiary, lineHeight: 19, marginBottom: spacing.xxl },
-  gap: { marginTop: spacing.md },
+  secondary: { marginTop: spacing.md },
 });

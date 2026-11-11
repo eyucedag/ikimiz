@@ -1,12 +1,12 @@
 import { nowIso, supabase } from '@/src/lib/supabase';
 import { ServiceResult, User } from '@/src/types';
 
-const mapProfile = (row: any): User => ({
-  id: row.id,
-  email: row.email ?? '',
-  fullName: row.full_name ?? '',
-  displayName: row.display_name ?? row.full_name ?? 'Kullanıcı',
-  createdAt: row.created_at ?? nowIso(),
+const mapProfile = (row: Record<string, unknown>): User => ({
+  id: String(row.id),
+  email: String(row.email ?? ''),
+  fullName: String(row.full_name ?? ''),
+  displayName: String(row.display_name ?? row.full_name ?? 'Kullanıcı'),
+  createdAt: String(row.created_at ?? nowIso()),
 });
 
 const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -31,7 +31,6 @@ export const authService = {
     if (!password) return { error: 'Lütfen şifrenizi girin.' };
     const normalized = email.trim().toLowerCase();
 
-
     const { data, error } = await supabase.auth.signInWithPassword({ email: normalized, password });
     if (error || !data.user) return { error: 'E-posta veya şifre hatalı.' };
     return { data: await fetchSupabaseProfile(data.user.id, data.user.email) };
@@ -42,7 +41,6 @@ export const authService = {
     if (!isValidEmail(email)) return { error: 'Lütfen geçerli bir e-posta adresi girin.' };
     if (password.length < 6) return { error: 'Şifre en az 6 karakter olmalı.' };
     const normalized = email.trim().toLowerCase();
-
 
     const { data, error } = await supabase.auth.signUp({
       email: normalized,
@@ -62,12 +60,13 @@ export const authService = {
   },
 
   async signOut(): Promise<void> {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) throw new Error('Oturum kapatılamadı. Bağlantınızı kontrol edip yeniden deneyin.');
   },
 
   async updateProfile(userId: string, fullName: string, displayName: string): Promise<ServiceResult<User>> {
-    if (fullName.trim().length < 2 || displayName.trim().length < 1) return { error: 'Ad alanları boş bırakılamaz.' };
-
+    if (fullName.trim().length < 2 || displayName.trim().length < 1)
+      return { error: 'Ad alanları boş bırakılamaz.' };
 
     const { data, error } = await supabase
       .from('profiles')
@@ -79,7 +78,7 @@ export const authService = {
     return { data: mapProfile(data) };
   },
 
-  async deleteAccount(userId: string): Promise<ServiceResult> {
+  async deleteAccount(_userId: string): Promise<ServiceResult> {
     // schema.sql içindeki delete_my_account() fonksiyonu kullanıcıyı ve verilerini siler.
     const client = supabase;
     const { error } = await client.rpc('delete_my_account');
@@ -89,7 +88,16 @@ export const authService = {
   },
 
   onAuthChange(callback: () => void): () => void {
-    const { data } = supabase.auth.onAuthStateChange(() => callback());
-    return () => data.subscription.unsubscribe();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    // Supabase holds its auth lock while invoking listeners. Profile/session
+    // queries must run after the listener returns, otherwise sign-in can deadlock.
+    const { data } = supabase.auth.onAuthStateChange(() => {
+      clearTimeout(timer);
+      timer = setTimeout(callback, 0);
+    });
+    return () => {
+      clearTimeout(timer);
+      data.subscription.unsubscribe();
+    };
   },
 };
